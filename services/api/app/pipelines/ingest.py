@@ -247,13 +247,29 @@ TRANSIENT_DB_ERRORS = (
 )
 
 
+# Postgres SQLSTATEs with the same meaning. "08" is the whole connection-exception class.
+TRANSIENT_SQLSTATES = ("55P03", "57014")  # lock_not_available, query_canceled
+
+
 def is_connection_loss(exc: BaseException) -> bool:
-    """A dropped connection or a lock wait (retry later), not a data error (don't)."""
-    if isinstance(exc, DBAPIError):
-        if exc.connection_invalidated:
+    """A dropped connection or a lock wait (retry later), not a data error (don't).
+
+    SQLAlchemy wraps asyncpg's exception in its own adapter class, so the telling class
+    sits further down the chain; the adapter does copy the SQLSTATE across.
+    """
+    if isinstance(exc, DBAPIError) and exc.connection_invalidated:
+        return True
+    seen: BaseException | None = exc.orig if isinstance(exc, DBAPIError) else exc
+    while seen is not None:
+        if isinstance(seen, OSError | TimeoutError):
             return True
-        return type(exc.orig).__name__ in TRANSIENT_DB_ERRORS or isinstance(exc.orig, OSError)
-    return isinstance(exc, OSError | TimeoutError)
+        if type(seen).__name__ in TRANSIENT_DB_ERRORS:
+            return True
+        sqlstate = str(getattr(seen, "sqlstate", "") or "")
+        if sqlstate in TRANSIENT_SQLSTATES or sqlstate.startswith("08"):
+            return True
+        seen = seen.__cause__ or seen.__context__
+    return False
 
 
 async def with_reconnect(

@@ -188,6 +188,39 @@ def test_connection_loss_is_told_apart_from_data_errors(exc: Exception, expected
     assert ingest.is_connection_loss(exc) is expected
 
 
+def _as_sqlalchemy_raises_it(asyncpg_error: Exception, sqlstate: str | None):
+    """The real shape: DBAPIError -> adapter Error (sqlstate copied) -> asyncpg error.
+
+    The first version of is_connection_loss looked only at .orig and missed this; the
+    live ingestion run exited on a lock timeout because of it.
+    """
+    from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
+    from sqlalchemy.exc import DBAPIError
+
+    adapter_error = AsyncAdapt_asyncpg_dbapi.Error(str(asyncpg_error))
+    adapter_error.sqlstate = sqlstate  # type: ignore[attr-defined]
+    adapter_error.__cause__ = asyncpg_error
+    return DBAPIError("UPDATE ...", {}, adapter_error)
+
+
+@pytest.mark.parametrize(
+    ("asyncpg_error", "sqlstate", "expected"),
+    [
+        (LockNotAvailableError("canceling statement due to lock timeout"), "55P03", True),
+        (QueryCanceledError("canceling statement due to statement timeout"), "57014", True),
+        (ConnectionDoesNotExistError("connection was closed"), None, True),
+        (Exception("connection failure"), "08006", True),
+        (Exception("value too long for type character varying(300)"), "22001", False),
+        (Exception("duplicate key value violates unique constraint"), "23505", False),
+    ],
+)
+def test_wrapped_errors_are_classified_like_the_real_driver_raises_them(
+    asyncpg_error: Exception, sqlstate: str | None, expected: bool
+) -> None:
+    exc = _as_sqlalchemy_raises_it(asyncpg_error, sqlstate)
+    assert ingest.is_connection_loss(exc) is expected
+
+
 async def test_lost_connection_is_retried_until_it_works() -> None:
     calls, sleeps = [], []
 
