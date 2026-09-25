@@ -151,3 +151,81 @@ async def test_a_crash_leaves_a_resumable_failed_run() -> None:
     assert sorted(requested) == [3, 4, 5, 6]
     assert run.status == "finished"
     assert run.error is None
+
+
+def _dbapi_error(orig: Exception, *, invalidated: bool = False):
+    from sqlalchemy.exc import DBAPIError
+
+    return DBAPIError("INSERT ...", {}, orig, connection_invalidated=invalidated)
+
+
+class ConnectionDoesNotExistError(Exception):
+    """Stands in for asyncpg's class of the same name."""
+
+
+@pytest.mark.parametrize(
+    ("exc", "expected"),
+    [
+        (OSError(121, "The semaphore timeout period has expired"), True),
+        (TimeoutError(), True),
+        (_dbapi_error(ConnectionDoesNotExistError("closed mid-operation")), True),
+        (_dbapi_error(ValueError("x"), invalidated=True), True),
+        (_dbapi_error(ValueError("value too long for type character varying(300)")), False),
+        (ValueError("bad data"), False),
+    ],
+)
+def test_connection_loss_is_told_apart_from_data_errors(exc: Exception, expected: bool) -> None:
+    assert ingest.is_connection_loss(exc) is expected
+
+
+async def test_lost_connection_is_retried_until_it_works() -> None:
+    calls, sleeps = [], []
+
+    async def attempt() -> None:
+        calls.append(1)
+        if len(calls) < 3:
+            raise OSError(121, "semaphore timeout")
+
+    async def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    await ingest.with_reconnect(attempt, delays=(1.0, 2.0, 3.0), sleep=sleep, log=lambda _: None)
+    assert len(calls) == 3
+    assert sleeps == [1.0, 2.0]
+
+
+async def test_data_errors_are_not_retried() -> None:
+    calls = []
+
+    async def attempt() -> None:
+        calls.append(1)
+        raise ValueError("value too long")
+
+    with pytest.raises(ValueError):
+        await ingest.with_reconnect(attempt, delays=(1.0,), log=lambda _: None)
+    assert calls == [1]
+
+
+async def test_reconnect_gives_up_after_the_last_delay() -> None:
+    async def attempt() -> None:
+        raise OSError(121, "still down")
+
+    async def sleep(_: float) -> None:
+        return None
+
+    with pytest.raises(OSError):
+        await ingest.with_reconnect(attempt, delays=(1.0, 1.0), sleep=sleep, log=lambda _: None)
+
+
+class BrokenStore(FakeStore):
+    """The connection is gone: recording the failure fails too."""
+
+    async def rollback(self) -> None:
+        raise OSError(121, "connection gone")
+
+
+async def test_original_error_survives_a_failed_failure_record() -> None:
+    store, requested = BrokenStore(open_run=_run([1, 2], cursor=0)), []
+    job = IngestJob(store, _tmdb(requested, fail_on=1), concurrency=2, log=lambda _: None)
+    with pytest.raises(httpx.HTTPStatusError):  # not the OSError from rollback()
+        await job.run(store.run)

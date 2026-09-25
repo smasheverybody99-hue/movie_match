@@ -4,8 +4,10 @@
     python -m app.pipelines.ingest --plan-only   # show the catalogue it would pick
 
 Resumable: the plan (an ordered id list) and a cursor live in `sync_runs`. A run that
-dies at film 3,000 continues from 3,000 on the next invocation. Upserts make re-running
-safe. TMDB is free but rate-limited, so requests are spaced (settings.tmdb_*).
+dies at film 3,000 continues from 3,000 on the next invocation. A dropped database
+connection is retried automatically (RECONNECT_ATTEMPTS); data errors are not. Upserts
+make re-running safe. TMDB is free but rate-limited, so requests are spaced
+(settings.tmdb_*).
 """
 
 import argparse
@@ -16,6 +18,7 @@ from typing import Protocol
 
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -35,6 +38,8 @@ from app.pipelines.tmdb import FilmRecord, TmdbClient, TmdbNotFound, to_film_rec
 
 KIND = "catalogue"
 CHUNK = 25  # films fetched concurrently and committed together
+RECONNECT_ATTEMPTS = 5
+RECONNECT_DELAYS = (5.0, 15.0, 30.0, 60.0, 120.0)
 
 
 class IngestStore(Protocol):
@@ -94,10 +99,13 @@ class IngestJob:
         except Exception as exc:
             # A failed statement aborts the transaction; clear it so the failure itself
             # can be recorded. The cursor still points at the last committed chunk.
-            await self._store.rollback()
-            run.status = "failed"
-            run.error = f"{type(exc).__name__}: {exc}"[:2000]
-            await self._store.save_progress(run)
+            try:
+                await self._store.rollback()
+                run.status = "failed"
+                run.error = f"{type(exc).__name__}: {exc}"[:2000]
+                await self._store.save_progress(run)
+            except Exception as record_exc:  # e.g. the connection itself is gone
+                self._log(f"could not record the failure: {type(record_exc).__name__}")
             raise
         run.status = "finished"
         run.finished_at = datetime.now(UTC)
@@ -231,6 +239,34 @@ def describe(selection: Selection) -> str:
     )
 
 
+def is_connection_loss(exc: BaseException) -> bool:
+    """A dropped connection (retry after reconnecting), not a data error (don't)."""
+    if isinstance(exc, DBAPIError):
+        if exc.connection_invalidated:
+            return True
+        return "ConnectionDoesNotExist" in type(exc.orig).__name__ or isinstance(exc.orig, OSError)
+    return isinstance(exc, OSError | TimeoutError)
+
+
+async def with_reconnect(
+    attempt: Callable[[], Awaitable[None]],
+    *,
+    delays: Sequence[float] = RECONNECT_DELAYS,
+    sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    log: Callable[[str], None] = print,
+) -> None:
+    """Run `attempt`, re-running it after a lost connection. It must resume, not restart."""
+    for number in range(len(delays) + 1):
+        try:
+            await attempt()
+            return
+        except Exception as exc:
+            if not is_connection_loss(exc) or number == len(delays):
+                raise
+            log(f"connection lost ({type(exc).__name__}); resuming in {delays[number]:.0f}s")
+            await sleep(delays[number])
+
+
 async def _plan(client: TmdbClient, target: int) -> Selection:
     settings = get_settings()
     pools = await build_pools(client, target, settings.catalogue_min_votes)
@@ -250,21 +286,23 @@ async def main(argv: Sequence[str] | None = None) -> None:
             print(describe(await _plan(client, target)))
             return
 
-        async with job_session() as session:
-            store = SqlIngestStore(session)
-            job = IngestJob(store, client, concurrency=settings.tmdb_concurrency)
+        async def plan() -> list[int]:
+            selection = await _plan(client, target)
+            print(describe(selection))
+            return selection.ids
 
-            async def plan() -> list[int]:
-                selection = await _plan(client, target)
-                print(describe(selection))
-                return selection.ids
+        async def attempt() -> None:
+            # A fresh connection each attempt; start_or_resume finds the open run.
+            async with job_session() as session:
+                store = SqlIngestStore(session)
+                job = IngestJob(store, client, concurrency=settings.tmdb_concurrency)
+                run = await job.run(await job.start_or_resume(plan))
+                print(
+                    f"run {run.id} {run.status}: {run.processed_count} ingested, "
+                    f"{run.skipped_count} skipped (gone from TMDB)"
+                )
 
-            run = await job.start_or_resume(plan)
-            run = await job.run(run)
-            print(
-                f"run {run.id} {run.status}: {run.processed_count} ingested, "
-                f"{run.skipped_count} skipped (gone from TMDB)"
-            )
+        await with_reconnect(attempt)
 
 
 if __name__ == "__main__":
