@@ -42,6 +42,7 @@ class IngestStore(Protocol):
     async def create_run(self, planned_ids: list[int]) -> SyncRun: ...
     async def upsert_films(self, records: Sequence[FilmRecord]) -> None: ...
     async def save_progress(self, run: SyncRun) -> None: ...
+    async def rollback(self) -> None: ...
 
 
 def pending_ids(run: SyncRun) -> list[int]:
@@ -91,6 +92,9 @@ class IngestJob:
                 if run.cursor % 250 < CHUNK or run.cursor == len(run.planned_ids):
                     self._log(f"  {run.cursor}/{len(run.planned_ids)}")
         except Exception as exc:
+            # A failed statement aborts the transaction; clear it so the failure itself
+            # can be recorded. The cursor still points at the last committed chunk.
+            await self._store.rollback()
             run.status = "failed"
             run.error = f"{type(exc).__name__}: {exc}"[:2000]
             await self._store.save_progress(run)
@@ -145,6 +149,9 @@ class SqlIngestStore:
     async def save_progress(self, run: SyncRun) -> None:
         self._session.add(run)
         await self._session.commit()
+
+    async def rollback(self) -> None:
+        await self._session.rollback()
 
     async def upsert_film(self, record: FilmRecord) -> None:
         await self.upsert_films([record])

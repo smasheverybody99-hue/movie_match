@@ -19,6 +19,7 @@ class FakeStore:
         self.run = open_run
         self.upserted: list[int] = []
         self.progress: list[int] = []  # cursor at each save
+        self.rollbacks = 0
 
     async def open_run(self) -> SyncRun | None:
         return self.run
@@ -32,6 +33,9 @@ class FakeStore:
 
     async def save_progress(self, run: SyncRun) -> None:
         self.progress.append(run.cursor)
+
+    async def rollback(self) -> None:
+        self.rollbacks += 1
 
 
 def _run(planned: list[int], cursor: int, run_id: int = 1) -> SyncRun:
@@ -136,6 +140,7 @@ async def test_a_crash_leaves_a_resumable_failed_run() -> None:
 
     assert run.status == "failed"
     assert "HTTPStatusError" in (run.error or "")
+    assert store.rollbacks == 1  # cleared before the failure was recorded
     assert run.cursor == 2  # the chunk holding film 4 was not committed
     assert pending_ids(run) == [3, 4, 5, 6]
 

@@ -154,6 +154,14 @@ def _retry_after(response: httpx.Response) -> float | None:
         return None
 
 
+def _clip(value: Any, limit: int) -> str | None:
+    """Fit free text into its column. TMDB has character names over 300 characters."""
+    if value is None or value == "":
+        return None
+    text = str(value)
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
 def _parse_date(value: Any) -> date | None:
     if not value:
         return None
@@ -178,14 +186,14 @@ def to_movie_fields(payload: dict) -> dict:
     """TMDB payload -> our Movie column names. The translation boundary."""
     return {
         "id": payload["id"],
-        "title": payload.get("title") or payload.get("original_title") or "",
-        "original_title": payload.get("original_title"),
+        "title": _clip(payload.get("title") or payload.get("original_title"), 500) or "",
+        "original_title": _clip(payload.get("original_title"), 500),
         "overview": payload.get("overview") or None,
         "release_date": _parse_date(payload.get("release_date")),
         "runtime_minutes": payload.get("runtime") or None,
-        "original_language": payload.get("original_language"),
-        "poster_path": payload.get("poster_path"),
-        "backdrop_path": payload.get("backdrop_path"),
+        "original_language": _clip(payload.get("original_language"), 10),
+        "poster_path": _clip(payload.get("poster_path"), 255),
+        "backdrop_path": _clip(payload.get("backdrop_path"), 255),
         "tmdb_vote_average": payload.get("vote_average"),
         "tmdb_vote_count": payload.get("vote_count"),
         "popularity": payload.get("popularity"),
@@ -196,9 +204,9 @@ def to_movie_fields(payload: dict) -> dict:
 def to_film_record(payload: dict) -> FilmRecord:
     """A full /movie/{id} payload (with credits and keywords appended) -> FilmRecord."""
     movie_id = int(payload["id"])
-    genres = [(int(g["id"]), str(g["name"])) for g in payload.get("genres") or []]
+    genres = [(int(g["id"]), _clip(g["name"], 100) or "") for g in payload.get("genres") or []]
     keywords = [
-        (int(k["id"]), str(k["name"]))
+        (int(k["id"]), _clip(k["name"], 200) or "")
         for k in (payload.get("keywords") or {}).get("keywords") or []
     ]
 
@@ -216,7 +224,7 @@ def to_film_record(payload: dict) -> FilmRecord:
                 "person_id": person_id,
                 "department": "cast",
                 "job": None,
-                "character_name": member.get("character") or None,
+                "character_name": _clip(member.get("character"), 300),
                 "billing_order": member.get("order"),
             }
         )
@@ -230,8 +238,8 @@ def to_film_record(payload: dict) -> FilmRecord:
             {
                 "movie_id": movie_id,
                 "person_id": person_id,
-                "department": str(member.get("department") or "").lower() or "crew",
-                "job": member.get("job"),
+                "department": _clip(str(member.get("department") or "").lower(), 50) or "crew",
+                "job": _clip(member.get("job"), 100),
                 "character_name": None,
                 "billing_order": None,
             }
@@ -249,6 +257,6 @@ def to_film_record(payload: dict) -> FilmRecord:
 def _person(member: dict) -> dict[str, Any]:
     return {
         "id": int(member["id"]),
-        "name": str(member.get("name") or ""),
-        "profile_path": member.get("profile_path"),
+        "name": _clip(member.get("name"), 300) or "",
+        "profile_path": _clip(member.get("profile_path"), 255),
     }

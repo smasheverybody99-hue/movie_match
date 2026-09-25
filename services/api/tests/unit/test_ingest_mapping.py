@@ -140,3 +140,22 @@ def test_candidate_without_date_or_language() -> None:
     assert candidate.year is None
     assert candidate.language == "xx"
     assert candidate.popularity == 0.0
+
+
+def test_overlong_text_is_clipped_to_its_column() -> None:
+    """Film 9473 on TMDB has a 348-character character name; the column holds 300."""
+    payload = {
+        "id": 9473,
+        "title": "T" * 600,
+        "credits": {"cast": [{"id": 1, "name": "N" * 400, "character": "C" * 348, "order": 0}]},
+    }
+    record = to_film_record(payload)
+    assert len(record.movie["title"]) == 500
+    assert len(record.credits[0]["character_name"]) == 300
+    assert record.credits[0]["character_name"].endswith("…")
+    assert len(record.people[0]["name"]) == 300
+
+
+def test_text_within_limits_is_untouched() -> None:
+    record = to_film_record(load_fixture("tmdb_movie_550.json"))
+    assert record.credits[0]["character_name"] == "Narrator"

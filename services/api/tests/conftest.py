@@ -73,7 +73,12 @@ async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, Non
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=None)
     connection = await engine.connect()
     transaction = await connection.begin()
-    maker = async_sessionmaker(bind=connection, expire_on_commit=False)
+    # Each commit() inside a test becomes a savepoint, and rollback() returns to the last
+    # one - the same semantics the code sees in production, all inside the outer
+    # transaction that is thrown away at the end.
+    maker = async_sessionmaker(
+        bind=connection, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
 
     async with maker() as session:
         try:

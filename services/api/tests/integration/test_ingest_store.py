@@ -53,3 +53,28 @@ async def test_finished_run_is_not_reopened(db_session: AsyncSession) -> None:
     run.status = "finished"
     await store.save_progress(run)
     assert await store.open_run() is None
+
+
+async def test_failure_can_be_recorded_after_a_database_error(db_session: AsyncSession) -> None:
+    """Reproduces the live failure: a bad row aborts the transaction, the run must still
+    be markable as failed afterwards."""
+    import pytest
+    from sqlalchemy.exc import DBAPIError
+
+    from app.pipelines.tmdb import FilmRecord
+
+    await _clear_open_runs(db_session)
+    store = SqlIngestStore(db_session)
+    run = await store.create_run([1, 2])
+    bad = FilmRecord(
+        movie={"id": 8_100_001, "title": "Bad", "original_language": "x" * 50},  # column is 10
+    )
+    with pytest.raises(DBAPIError):
+        await store.upsert_films([bad])
+
+    await store.rollback()
+    run.status, run.error = "failed", "StringDataRightTruncationError"
+    await store.save_progress(run)
+
+    reopened = await store.open_run()
+    assert reopened is not None and reopened.id == run.id
