@@ -163,12 +163,22 @@ class ConnectionDoesNotExistError(Exception):
     """Stands in for asyncpg's class of the same name."""
 
 
+class LockNotAvailableError(Exception):
+    """Stands in for asyncpg's class of the same name."""
+
+
+class QueryCanceledError(Exception):
+    """Stands in for asyncpg's class of the same name."""
+
+
 @pytest.mark.parametrize(
     ("exc", "expected"),
     [
         (OSError(121, "The semaphore timeout period has expired"), True),
         (TimeoutError(), True),
         (_dbapi_error(ConnectionDoesNotExistError("closed mid-operation")), True),
+        (_dbapi_error(LockNotAvailableError("lock timeout")), True),
+        (_dbapi_error(QueryCanceledError("statement timeout")), True),
         (_dbapi_error(ValueError("x"), invalidated=True), True),
         (_dbapi_error(ValueError("value too long for type character varying(300)")), False),
         (ValueError("bad data"), False),

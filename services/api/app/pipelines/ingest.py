@@ -239,12 +239,20 @@ def describe(selection: Selection) -> str:
     )
 
 
+# asyncpg error classes that mean "try again later", not "this data is wrong".
+TRANSIENT_DB_ERRORS = (
+    "ConnectionDoesNotExistError",  # the connection dropped
+    "LockNotAvailableError",  # lock_timeout: another session holds the rows
+    "QueryCanceledError",  # statement_timeout, usually for the same reason
+)
+
+
 def is_connection_loss(exc: BaseException) -> bool:
-    """A dropped connection (retry after reconnecting), not a data error (don't)."""
+    """A dropped connection or a lock wait (retry later), not a data error (don't)."""
     if isinstance(exc, DBAPIError):
         if exc.connection_invalidated:
             return True
-        return "ConnectionDoesNotExist" in type(exc.orig).__name__ or isinstance(exc.orig, OSError)
+        return type(exc.orig).__name__ in TRANSIENT_DB_ERRORS or isinstance(exc.orig, OSError)
     return isinstance(exc, OSError | TimeoutError)
 
 
