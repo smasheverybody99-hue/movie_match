@@ -45,3 +45,7 @@ data/
 # local run artefacts
 gate-output.txt
 Claude outputs/
+
+# coverage output
+.coverage
+htmlcov/
