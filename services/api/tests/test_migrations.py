@@ -15,9 +15,11 @@ from tests.conftest import TEST_DATABASE_URL, requires_db
 API_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _alembic_config() -> Config:
+def _alembic_config(database_url: str = "") -> Config:
     config = Config(str(API_ROOT / "alembic.ini"))
     config.set_main_option("script_location", str(API_ROOT / "migrations"))
+    if database_url:
+        config.set_main_option("sqlalchemy.url", database_url)
     return config
 
 
@@ -34,7 +36,7 @@ def test_migration_scripts_are_discoverable() -> None:
 @requires_db
 def test_upgrade_then_downgrade() -> None:
     assert TEST_DATABASE_URL, "guarded by requires_db"
-    config = _alembic_config()
+    config = _alembic_config(TEST_DATABASE_URL)
     command.upgrade(config, "head")
     command.downgrade(config, "base")
     command.upgrade(config, "head")

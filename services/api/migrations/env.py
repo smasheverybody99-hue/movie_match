@@ -3,8 +3,10 @@
 Reads the database URL from app.config (never from alembic.ini) and runs
 migrations through the async engine, since the app uses asyncpg.
 
-Override the target with TEST_DATABASE_URL — that is how the migration
-round-trip test points Alembic at a throwaway database.
+The CLI always targets DATABASE_URL. The migration round-trip test points Alembic
+at its throwaway database by setting `sqlalchemy.url` on the Config it passes in;
+TEST_DATABASE_URL is never picked up implicitly, so a stray value in .env cannot
+redirect `alembic upgrade head`.
 """
 
 import asyncio
@@ -32,8 +34,7 @@ target_metadata = Base.metadata
 
 
 def database_url() -> str:
-    settings = get_settings()
-    return settings.test_database_url or settings.database_url
+    return config.get_main_option("sqlalchemy.url") or get_settings().database_url
 
 
 def run_migrations_offline() -> None:
