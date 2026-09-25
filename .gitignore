@@ -1,0 +1,47 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# node
+node_modules/
+apps/web/dist/
+apps/web/coverage/
+*.local
+npm-debug.log*
+
+# flutter
+apps/mobile/.dart_tool/
+apps/mobile/build/
+apps/mobile/.flutter-plugins*
+apps/mobile/ios/Pods/
+*.iml
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# alembic scratch
+*.sqlite3
+
+# data dumps
+data/
+*.csv.gz
+
+# local run artefacts
+gate-output.txt
+Claude outputs/

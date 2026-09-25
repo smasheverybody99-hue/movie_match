@@ -1,0 +1,703 @@
+<title>Movie Match Build Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0a0a0f; --surface:#15151e; --surface2:#1e1e2a; --line:#2c2c3a; --line-soft:#232330;
+  --text:#f4f3f7; --muted:#a4a0b3; --faint:#6d6980;
+  --red:#e63950; --red-dim:#b22e42; --gold:#f0b93b; --green:#3fb98a;
+  --on-accent:#ffffff; --on-gold:#1a1305;
+  --shadow:0 18px 44px -24px rgba(0,0,0,.85);
+  --font-head:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --bg:#f5f4f8; --surface:#ffffff; --surface2:#ecebf1; --line:#dad7e2; --line-soft:#e6e4ec;
+    --text:#161420; --muted:#565067; --faint:#847e95;
+    --red:#c22740; --red-dim:#9d1f34; --gold:#8f6402; --green:#127b57;
+    --on-accent:#ffffff; --on-gold:#ffffff;
+    --shadow:0 14px 34px -22px rgba(24,18,40,.45);
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#f5f4f8; --surface:#ffffff; --surface2:#ecebf1; --line:#dad7e2; --line-soft:#e6e4ec;
+  --text:#161420; --muted:#565067; --faint:#847e95;
+  --red:#c22740; --red-dim:#9d1f34; --gold:#8f6402; --green:#127b57;
+  --on-accent:#ffffff; --on-gold:#ffffff;
+  --shadow:0 14px 34px -22px rgba(24,18,40,.45);
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--font-body); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{ max-width:1080px; margin:0 auto; padding-inline:16px; padding-block:0 72px; }
+
+/* ---------- sticky bar ---------- */
+.bar{
+  position:sticky; top:env(safe-area-inset-top, 0px); z-index:20;
+  background:color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.bar-in{ max-width:1080px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.mark{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:13px; letter-spacing:.02em; }
+.mark .dot{ width:22px; height:22px; border-radius:50%; background:var(--red); color:#fff; display:grid; place-items:center; font-family:var(--font-head); font-size:12px; font-weight:800; }
+.bar-prog{ flex:1; min-width:150px; display:flex; align-items:center; gap:9px; }
+.track{ flex:1; height:6px; border-radius:99px; background:var(--surface2); overflow:hidden; }
+.track > i{ display:block; height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg, var(--red), var(--gold)); transition:width .3s ease; }
+.bar-prog b{ font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums; min-width:5.5ch; text-align:right; }
+.ghost-btn{
+  font:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer;
+  background:transparent; border:1px solid var(--line); border-radius:99px; padding:5px 13px;
+}
+.ghost-btn:hover{ color:var(--text); border-color:var(--faint); }
+.ghost-btn:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+/* ---------- head ---------- */
+header.hero{ padding-block:44px 8px; }
+.eyebrow{ font-size:11px; font-weight:700; letter-spacing:.17em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+h1{
+  font-family:var(--font-head); font-weight:900; font-size:clamp(30px,5.4vw,52px);
+  line-height:1.04; margin:0 0 14px; text-wrap:balance; letter-spacing:-.01em;
+}
+h1 em{ font-style:italic; color:var(--red); }
+.lede{ color:var(--muted); font-size:clamp(14px,1.5vw,17px); max-width:62ch; margin:0 0 26px; }
+
+.tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.tile{ background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:14px 15px; }
+.tile .n{ font-family:var(--font-head); font-weight:800; font-size:clamp(22px,3vw,30px); line-height:1; display:block; }
+.tile .k{ font-size:11px; color:var(--faint); letter-spacing:.08em; text-transform:uppercase; font-weight:700; margin-top:7px; display:block; }
+
+/* ---------- sections ---------- */
+section{ padding-block:44px 0; }
+h2{
+  font-family:var(--font-head); font-weight:800; font-size:clamp(21px,2.8vw,29px);
+  margin:0 0 6px; line-height:1.18; text-wrap:balance;
+}
+.sub{ color:var(--muted); margin:0 0 20px; max-width:64ch; }
+
+/* ---------- ai speed ---------- */
+.split{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.pane{ background:var(--surface); border:1px solid var(--line-soft); border-radius:14px; padding:18px; }
+.pane.fast{ border-left:3px solid var(--green); }
+.pane.slow{ border-left:3px solid var(--gold); }
+.pane h3{ font-size:13px; margin:0 0 3px; letter-spacing:.04em; text-transform:uppercase; font-weight:700; }
+.pane .rate{ font-family:var(--font-mono); font-size:12px; color:var(--faint); margin:0 0 12px; }
+.pane ul{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px; }
+.pane li{ font-size:13.5px; color:var(--muted); padding-left:16px; position:relative; }
+.pane li::before{ content:""; position:absolute; left:0; top:.55em; width:6px; height:2px; background:currentColor; opacity:.55; }
+.verdict{
+  margin-top:12px; background:var(--surface2); border-radius:12px; padding:14px 16px;
+  font-size:14px; color:var(--text);
+}
+.verdict b{ color:var(--gold); }
+
+/* ---------- timeline ---------- */
+.block-head{
+  display:flex; align-items:baseline; gap:12px; margin:30px 0 12px;
+  padding-bottom:9px; border-bottom:1px solid var(--line);
+}
+.block-head .tag{
+  font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.06em;
+  color:var(--on-gold); background:var(--gold); border-radius:5px; padding:3px 8px; text-transform:uppercase;
+}
+.block-head h3{ font-family:var(--font-head); font-size:19px; font-weight:800; margin:0; flex:1; }
+.block-head .wk{ font-family:var(--font-mono); font-size:12px; color:var(--faint); white-space:nowrap; }
+
+details.phase{
+  background:var(--surface); border:1px solid var(--line-soft); border-radius:14px;
+  margin-bottom:9px; overflow:hidden;
+}
+details.phase[open]{ border-color:var(--line); box-shadow:var(--shadow); }
+details.phase summary{
+  list-style:none; cursor:pointer; padding:15px 17px; display:grid;
+  grid-template-columns:auto 1fr auto; gap:13px; align-items:center;
+}
+details.phase summary::-webkit-details-marker{ display:none; }
+.pnum{
+  font-family:var(--font-mono); font-size:12px; font-weight:600;
+  width:34px; height:34px; border-radius:9px; display:grid; place-items:center;
+  background:var(--surface2); color:var(--muted); flex:none;
+}
+details.phase[data-done="1"] .pnum{ background:var(--green); color:#04140e; }
+.ptitle{ min-width:0; }
+.ptitle b{ display:block; font-size:15px; font-weight:700; line-height:1.3; }
+.ptitle span{ display:block; font-size:12.5px; color:var(--faint); margin-top:2px; }
+.pmeta{ display:flex; align-items:center; gap:9px; flex:none; }
+.mini{ width:46px; height:5px; border-radius:99px; background:var(--surface2); overflow:hidden; }
+.mini > i{ display:block; height:100%; width:0%; background:var(--green); transition:width .25s ease; }
+.pcount{ font-family:var(--font-mono); font-size:11.5px; color:var(--faint); font-variant-numeric:tabular-nums; }
+.chev{ color:var(--faint); font-size:12px; transition:transform .2s ease; }
+details.phase[open] .chev{ transform:rotate(90deg); }
+
+.pbody{ padding:0 17px 17px; border-top:1px solid var(--line-soft); margin-top:2px; padding-top:15px; }
+.flag{
+  display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; border-radius:6px; padding:4px 9px; margin-bottom:12px;
+}
+.flag.legal{ background:color-mix(in srgb, var(--red) 18%, transparent); color:var(--red); border:1px solid color-mix(in srgb, var(--red) 45%, transparent); }
+.flag.gate{ background:color-mix(in srgb, var(--gold) 18%, transparent); color:var(--gold); border:1px solid color-mix(in srgb, var(--gold) 45%, transparent); }
+.note{ font-size:13.5px; color:var(--muted); margin:0 0 13px; }
+.note strong{ color:var(--text); }
+
+ul.check{ list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:1px; }
+ul.check li{ display:flex; gap:10px; align-items:flex-start; padding:7px 9px; border-radius:8px; }
+ul.check li:hover{ background:var(--surface2); }
+ul.check input{ margin:3px 0 0; width:15px; height:15px; accent-color:var(--red); flex:none; cursor:pointer; }
+ul.check label{ font-size:13.5px; line-height:1.45; cursor:pointer; color:var(--text); }
+ul.check input:checked + label{ color:var(--faint); text-decoration:line-through; text-decoration-color:var(--line); }
+ul.check code{ font-family:var(--font-mono); font-size:12px; background:var(--surface2); padding:1px 5px; border-radius:4px; }
+
+.ship{
+  background:var(--surface2); border-radius:10px; padding:11px 14px; font-size:13px;
+  display:flex; gap:9px; align-items:baseline;
+}
+.ship b{ color:var(--gold); font-size:11px; letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; flex:none; }
+.ship span{ color:var(--muted); }
+
+/* ---------- tables ---------- */
+.scroll{ overflow-x:auto; border:1px solid var(--line-soft); border-radius:12px; }
+table{ border-collapse:collapse; width:100%; min-width:520px; font-size:13.5px; }
+th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+thead th{ font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); font-weight:700; background:var(--surface); }
+tbody tr:last-child td{ border-bottom:none; }
+td.num{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+tfoot td{ font-weight:700; background:var(--surface); border-top:1px solid var(--line); }
+.sev{ font-family:var(--font-mono); font-size:11px; font-weight:600; padding:2px 7px; border-radius:5px; white-space:nowrap; }
+.sev.hi{ background:color-mix(in srgb, var(--red) 20%, transparent); color:var(--red); }
+.sev.mid{ background:color-mix(in srgb, var(--gold) 20%, transparent); color:var(--gold); }
+
+/* ---------- metrics ---------- */
+.metrics{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.metric{ background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:16px; border-top:3px solid var(--red); }
+.metric .when{ font-family:var(--font-mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.07em; }
+.metric .big{ font-family:var(--font-head); font-weight:800; font-size:26px; line-height:1.1; margin:6px 0 4px; }
+.metric p{ margin:0; font-size:13px; color:var(--muted); }
+
+/* ---------- stack ---------- */
+.stack{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.sc{ background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:15px 16px; }
+.sc h4{ margin:0 0 9px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); font-weight:700; }
+.sc p{ margin:0; font-family:var(--font-mono); font-size:12.5px; line-height:1.8; color:var(--muted); }
+.sc p b{ color:var(--text); font-weight:600; }
+
+footer{ margin-top:46px; padding-top:18px; border-top:1px solid var(--line); color:var(--faint); font-size:12.5px; }
+footer a{ color:var(--muted); }
+
+@media (max-width:760px){
+  .tiles{ grid-template-columns:1fr 1fr; }
+  .split, .stack{ grid-template-columns:1fr; }
+  .metrics{ grid-template-columns:1fr; }
+  details.phase summary{ grid-template-columns:auto 1fr; row-gap:9px; }
+  .pmeta{ grid-column:1 / -1; }
+  .mini{ flex:1; width:auto; }
+}
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="mark"><span class="dot">M</span> MOVIE MATCH</span>
+    <span class="bar-prog"><span class="track"><i id="gfill"></i></span><b id="gtext">0 / 0</b></span>
+    <button class="ghost-btn" id="expand" type="button">Hammasini ochish</button>
+    <button class="ghost-btn" id="reset" type="button">Tozalash</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">0 → Launch · Web (React) + Mobil (Flutter)</p>
+  <h1>Movie Match'ni <em>17 haftada</em> qurish rejasi</h1>
+  <p class="lede">Deckdagi 24 slayd mahsulot g'oyasi edi. Bu esa uni ishlaydigan, foydalanuvchilar ro'yxatdan o'tadigan ilovaga aylantirish yo'li — haftasiga ~27 soat, Claude bilan kod yozish tezligiga moslangan holda. Har fazada bitta ko'rinadigan natija bor; qadamlarni belgilab boring, progress saqlanadi.</p>
+  <div class="tiles">
+    <div class="tile"><span class="n">17</span><span class="k">hafta</span></div>
+    <div class="tile"><span class="n">~460</span><span class="k">soat</span></div>
+    <div class="tile"><span class="n">10</span><span class="k">faza</span></div>
+    <div class="tile"><span class="n">2</span><span class="k">platforma</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>Claude nimani tezlashtiradi — va nimani yo'q</h2>
+  <p class="sub">Jadval shu farqga qurilgan. AI bilan kod yozish tez, lekin kalendar vaqtning yarmi kod emas.</p>
+  <div class="split">
+    <div class="pane fast">
+      <h3>Tezlashadi</h3>
+      <p class="rate">≈ 2–3× tezroq</p>
+      <ul>
+        <li>CRUD API, auth, migratsiyalar, validatsiya</li>
+        <li>React ekranlari va Flutter widget'lari</li>
+        <li>TMDB ingestion skriptlari, worker'lar, retry mantiqi</li>
+        <li>Test yozish, refactoring, xatolarni topish</li>
+        <li>Prompt va LLM pipeline'lar</li>
+        <li>Hujjat, CI konfiguratsiyasi, deploy skriptlari</li>
+      </ul>
+    </div>
+    <div class="pane slow">
+      <h3>Tezlashmaydi</h3>
+      <p class="rate">≈ 1× — odam vaqti</p>
+      <ul>
+        <li>Nimani qurish va nimadan voz kechish qarori</li>
+        <li>Tavsiyalar sifati yaxshimi yoki yo'qligini bilish</li>
+        <li>Foydalanuvchilar bilan suhbat va ulardan o'rganish</li>
+        <li>TMDB litsenziya muzokarasi (1–4 hafta kutish)</li>
+        <li>App Store / Play review (1–7 kun, rad javobi bilan)</li>
+        <li>Personaj IP bo'yicha yuridik ko'rik</li>
+      </ul>
+    </div>
+  </div>
+  <p class="verdict">Amaliy xulosa: <b>kod yozish vaqti ~60% qisqaradi, kalendar vaqt esa ~35%.</b> Shuning uchun quyidagi jadval yolg'iz dasturchining odatiy 6–7 oylik rejasidan qisqa, lekin "2 haftada tayyor" emas. Qisqargan vaqtni test va o'rganishga sarflang — shu yerda mahsulot yutadi.</p>
+</section>
+
+<section id="plan">
+  <h2>Faza-fazma reja</h2>
+  <p class="sub">To'rt blok, o'n faza. Har bir fazaning oxirida ko'rsatish mumkin bo'lgan narsa qoladi — "ichkarida allaqachon ishlayapti" emas.</p>
+
+  <div class="block-head"><span class="tag">Blok A</span><h3>Poydevor</h3><span class="wk">Hafta 1–3</span></div>
+
+  <details class="phase" data-phase="f0" open>
+    <summary>
+      <span class="pnum">F0</span>
+      <span class="ptitle"><b>Qaror, akkauntlar, skelet</b><span>Hafta 1 · ~27 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <span class="flag legal">Bugun boshlang: TMDB litsenziyasi</span>
+      <p class="note">Eng uzun kutish shu yerdan boshlanadi. TMDB API notijoriy foydalanish uchun bepul; tijorat mahsuloti uchun alohida litsenziya kerak va u <code>sales@themoviedb.org</code> orqali kelishiladi. Xatni birinchi kuni yuboring — kod yozish davom etaveradi, javob esa o'z vaqtida keladi.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f0-1"><label for="f0-1">TMDB'ga tijorat litsenziyasi bo'yicha xat yuborish (mahsulot tavsifi, kutilayotgan hajm, monetizatsiya rejasi)</label></li>
+        <li><input type="checkbox" id="f0-2"><label for="f0-2">MVP doirasini muzlatish: deckdagi 9 ta funksiya. Character Match — F7, Taste Twin — F8</label></li>
+        <li><input type="checkbox" id="f0-3"><label for="f0-3">Akkauntlar: GitHub, Supabase, Anthropic Console, Vercel, Fly.io, Sentry, PostHog</label></li>
+        <li><input type="checkbox" id="f0-4"><label for="f0-4">Monorepo: <code>apps/web</code>, <code>apps/mobile</code>, <code>services/api</code>, <code>packages/shared</code></label></li>
+        <li><input type="checkbox" id="f0-5"><label for="f0-5"><code>CLAUDE.md</code> yozish: stack, papka tuzilmasi, nomlash, test qoidalari, "nima qilma"lar</label></li>
+        <li><input type="checkbox" id="f0-6"><label for="f0-6">Dizayn tokenlari: deckdagi ranglar → CSS o'zgaruvchilari + Flutter <code>ThemeData</code></label></li>
+        <li><input type="checkbox" id="f0-7"><label for="f0-7">CI: lint + test + build, har PR'da. Staging muhiti ishlaydi</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Bo'sh, lekin deploy bo'lgan web, mobil build va "hello" API — uchalasi ham staging'da.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f1">
+    <summary>
+      <span class="pnum">F1</span>
+      <span class="ptitle"><b>Ma'lumot poydevori va Movie DNA</b><span>Hafta 2–3 · ~54 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Butun mahsulotning qiymati shu fazada yaratiladi. Deckda "Movie DNA" deb atalgan narsa — bu har film uchun hisoblangan trait vektori. Uni bir marta yaxshi qilsangiz, qolgan hamma narsa ustiga quriladi.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f1-1"><label for="f1-1">Postgres sxemasi: <code>movies, people, credits, genres, keywords, providers, movie_traits, movie_embeddings</code></label></li>
+        <li><input type="checkbox" id="f1-2"><label for="f1-2">TMDB ingestion: kunlik export + detal so'rovlari, 20–40k film (popularity bo'yicha kesish), rate-limit'ga mos navbat va qayta tiklanish</label></li>
+        <li><input type="checkbox" id="f1-3"><label for="f1-3">Trait pipeline: har film uchun Claude Haiku (Batch API) → 14 o'lchovli vektor + 2 jumlali ta'm izohi</label></li>
+        <li><input type="checkbox" id="f1-4"><label for="f1-4">Embeddinglar + <code>pgvector</code> HNSW indeksi, o'xshashlik so'rovi 50 ms ichida</label></li>
+        <li><input type="checkbox" id="f1-5"><label for="f1-5">Sifat tekshiruvi: o'zingiz yaxshi biladigan 50 ta filmning traitlarini qo'lda ko'rib chiqish. Bu qadamni o'tkazib yubormang</label></li>
+        <li><input type="checkbox" id="f1-6"><label for="f1-6">Kunlik sinxronizatsiya joblari + monitoring</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>20k+ film, trait va embedding bilan. "Shutter Island'ga o'xshash" so'rovi SQL'da ishlaydi — hali UI yo'q, lekin yadro tirik.</span></p>
+    </div>
+  </details>
+
+  <div class="block-head"><span class="tag">Blok B</span><h3>MVP yadrosi</h3><span class="wk">Hafta 4–9</span></div>
+
+  <details class="phase" data-phase="f2">
+    <summary>
+      <span class="pnum">F2</span>
+      <span class="ptitle"><b>Backend va tavsiya dvigateli</b><span>Hafta 4–5 · ~54 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Deckda "94% Match" yozilgan. Bu raqam qayerdan kelishini shu yerda hal qilasiz — va u <strong>ochiq formula</strong> bo'lishi kerak, sehr emas: keyin nega noto'g'ri ishlayotganini tushuna olasiz.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f2-1"><label for="f2-1">Auth (email + Google/Apple), foydalanuvchi profili, sessiyalar</label></li>
+        <li><input type="checkbox" id="f2-2"><label for="f2-2">API: rating, favorite, dislike, watchlist, watched — to'liq CRUD va testlar</label></li>
+        <li><input type="checkbox" id="f2-3"><label for="f2-3">Ta'm vektori: baholar bilan og'irlangan trait o'rtachasi, yangi baholarga ko'proq vazn</label></li>
+        <li><input type="checkbox" id="f2-4"><label for="f2-4">Tavsiya: pgvector kandidatlari → filtr → qayta tartiblash (trait mosligi + mashhurlik jazosi + MMR xilma-xilligi + ko'rilganlarni chiqarish)</label></li>
+        <li><input type="checkbox" id="f2-5"><label for="f2-5">"Nega yoqadi" izohi: Haiku, natija keshlanadi (user+film juftligi bo'yicha)</label></li>
+        <li><input type="checkbox" id="f2-6"><label for="f2-6">Sovuq start: onboarding'da 10–15 film tanlash + kayfiyat savollari</label></li>
+        <li><input type="checkbox" id="f2-7"><label for="f2-7">Redis kesh, rate limit, API xarajat hisoblagichi</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>To'liq API. O'zingiz 30 ta film baholaysiz va chiqqan tavsiyalarni ko'rasiz — ishonchli bo'lsa, davom etasiz.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f3">
+    <summary>
+      <span class="pnum">F3</span>
+      <span class="ptitle"><b>Web ilova (React)</b><span>Hafta 6–7 · ~54 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <ul class="check">
+        <li><input type="checkbox" id="f3-1"><label for="f3-1">Karkas: React + TypeScript + TanStack Query + router. Film sahifalari SEO uchun kerak bo'lsa — Next.js'ni <strong>hozir</strong> tanlang, keyin ko'chirish qimmat</label></li>
+        <li><input type="checkbox" id="f3-2"><label for="f3-2">Onboarding oqimi: ro'yxatdan o'tish → film tanlash → birinchi tavsiyalar (3 daqiqadan kam)</label></li>
+        <li><input type="checkbox" id="f3-3"><label for="f3-3">Asosiy ekranlar: home feed, film sahifasi, qidiruv va filtrlar, watchlist, profil</label></li>
+        <li><input type="checkbox" id="f3-4"><label for="f3-4">Movie DNA sahifasi: deckdagi bar vizualizatsiyasi + AI ta'm xulosasi</label></li>
+        <li><input type="checkbox" id="f3-5"><label for="f3-5">Baholash oqimi tez bo'lsin — bir ekranda ketma-ket 20 ta film baholash imkoni</label></li>
+        <li><input type="checkbox" id="f3-6"><label for="f3-6">Yuklanish, bo'sh va xato holatlari; telefon kengligida to'liq ishlaydi</label></li>
+        <li><input type="checkbox" id="f3-7"><label for="f3-7">TMDB atributsiyasi va logotipi "About" sahifasida (litsenziya sharti)</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Begona odamga havola yuborib, "ro'yxatdan o't va foydalanib ko'r" deyish mumkin bo'lgan web ilova.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f4">
+    <summary>
+      <span class="pnum">F4</span>
+      <span class="ptitle"><b>AI assistant</b><span>Hafta 8 · ~27 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <ul class="check">
+        <li><input type="checkbox" id="f4-1"><label for="f4-1">Tool use: tabiiy so'rov → <code>search_movies(traits, yil, davomiylik, kayfiyat, exclude)</code> chaqiruvi</label></li>
+        <li><input type="checkbox" id="f4-2"><label for="f4-2">Streaming chat UI, oxirgi 5 xabar konteksti, foydalanuvchi ta'm vektori promptda</label></li>
+        <li><input type="checkbox" id="f4-3"><label for="f4-3">Xarajat nazorati: har foydalanuvchiga kunlik limit, prompt caching, qisqa system prompt</label></li>
+        <li><input type="checkbox" id="f4-4"><label for="f4-4">Guardrail: faqat kino mavzusi, prompt injection'ga qarshi himoya, xato javoblarni log qilish</label></li>
+        <li><input type="checkbox" id="f4-5"><label for="f4-5">Deckdagi 3 ta misol so'rov real ishlashini tekshirish ("90 daqiqam bor, miyamni portlatsin")</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Deckning 9-slaydi endi mockup emas.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f5">
+    <summary>
+      <span class="pnum">F5</span>
+      <span class="ptitle"><b>Yopiq alfa — to'xtash nuqtasi</b><span>Hafta 9 · ~27 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <span class="flag gate">Darvoza: bu haftada o'tmasangiz, keyingi bloklar behuda</span>
+      <p class="note">Bu hafta kod yozmaysiz — tinglaysiz. Deckdagi asosiy da'vo bitta: <strong>Movie Match odamning ta'mini shunchalik tushunadiki, u haqiqatan ko'radigan film tavsiya qiladi.</strong> Shu da'voni hozir tekshirasiz, mobil ilovaga 80 soat sarflashdan oldin.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f5-1"><label for="f5-1">30–50 tester yig'ish: do'stlar, universitet, Telegram kinoguruhlari, r/movies</label></li>
+        <li><input type="checkbox" id="f5-2"><label for="f5-2">Telemetriya: tavsiya ko'rsatildi → bosildi → watchlistga qo'shildi → ko'rildi → baholandi</label></li>
+        <li><input type="checkbox" id="f5-3"><label for="f5-3">Asosiy metrika: tavsiya qilingan filmning 7 kun ichida ko'rilishi ≥ 15%</label></li>
+        <li><input type="checkbox" id="f5-4"><label for="f5-4">Har hafta 5 ta foydalanuvchi bilan 20 daqiqalik suhbat, yozib olib</label></li>
+        <li><input type="checkbox" id="f5-5"><label for="f5-5">Qaror: metrika past bo'lsa — F2'ga qaytib dvigatelni qayta quring, F6'ga o'tmang</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Hujjatlashtirilgan qaror: davom etamiz yoki tavsiya mantiqini qayta quramiz.</span></p>
+    </div>
+  </details>
+
+  <div class="block-head"><span class="tag">Blok C</span><h3>Mobil va Character Match</h3><span class="wk">Hafta 10–15</span></div>
+
+  <details class="phase" data-phase="f6">
+    <summary>
+      <span class="pnum">F6</span>
+      <span class="ptitle"><b>Flutter ilovasi</b><span>Hafta 10–12 · ~81 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Backend allaqachon tayyor, shuning uchun bu faza sof mijoz ishi. Flutter 3.47 (2026-yil avgust, stable) — bitta kodbazadan iOS va Android.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f6-1"><label for="f6-1">Karkas: Flutter 3.47 + Riverpod + Dio + go_router, dizayn tokenlari web bilan bir xil</label></li>
+        <li><input type="checkbox" id="f6-2"><label for="f6-2">Ekran pariteti: onboarding, feed, film, qidiruv, watchlist, DNA, assistant</label></li>
+        <li><input type="checkbox" id="f6-3"><label for="f6-3">Nativ his: swipe bilan baholash, share sheet, haptics, offline kesh (Isar/Hive)</label></li>
+        <li><input type="checkbox" id="f6-4"><label for="f6-4">Push (FCM): haftalik tavsiya, watchlistdagi film striminga chiqqanda</label></li>
+        <li><input type="checkbox" id="f6-5"><label for="f6-5">Do'kon akkauntlari: Apple Developer ($99/yil), Google Play ($25 bir marta) — ro'yxatdan o'tish 1–3 kun</label></li>
+        <li><input type="checkbox" id="f6-6"><label for="f6-6">TestFlight va Play internal testing kanallarida build turibdi</label></li>
+        <li><input type="checkbox" id="f6-7"><label for="f6-7">Kamida 4 ta real qurilmada test (eski Android ham)</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Testerlar telefoniga o'rnatilgan ilova.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f7">
+    <summary>
+      <span class="pnum">F7</span>
+      <span class="ptitle"><b>Character Match</b><span>Hafta 13–14 · ~54 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <span class="flag legal">Huquqiy ko'rikdan o'tmasdan public qilmang</span>
+      <p class="note">Batman, Tony Stark, Spider-Man — bular tovar belgisi va mualliflik huquqi bilan himoyalangan personajlar. Deckda bu to'g'ri qayd etilgan. Amalda: <strong>faqat matn nomi, rasm/logo/ilustratsiya yo'q</strong>, ko'rinadigan disclaimer ("ko'ngilochar, rasmiy emas, psixologik test emas"), va yurist bilan bir marta ko'rib chiqish. Umumiy mulkdagi personajlar (Sherlock Holmes kabi) xavfsizroq — birinchi versiyani ularga og'irlik berib qiling.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f7-1"><label for="f7-1">Personaj bazasi: TMDB credits'dagi <code>character</code> maydonidan top 2–3k, qo'lda tozalash (takror, bo'sh, epizodik)</label></li>
+        <li><input type="checkbox" id="f7-2"><label for="f7-2">Personaj trait modeli: deckdagi 11 o'lcham (strategik, mustaqillik, qiziquvchanlik, liderlik, tavakkal, hazil...)</label></li>
+        <li><input type="checkbox" id="f7-3"><label for="f7-3">Ixtiyoriy 12 savollik quiz + ta'm ma'lumotidan Character DNA hisoblash</label></li>
+        <li><input type="checkbox" id="f7-4"><label for="f7-4">Moslik + "Nega?" izohi, dashboard ekrani (deckning 12-slaydi)</label></li>
+        <li><input type="checkbox" id="f7-5"><label for="f7-5">Character → Movies yo'li: bu funksiyani tavsiyaga qaytaruvchi ko'prik, asosiy qiymati shu</label></li>
+        <li><input type="checkbox" id="f7-6"><label for="f7-6">Ulashish kartochkasi (server tomonda rasm generatsiyasi) — organik o'sish kanali</label></li>
+        <li><input type="checkbox" id="f7-7"><label for="f7-7">Yurist ko'rigi: personaj nomlari, disclaimer matni, ulashish kartochkasi dizayni</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Deckning eng ko'rimli funksiyasi tirik — va huquqiy jihatdan tekshirilgan.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f8">
+    <summary>
+      <span class="pnum">F8</span>
+      <span class="ptitle"><b>Ijtimoiy funksiyalar va sayqal</b><span>Hafta 15 · ~27 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Taste Twin haqida ochiq bo'ling: u kollaborativ filtrlashga tayanadi va <strong>1000+ faol foydalanuvchisiz ishlamaydi</strong>. Launch'da uni ko'rsatmang yoki content-based versiyasini qiling.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f8-1"><label for="f8-1">Smart Watchlist: mavjud traitlar bilan avto-guruhlash (yangi model kerak emas)</label></li>
+        <li><input type="checkbox" id="f8-2"><label for="f8-2">Group Match: havola bilan qo'shilish, ta'm vektorlari kesishmasi</label></li>
+        <li><input type="checkbox" id="f8-3"><label for="f8-3">Taste Twin — faqat yetarli ma'lumot bo'lsa yoqiladi; aks holda backlogda qoladi</label></li>
+        <li><input type="checkbox" id="f8-4"><label for="f8-4">Tezlik: web LCP &lt; 2.5s, API p95 &lt; 300ms, mobil sovuq start &lt; 2s</label></li>
+        <li><input type="checkbox" id="f8-5"><label for="f8-5">Qulaylik: klaviatura navigatsiyasi, kontrast, ekran o'quvchi yorliqlari</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Launch'ga qadar funksiya ishlari tugadi. Qolgani — tayyorgarlik.</span></p>
+    </div>
+  </details>
+
+  <div class="block-head"><span class="tag">Blok D</span><h3>Launch</h3><span class="wk">Hafta 16–17</span></div>
+
+  <details class="phase" data-phase="f9">
+    <summary>
+      <span class="pnum">F9</span>
+      <span class="ptitle"><b>Huquqiy, ishonchlilik, do'konlar</b><span>Hafta 16–17 · ~54 soat</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <ul class="check">
+        <li><input type="checkbox" id="f9-1"><label for="f9-1">TMDB tijorat litsenziyasi imzolangan (F0'da boshlangan) va atributsiya joyida</label></li>
+        <li><input type="checkbox" id="f9-2"><label for="f9-2">Foydalanish shartlari, Maxfiylik siyosati, ma'lumot eksporti va akkauntni o'chirish oqimi</label></li>
+        <li><input type="checkbox" id="f9-3"><label for="f9-3">Sentry, uptime monitoring, DB zaxirasi — va tiklashni <strong>haqiqatan sinab ko'rish</strong></label></li>
+        <li><input type="checkbox" id="f9-4"><label for="f9-4">Yuklama testi: 500 parallel foydalanuvchi, LLM xarajat cheklovi ishlayotganini tekshirish</label></li>
+        <li><input type="checkbox" id="f9-5"><label for="f9-5">App Store va Play'ga yuborish. Birinchi urinishda rad javobiga tayyor turing — 1–7 kun</label></li>
+        <li><input type="checkbox" id="f9-6"><label for="f9-6">Landing sahifa, analitika, onboarding voronkasi o'lchovi</label></li>
+        <li><input type="checkbox" id="f9-7"><label for="f9-7">Launch kanallari tayyor: Product Hunt, r/movies, Telegram, universitet, kino bloglari</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Ommaviy launch — web'da va ikkala do'konda.</span></p>
+    </div>
+  </details>
+
+  <details class="phase" data-phase="f10">
+    <summary>
+      <span class="pnum">F10</span>
+      <span class="ptitle"><b>Launch'dan keyingi 30 kun</b><span>Doimiy</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Launch — boshlanish. Birinchi oy davomida yangi funksiya emas, mavjudini to'g'rilash ustida ishlang.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f10-1"><label for="f10-1">Har kuni metrika ko'rish: ro'yxatdan o'tish, baholar soni, tavsiya→ko'rish, xatolar</label></li>
+        <li><input type="checkbox" id="f10-2"><label for="f10-2">Haftada bir marta relise, ikki haftada bir marta 5 ta foydalanuvchi suhbati</label></li>
+        <li><input type="checkbox" id="f10-3"><label for="f10-3">Retention kuzatuvi: D1 / D7 / D30; D7 ≥ 25% maqsad</label></li>
+        <li><input type="checkbox" id="f10-4"><label for="f10-4">LLM xarajati foydalanuvchi boshiga hisoblanadi va kuzatiladi</label></li>
+        <li><input type="checkbox" id="f10-5"><label for="f10-5">30 kundan keyin: keyingi yo'nalish bo'yicha qaror (V3 ijtimoiy yoki TV/anime kengayishi)</label></li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section>
+  <h2>Xavflar — va ular bilan nima qilish</h2>
+  <p class="sub">Bular loyihani to'xtatishi mumkin bo'lgan narsalar, ahamiyat tartibida.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Xavf</th><th>Ta'sir</th><th>Qachon hal qilinadi</th><th>Nima qilish</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>TMDB tijorat litsenziyasi</b> olinmaydi yoki juda qimmat</td>
+          <td><span class="sev hi">Yuqori</span></td>
+          <td>F0 — 1-hafta</td>
+          <td>Xatni birinchi kuni yuboring. Zaxira: Watchmode, JustWatch API, yoki ochiq datasetlar kombinatsiyasi. Arxitekturani manba almashtirish mumkin bo'ladigan qilib yozing.</td>
+        </tr>
+        <tr>
+          <td><b>Personaj IP</b> — Batman, Stark va boshqalar himoyalangan</td>
+          <td><span class="sev hi">Yuqori</span></td>
+          <td>F7 — 13-hafta</td>
+          <td>Faqat matn nomi, rasm yo'q. Ko'rinadigan disclaimer. Umumiy mulkdagi personajlarga urg'u. Yurist ko'rigi majburiy.</td>
+        </tr>
+        <tr>
+          <td><b>Tavsiyalar aslida yaxshi emas</b> — lekin buni bilmaysiz</td>
+          <td><span class="sev hi">Yuqori</span></td>
+          <td>F5 — 9-hafta</td>
+          <td>Alfa darvozasini o'tkazib yubormang. Aniq metrika: 7 kunlik ko'rilish ≥ 15%. Past bo'lsa — orqaga qayting.</td>
+        </tr>
+        <tr>
+          <td><b>Doira kengayishi</b> — deckda 40 ta funksiya bor</td>
+          <td><span class="sev hi">Yuqori</span></td>
+          <td>Doimiy</td>
+          <td>MVP 9 ta funksiyada muzlatilgan. Yangi g'oya backlogga yoziladi, jadvalga emas.</td>
+        </tr>
+        <tr>
+          <td><b>Sovuq start</b> — yangi foydalanuvchida ma'lumot yo'q</td>
+          <td><span class="sev mid">O'rta</span></td>
+          <td>F2 — 4-hafta</td>
+          <td>Onboarding'da 10–15 film tanlash majburiy. Undan oldin tavsiya ko'rsatmang.</td>
+        </tr>
+        <tr>
+          <td><b>LLM xarajati</b> foydalanuvchi o'sishi bilan portlaydi</td>
+          <td><span class="sev mid">O'rta</span></td>
+          <td>F4 — 8-hafta</td>
+          <td>Izohlarni keshlang, Haiku ishlating, kunlik limit qo'ying, Batch API'dan foydalaning.</td>
+        </tr>
+        <tr>
+          <td><b>Yolg'iz ishlash charchog'i</b> — 17 hafta uzoq</td>
+          <td><span class="sev mid">O'rta</span></td>
+          <td>Doimiy</td>
+          <td>Haftada bir kun to'liq dam. Har faza oxirida ko'rsatiladigan natija — motivatsiya shundan keladi.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Xarajat</h2>
+  <p class="sub">Launch paytida ~500 faol foydalanuvchi uchun taxminiy hisob. TMDB litsenziyasi alohida kelishiladi va bu yerda yo'q.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Nima</th><th>Oylik</th><th>Izoh</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase Pro (Postgres + Auth + pgvector)</td><td class="num">$25</td><td>Bepul tarif F0–F3 uchun yetadi</td></tr>
+        <tr><td>API hosting (Fly.io / Railway)</td><td class="num">$10–20</td><td>2 kichik instans + worker</td></tr>
+        <tr><td>Web hosting (Vercel)</td><td class="num">$0–20</td><td>Hobby tarifi alfa uchun yetarli</td></tr>
+        <tr><td>Redis (Upstash)</td><td class="num">$0–10</td><td>Kesh va rate limit</td></tr>
+        <tr><td>Claude API — izohlar va assistant</td><td class="num">$30–80</td><td>Haiku 4.5 $1/$5 per MTok; kesh bilan ancha arzon</td></tr>
+        <tr><td>Sentry + PostHog</td><td class="num">$0–25</td><td>Bepul tariflar boshida yetadi</td></tr>
+        <tr><td>Domen</td><td class="num">~$1</td><td>$12/yil</td></tr>
+      </tbody>
+      <tfoot><tr><td>Oylik jami</td><td class="num">$65–180</td><td>+ TMDB litsenziyasi</td></tr></tfoot>
+    </table>
+  </div>
+  <p class="note" style="margin-top:12px;">Bir martalik xarajatlar: trait pipeline (20k film, Haiku Batch API bilan) ≈ <b>$30–60</b>; Apple Developer $99/yil; Google Play $25 bir marta; yurist ko'rigi — mintaqangizga qarab.</p>
+</section>
+
+<section>
+  <h2>Uchta raqam — boshqa hammasidan muhim</h2>
+  <p class="sub">Ko'p metrika kuzatish mumkin. Qaror qabul qilish uchun shu uchtasi kerak.</p>
+  <div class="metrics">
+    <div class="metric">
+      <span class="when">F5 · 9-hafta</span>
+      <p class="big">≥ 15%</p>
+      <p>Tavsiya qilingan film 7 kun ichida ko'rildi. Mahsulotning asosiy da'vosi shu raqamda sinovdan o'tadi.</p>
+    </div>
+    <div class="metric">
+      <span class="when">Launch · 17-hafta</span>
+      <p class="big">≥ 25%</p>
+      <p>D7 retention. Undan past bo'lsa — odamlar bir marta sinab ko'rib, qaytmayapti.</p>
+    </div>
+    <div class="metric">
+      <span class="when">Doimiy</span>
+      <p class="big">10+</p>
+      <p>Birinchi haftada foydalanuvchi qo'ygan baholar soni. Kam bo'lsa, dvigatelda ishlaydigan ma'lumot yo'q.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Stack</h2>
+  <p class="sub">Har biri Claude yaxshi biladigan, hujjatlari boy va yolg'iz dasturchi boshqara oladigan texnologiya.</p>
+  <div class="stack">
+    <div class="sc"><h4>Web</h4><p><b>React 19</b> + TypeScript<br><b>Vite</b> yoki Next.js (SEO kerak bo'lsa)<br><b>TanStack Query</b> — server holati<br>Vercel</p></div>
+    <div class="sc"><h4>Mobil</h4><p><b>Flutter 3.47</b> / Dart<br><b>Riverpod</b> — holat<br><b>Dio</b> + <b>go_router</b><br>Isar — offline kesh</p></div>
+    <div class="sc"><h4>Backend</h4><p><b>Node 22 + Fastify</b> + TypeScript<br>(yoki Python + FastAPI)<br>Fly.io / Railway<br>Upstash Redis</p></div>
+    <div class="sc"><h4>Ma'lumot va AI</h4><p><b>Supabase Postgres</b> + <b>pgvector</b><br><b>Claude Haiku 4.5</b> — traitlar, izohlar<br><b>Claude Sonnet 5</b> — assistant<br>TMDB — film metama'lumotlari</p></div>
+  </div>
+</section>
+
+<footer>
+  Reja 2026-yil 24-sentyabr holatiga ko'ra tuzilgan. Hafta hisobi haftasiga ~27 soat ishlash va Claude bilan kod yozishga asoslangan. TMDB litsenziya shartlari va Claude API narxlari vaqt o'tishi bilan o'zgarishi mumkin — F0 va F9'da qayta tekshiring.
+  <br>Manbalar: <a href="https://developer.themoviedb.org/docs/faq" target="_blank" rel="noopener">TMDB API FAQ</a> · <a href="https://www.themoviedb.org/api-terms-of-use" target="_blank" rel="noopener">TMDB API shartlari</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Claude API narxlari</a> · <a href="https://docs.flutter.dev/release/whats-new" target="_blank" rel="noopener">Flutter relizlari</a>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('ul.check input[type=checkbox]'));
+  var phases = Array.prototype.slice.call(document.querySelectorAll('details.phase'));
+  var gfill = document.getElementById('gfill');
+  var gtext = document.getElementById('gtext');
+  var LS = 'mm-roadmap-progress';
+  var db = null, doc = null, state = {};
+
+  function readLocal(){
+    try { return JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch(e){ return {}; }
+  }
+  function writeLocal(){
+    try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){}
+  }
+
+  function paint(){
+    var total = boxes.length, done = 0;
+    boxes.forEach(function(b){
+      var on = !!state[b.id];
+      b.checked = on;
+      if (on) done++;
+    });
+    gfill.style.width = total ? (done / total * 100) + '%' : '0%';
+    gtext.textContent = done + ' / ' + total;
+
+    phases.forEach(function(p){
+      var ins = Array.prototype.slice.call(p.querySelectorAll('input[type=checkbox]'));
+      if (!ins.length) return;
+      var d = ins.filter(function(i){ return state[i.id]; }).length;
+      var bar = p.querySelector('.mini > i');
+      var cnt = p.querySelector('.pcount');
+      if (bar) bar.style.width = (d / ins.length * 100) + '%';
+      if (cnt) cnt.textContent = d + '/' + ins.length;
+      p.setAttribute('data-done', d === ins.length ? '1' : '0');
+    });
+  }
+
+  var pending = null, inflight = false;
+  function flush(){
+    if (!doc || inflight || !pending) return;
+    var body = pending; pending = null; inflight = true;
+    doc.set(body).catch(function(){}).then(function(){ inflight = false; flush(); });
+  }
+  function persist(){
+    writeLocal();
+    if (!doc) return;
+    pending = { done: state, updatedAt: Date.now() };
+    flush();
+  }
+
+  state = readLocal();
+  paint();
+
+  boxes.forEach(function(b){
+    b.addEventListener('change', function(){
+      if (b.checked) state[b.id] = true; else delete state[b.id];
+      paint();
+      persist();
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', function(){
+    state = {};
+    paint();
+    persist();
+  });
+
+  var expandBtn = document.getElementById('expand');
+  expandBtn.addEventListener('click', function(){
+    var anyClosed = phases.some(function(p){ return !p.open; });
+    phases.forEach(function(p){ p.open = anyClosed; });
+    expandBtn.textContent = anyClosed ? 'Hammasini yopish' : 'Hammasini ochish';
+  });
+
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('db').then(function(d){
+      if (!d) return;
+      db = d;
+      doc = db.doc('roadmap/progress');
+      doc.onSnapshot(function(snap){
+        if (!snap || !snap.exists) return;
+        var body = snap.data() || {};
+        var remote = body.done;
+        if (remote && typeof remote === 'object') {
+          state = remote;
+          writeLocal();
+          paint();
+        }
+      }, function(){ doc = null; });
+    }).catch(function(){});
+  }
+})();
+</script>

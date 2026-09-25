@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Single source of truth for the Movie DNA vector. Order is the vector order and must never change. Adding a dimension means appending it here, mirroring it in services/api/app/traits.py, and re-running the trait pipeline.",
+  "scale": { "min": 0, "max": 100 },
+  "dimensions": [
+    { "key": "psychological_complexity", "label_en": "Psychological", "label_uz": "Psixologik", "description": "How much the film turns on inner states, unreliable perception and mental conflict." },
+    { "key": "plot_twist", "label_en": "Plot twists", "label_uz": "Syujet burilishi", "description": "Presence and weight of reveals that reframe what came before." },
+    { "key": "mystery", "label_en": "Mystery", "label_uz": "Sirlilik", "description": "How much the film withholds information and invites the viewer to solve it." },
+    { "key": "character_depth", "label_en": "Complex characters", "label_uz": "Murakkab personajlar", "description": "Moral ambiguity and interiority of the main characters." },
+    { "key": "emotional_intensity", "label_en": "Emotional intensity", "label_uz": "Hissiy zichlik", "description": "How heavily the film leans on emotional impact." },
+    { "key": "pacing", "label_en": "Pace", "label_uz": "Temp", "description": "0 = contemplative and slow, 100 = relentless." },
+    { "key": "humor", "label_en": "Humor", "label_uz": "Hazil", "description": "Amount and centrality of comedy." },
+    { "key": "romance", "label_en": "Romance", "label_uz": "Romantika", "description": "Weight of a romantic thread." },
+    { "key": "action", "label_en": "Action", "label_uz": "Ekshn", "description": "Physical set pieces, chases, fights." },
+    { "key": "violence", "label_en": "Violence", "label_uz": "Zo'ravonlik", "description": "Explicitness and frequency of violence. Used for filtering as well as matching." },
+    { "key": "visual_style", "label_en": "Visual style", "label_uz": "Vizual uslub", "description": "How distinctive and deliberate the cinematography and design are." },
+    { "key": "realism", "label_en": "Realism", "label_uz": "Realizm", "description": "0 = fully fantastical, 100 = grounded and plausible." },
+    { "key": "darkness", "label_en": "Tone darkness", "label_uz": "Qorong'ulik", "description": "0 = light and warm, 100 = bleak." },
+    { "key": "ending_ambiguity", "label_en": "Open ending", "label_uz": "Ochiq tugash", "description": "How unresolved the ending is left." }
+  ]
+}
