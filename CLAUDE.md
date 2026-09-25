@@ -97,6 +97,44 @@ Rules:
 - Run before any commit: `ruff check . && pytest` in `services/api`,
   `npm run lint && npm run build` in `apps/web`.
 
+## Ask before spending money or changing the machine
+
+Stop and ask the user first. Do not start and ask afterwards.
+
+**Money.** Any run that calls a paid API beyond a handful of test requests. Before an
+LLM batch, state the film count, the model, and the estimated cost, and wait for a yes.
+Never scale a run up because it is "only a few dollars" — the user decides that, not you.
+
+**The machine.** Installing or removing software, changing PATH or system settings,
+anything under `%LOCALAPPDATA%` or Program Files, and anything that is not undone by
+deleting a file in this repo.
+
+**Irreversible.** Deleting files the user did not ask you to delete, force-pushing,
+rewriting git history, dropping a database table, revoking a key.
+
+**Paid plans.** Never sign up for anything, upgrade a tier, or add a payment method.
+
+Cheap, reversible, inside-the-repo work needs no permission: writing code, running tests,
+reading files, local git commits.
+
+## Keep the running cost down
+
+The LLM pipelines are the only real cost in this project. Treat cost as a design
+constraint, not an afterthought.
+
+- **Always stage a batch run.** 50 films first, check the output by hand, then 500, then
+  the full catalogue — and ask before each step up. A bad prompt found at film 50 costs
+  cents; found at film 20,000 it costs the whole run.
+- **Claude Haiku for bulk work.** Trait extraction and explanations. Never Opus or Sonnet
+  for a job measured in thousands of rows.
+- **Use the Batch API** for anything that is not user-facing: half the token price.
+- **Cache before you generate.** Check the `explanations` table before every call; a
+  regenerated explanation is money spent twice for the same sentence.
+- **Estimate before running.** Print the projected cost with a `--dry-run` flag and show
+  it to the user before the real run.
+- **Per-user caps stay on.** `assistant_daily_calls_per_user` exists to stop one user
+  from running up the bill. Do not raise it to make a test pass.
+
 ## Do not
 
 - Do not write TMDB API keys, Supabase service keys or Anthropic keys into any file.
