@@ -164,3 +164,12 @@ async def test_pending_excludes_scored_films_and_orders_by_popularity(films: Asy
 
 async def test_pending_respects_limit(films: AsyncSession) -> None:
     assert len(await select_pending(films, limit=2)) == 2
+
+
+async def test_pending_by_hand_picked_ids_keeps_the_list_order(films: AsyncSession) -> None:
+    client = _client([load_fixture("anthropic_batch_results.json")[0]])
+    await collect(films, client, await submit(films, client, await load_films(films, [550])))
+
+    # 550 is scored and 999_999_999 is not in the catalogue: both are skipped.
+    assert await select_pending(films, 10, [155, 550, 999_999_999, 13]) == [155, 13]
+    assert await select_pending(films, 1, [155, 13]) == [155]

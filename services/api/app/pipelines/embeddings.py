@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import EMBEDDING_DIM, Movie, MovieEmbedding, MovieTraits
+from app.pipelines.cli import utf8_console
 from app.pipelines.db import job_session
 from app.pipelines.traits import load_films
 
@@ -110,6 +111,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--limit", type=int, required=True, help="films in this run")
     parser.add_argument("--dry-run", action="store_true", help="text and size, no API call")
     args = parser.parse_args(argv)
+    utf8_console()
 
     async with job_session() as session:
         pending = await select_pending(session, args.limit)

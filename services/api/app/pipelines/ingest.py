@@ -33,6 +33,7 @@ from app.models import (
     SyncRun,
 )
 from app.pipelines.catalogue import Selection, build_pools, select_catalogue
+from app.pipelines.cli import utf8_console
 from app.pipelines.db import job_session
 from app.pipelines.tmdb import FilmRecord, TmdbClient, TmdbNotFound, to_film_record
 
@@ -302,6 +303,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--plan-only", action="store_true", help="print the plan, ingest nothing")
     parser.add_argument("--target", type=int, help="override settings.catalogue_target")
     args = parser.parse_args(argv)
+    utf8_console()
     settings = get_settings()
     target = args.target or settings.catalogue_target
 

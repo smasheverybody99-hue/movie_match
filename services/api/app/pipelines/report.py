@@ -1,6 +1,7 @@
 """Trait scores for hand review.
 
     python -m app.pipelines.report 27205 157336 680     # by TMDB id
+    python -m app.pipelines.report ../../docs/review-films.md   # the review list
 
 Prints one row per film, one column per trait, so a person who knows the films can say
 whether the scores are right. Films without traits are listed as such, not skipped.
@@ -13,6 +14,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 
 from app.models import Movie, MovieTraits
+from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
 from app.traits import TRAIT_KEYS
 
@@ -46,8 +48,10 @@ def format_report(rows: Sequence[tuple[int, str, int | None, dict | None]]) -> s
 
 async def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Trait scores for hand review.")
-    parser.add_argument("ids", nargs="+", type=int, help="TMDB film ids")
+    parser.add_argument("ids", nargs="+", help="TMDB film ids, or a file listing them")
     args = parser.parse_args(argv)
+    args.ids = list(dict.fromkeys(i for arg in args.ids for i in read_ids(arg)))
+    utf8_console()
 
     async with job_session() as session:
         stmt = (

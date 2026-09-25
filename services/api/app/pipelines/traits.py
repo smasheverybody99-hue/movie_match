@@ -2,12 +2,14 @@
 
     python -m app.pipelines.traits submit --limit 50 --dry-run   # prompt + cost, no API call
     python -m app.pipelines.traits submit --limit 50 --yes       # real, paid batch
+    python -m app.pipelines.traits submit --ids ../../docs/review-films.md --dry-run
     python -m app.pipelines.traits collect <batch_id>
     python -m app.pipelines.traits status
 
 Runs as a batch job, never inside a request. Uses Claude Haiku through the Batch API,
 which halves the token cost. Runs are staged (CLAUDE.md): 50 films, check by hand, then
-500, then the rest - `--limit` has no default so every run states its size.
+500, then the rest - `--limit` has no default so every run states its size. `--ids`
+takes a hand-picked list instead (ids, or a file such as docs/review-films.md).
 """
 
 import argparse
@@ -36,6 +38,7 @@ from app.models import (
     TraitBatch,
     TraitFailure,
 )
+from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
 from app.traits import SPEC_VERSION, TRAIT_KEYS, to_vector
 
@@ -172,17 +175,24 @@ def estimate_cost(films: Sequence[dict[str, Any]]) -> CostEstimate:
 # --- database side ----------------------------------------------------------------
 
 
-async def select_pending(session: AsyncSession, limit: int) -> list[int]:
-    """Films with no trait vector that have not exhausted their attempts, most popular first."""
+async def select_pending(
+    session: AsyncSession, limit: int, ids: Sequence[int] | None = None
+) -> list[int]:
+    """Films with no trait vector that have not exhausted their attempts.
+
+    Most popular first; or, given `ids`, those of them still pending, in the given order.
+    """
     stmt = (
         select(Movie.id)
         .outerjoin(MovieTraits, MovieTraits.movie_id == Movie.id)
         .outerjoin(TraitFailure, TraitFailure.movie_id == Movie.id)
         .where(MovieTraits.movie_id.is_(None))
         .where((TraitFailure.movie_id.is_(None)) | (TraitFailure.attempts < MAX_ATTEMPTS))
-        .order_by(Movie.popularity.desc().nullslast(), Movie.id)
-        .limit(limit)
     )
+    if ids is not None:
+        pending = set((await session.execute(stmt.where(Movie.id.in_(ids)))).scalars().all())
+        return [i for i in ids if i in pending][:limit]
+    stmt = stmt.order_by(Movie.popularity.desc().nullslast(), Movie.id).limit(limit)
     return list((await session.execute(stmt)).scalars().all())
 
 
@@ -348,7 +358,9 @@ async def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Trait extraction batches.")
     sub = parser.add_subparsers(dest="command", required=True)
     p_submit = sub.add_parser("submit")
-    p_submit.add_argument("--limit", type=int, required=True, help="films in this run")
+    size = p_submit.add_mutually_exclusive_group(required=True)
+    size.add_argument("--limit", type=int, help="the N most popular pending films")
+    size.add_argument("--ids", help="TMDB ids, or a file listing them (docs/review-films.md)")
     p_submit.add_argument("--dry-run", action="store_true", help="prompt and cost, no API call")
     p_submit.add_argument("--yes", action="store_true", help="confirm a paid run")
     p_collect = sub.add_parser("collect")
@@ -356,6 +368,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
     sub.add_parser("status")
     args = parser.parse_args(argv)
     settings = get_settings()
+    utf8_console()
 
     async with job_session() as session:
         if args.command == "status":
@@ -370,7 +383,16 @@ async def main(argv: Sequence[str] | None = None) -> None:
             return
 
         if args.command == "submit":
-            ids = await select_pending(session, args.limit)
+            if args.ids:
+                wanted = read_ids(args.ids)
+                ids = await select_pending(session, len(wanted), wanted)
+                if len(ids) < len(wanted):
+                    print(
+                        f"{len(wanted) - len(ids)} of {len(wanted)} listed films skipped: "
+                        "not in the catalogue, already scored, or out of attempts"
+                    )
+            else:
+                ids = await select_pending(session, args.limit)
             films = await load_films(session, ids)
             catalogue = await session.scalar(select(func.count()).select_from(Movie)) or 0
             _print_estimate(estimate_cost(films), catalogue)
