@@ -40,7 +40,7 @@ CHUNK = 25  # films fetched concurrently and committed together
 class IngestStore(Protocol):
     async def open_run(self) -> SyncRun | None: ...
     async def create_run(self, planned_ids: list[int]) -> SyncRun: ...
-    async def upsert_film(self, record: FilmRecord) -> None: ...
+    async def upsert_films(self, records: Sequence[FilmRecord]) -> None: ...
     async def save_progress(self, run: SyncRun) -> None: ...
 
 
@@ -80,13 +80,12 @@ class IngestJob:
             for start in range(0, len(todo), CHUNK):
                 chunk = todo[start : start + CHUNK]
                 results = await asyncio.gather(*(self._fetch(i) for i in chunk))
-                for movie_id, record in zip(chunk, results, strict=True):
-                    if record is None:
-                        run.skipped_count += 1
-                    else:
-                        await self._store.upsert_film(record)
-                        run.processed_count += 1
-                    run.last_processed_id = movie_id
+                records = [r for r in results if r is not None]
+                # One write per chunk, committed together with the cursor that covers it.
+                await self._store.upsert_films(records)
+                run.processed_count += len(records)
+                run.skipped_count += len(chunk) - len(records)
+                run.last_processed_id = chunk[-1]
                 run.cursor += len(chunk)
                 await self._store.save_progress(run)
                 if run.cursor % 250 < CHUNK or run.cursor == len(run.planned_ids):
@@ -148,21 +147,34 @@ class SqlIngestStore:
         await self._session.commit()
 
     async def upsert_film(self, record: FilmRecord) -> None:
+        await self.upsert_films([record])
+
+    async def upsert_films(self, records: Sequence[FilmRecord]) -> None:
+        """Upsert a chunk of films with one statement per table.
+
+        The database is a network round trip away (~170 ms to Supabase from here), so the
+        statement count per chunk, not per film, is what sets the ingestion time.
+        """
+        if not records:
+            return
         s = self._session
-        movie = {**record.movie, "synced_at": datetime.now(UTC)}
-        stmt = insert(Movie).values(**movie)
+        now = datetime.now(UTC)
+        by_id = {r.movie["id"]: r for r in records}  # a repeated id keeps its last payload
+        movie_ids = list(by_id)
+        movies = [{**r.movie, "synced_at": now} for r in by_id.values()]
+
+        stmt = insert(Movie).values(movies)
         await s.execute(
             stmt.on_conflict_do_update(
                 index_elements=[Movie.id],
-                set_={k: stmt.excluded[k] for k in movie if k != "id"},
+                set_={k: stmt.excluded[k] for k in movies[0] if k != "id"},
             )
         )
-        movie_id = movie["id"]
-
-        await _upsert_named(s, Genre, record.genres)
-        await _upsert_named(s, Keyword, record.keywords)
-        if record.people:
-            stmt = insert(Person).values(record.people)
+        await _upsert_named(s, Genre, [g for r in by_id.values() for g in r.genres])
+        await _upsert_named(s, Keyword, [k for r in by_id.values() for k in r.keywords])
+        people = {p["id"]: p for r in by_id.values() for p in r.people}
+        if people:
+            stmt = insert(Person).values(list(people.values()))
             await s.execute(
                 stmt.on_conflict_do_update(
                     index_elements=[Person.id],
@@ -171,23 +183,22 @@ class SqlIngestStore:
             )
 
         # Link tables and credits are replaced wholesale: the newest payload is the truth.
-        await s.execute(delete(MovieGenre).where(MovieGenre.movie_id == movie_id))
-        await s.execute(delete(MovieKeyword).where(MovieKeyword.movie_id == movie_id))
-        await s.execute(delete(Credit).where(Credit.movie_id == movie_id))
-        if record.genres:
-            await s.execute(
-                insert(MovieGenre)
-                .values([{"movie_id": movie_id, "genre_id": g} for g, _ in record.genres])
-                .on_conflict_do_nothing()
-            )
-        if record.keywords:
-            await s.execute(
-                insert(MovieKeyword)
-                .values([{"movie_id": movie_id, "keyword_id": k} for k, _ in record.keywords])
-                .on_conflict_do_nothing()
-            )
-        if record.credits:
-            await s.execute(insert(Credit).values(record.credits))
+        await s.execute(delete(MovieGenre).where(MovieGenre.movie_id.in_(movie_ids)))
+        await s.execute(delete(MovieKeyword).where(MovieKeyword.movie_id.in_(movie_ids)))
+        await s.execute(delete(Credit).where(Credit.movie_id.in_(movie_ids)))
+        genre_links = [
+            {"movie_id": m, "genre_id": g} for m, r in by_id.items() for g, _ in r.genres
+        ]
+        if genre_links:
+            await s.execute(insert(MovieGenre).values(genre_links).on_conflict_do_nothing())
+        keyword_links = [
+            {"movie_id": m, "keyword_id": k} for m, r in by_id.items() for k, _ in r.keywords
+        ]
+        if keyword_links:
+            await s.execute(insert(MovieKeyword).values(keyword_links).on_conflict_do_nothing())
+        credits = [c for r in by_id.values() for c in r.credits]
+        if credits:
+            await s.execute(insert(Credit).values(credits))
 
 
 async def _upsert_named(

@@ -70,3 +70,22 @@ async def test_minimal_film_upserts(db_session: AsyncSession) -> None:
     """A film with no genres, keywords or credits still goes in cleanly."""
     await SqlIngestStore(db_session).upsert_film(to_film_record({"id": 8_000_001, "title": "Bare"}))
     assert await _count(db_session, Movie, Movie.id == 8_000_001) == 1
+
+
+async def test_a_chunk_of_films_sharing_genres_and_people(db_session: AsyncSession) -> None:
+    """One statement per table for the whole chunk must cope with shared lookups."""
+    base = load_fixture("tmdb_movie_550.json")
+    sibling = copy.deepcopy(base)
+    sibling["id"] = 8_000_002
+    sibling["title"] = "Sibling"
+    records = [to_film_record(base), to_film_record(sibling)]
+    await SqlIngestStore(db_session).upsert_films(records)
+
+    assert await _count(db_session, Movie, Movie.id.in_([550, 8_000_002])) == 2
+    assert await _count(db_session, Person, Person.id == 287) == 1
+    assert await _count(db_session, MovieGenre, MovieGenre.movie_id == 8_000_002) == 2
+    assert await _count(db_session, Credit, Credit.movie_id == 8_000_002) == len(records[1].credits)
+
+
+async def test_empty_chunk_is_a_no_op(db_session: AsyncSession) -> None:
+    await SqlIngestStore(db_session).upsert_films([])

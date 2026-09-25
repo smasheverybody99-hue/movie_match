@@ -4,6 +4,7 @@ Batch results come from tests/fixtures/anthropic_batch_results.json, parsed thro
 SDK's own MessageBatchIndividualResponse, so a fixture in the wrong shape fails loudly.
 """
 
+import uuid
 from types import SimpleNamespace
 
 import pytest
@@ -36,7 +37,7 @@ class FakeBatches:
 
     async def create(self, *, requests: list[dict]) -> SimpleNamespace:
         self.created.append(requests)
-        return SimpleNamespace(id=f"msgbatch_fake_{len(self.created)}")
+        return SimpleNamespace(id=f"msgbatch_fake_{uuid.uuid4().hex}")  # unique, like real ids
 
     async def results(self, batch_id: str):
         async def stream():

@@ -1,6 +1,7 @@
 """A run resumes from its recorded position, and records progress as it goes."""
 
 import json
+from collections.abc import Sequence
 
 import httpx
 import pytest
@@ -26,8 +27,8 @@ class FakeStore:
         self.run = _run(planned_ids, cursor=0, run_id=2)
         return self.run
 
-    async def upsert_film(self, record: FilmRecord) -> None:
-        self.upserted.append(record.movie["id"])
+    async def upsert_films(self, records: Sequence[FilmRecord]) -> None:
+        self.upserted.extend(r.movie["id"] for r in records)
 
     async def save_progress(self, run: SyncRun) -> None:
         self.progress.append(run.cursor)

@@ -15,8 +15,8 @@ def test_recorded_payload_maps_to_movie_fields() -> None:
     assert fields["release_date"] == date(1999, 10, 15)
     assert fields["runtime_minutes"] == 139
     assert fields["original_language"] == "en"
-    assert fields["poster_path"] == "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg"
-    assert fields["tmdb_vote_count"] == 26280
+    assert fields["poster_path"] == "/jSziioSwPVrOy9Yow3XhWIBDjq1.jpg"
+    assert fields["tmdb_vote_count"] == 32909
     assert fields["adult"] is False
     assert fields["overview"].startswith("A ticking-time-bomb insomniac")
 
@@ -46,7 +46,7 @@ def test_genres_keywords_and_people() -> None:
 
     assert record.genres == [(18, "Drama"), (53, "Thriller")]
     assert (1541, "nihilism") in record.keywords
-    assert len(record.keywords) == 7
+    assert len(record.keywords) == 14
 
     director = [c for c in record.credits if c["job"] == "Director"]
     assert [c["person_id"] for c in director] == [7467]
@@ -55,6 +55,11 @@ def test_genres_keywords_and_people() -> None:
     cast = [c for c in record.credits if c["department"] == "cast"]
     assert [c["character_name"] for c in cast[:2]] == ["Narrator", "Tyler Durden"]
     assert [c["billing_order"] for c in cast] == sorted(c["billing_order"] for c in cast)
+
+
+def test_recorded_cast_of_76_is_capped() -> None:
+    record = to_film_record(load_fixture("tmdb_movie_550.json"))
+    assert len([c for c in record.credits if c["department"] == "cast"]) == CAST_LIMIT
 
 
 def test_crew_is_limited_to_story_jobs() -> None:
