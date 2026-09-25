@@ -13,7 +13,10 @@ Set it like this before running the full suite:
     export TEST_DATABASE_URL="postgresql+asyncpg://postgres:pw@localhost:5432/moviematch_test"
 """
 
+import json
 from collections.abc import AsyncGenerator, Iterator
+from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -30,6 +33,26 @@ requires_db = pytest.mark.skipif(
 )
 
 
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+
+def load_fixture(name: str) -> Any:
+    """A recorded or hand-written response from tests/fixtures/."""
+    return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def migrated_test_db() -> None:
+    """Bring the throwaway test database to the latest schema, once per test run."""
+    if not TEST_DATABASE_URL:
+        pytest.skip("TEST_DATABASE_URL is not set")
+    from alembic import command
+
+    from tests.test_migrations import _alembic_config
+
+    command.upgrade(_alembic_config(TEST_DATABASE_URL), "head")
+
+
 @pytest.fixture(scope="session")
 def client() -> Iterator[TestClient]:
     """FastAPI test client with the application lifespan running."""
@@ -38,7 +61,7 @@ def client() -> Iterator[TestClient]:
 
 
 @pytest.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, None]:
     """A session against the test database, rolled back after each test.
 
     The outer transaction is never committed, so tests cannot leak rows into

@@ -77,6 +77,24 @@ class MovieGenre(Base):
     )
 
 
+class Keyword(Base):
+    __tablename__ = "keywords"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)  # TMDB id
+    name: Mapped[str] = mapped_column(String(200))
+
+
+class MovieKeyword(Base):
+    __tablename__ = "movie_keywords"
+
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True
+    )
+    keyword_id: Mapped[int] = mapped_column(
+        ForeignKey("keywords.id", ondelete="CASCADE"), primary_key=True
+    )
+
+
 class Person(Base):
     __tablename__ = "people"
 
@@ -127,6 +145,63 @@ class MovieEmbedding(Base):
     )
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
     model: Mapped[str] = mapped_column(String(100))
+
+
+class SyncRun(Base):
+    """One ingestion run. `planned_ids` + `cursor` make a dead run resumable.
+
+    The plan is stored rather than recomputed because TMDB popularity changes daily:
+    re-running the selection after a crash would pick a different catalogue.
+    """
+
+    __tablename__ = "sync_runs"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(50))  # "catalogue"
+    status: Mapped[str] = mapped_column(String(20))  # running | finished | failed
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    planned_ids: Mapped[list] = mapped_column(JSONB)
+    cursor: Mapped[int] = mapped_column(Integer, default=0)  # index into planned_ids
+    processed_count: Mapped[int] = mapped_column(Integer, default=0)
+    skipped_count: Mapped[int] = mapped_column(Integer, default=0)  # e.g. 404 from TMDB
+    last_processed_id: Mapped[int | None] = mapped_column(BigInteger)
+    error: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (Index("ix_sync_runs_kind_status", "kind", "status"),)
+
+
+class TraitBatch(Base):
+    """An Anthropic message batch submitted by the trait pipeline."""
+
+    __tablename__ = "trait_batches"
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)  # Anthropic batch id
+    movie_ids: Mapped[list] = mapped_column(JSONB)
+    model: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(20))  # submitted | collected
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    collected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class TraitFailure(Base):
+    """A film whose trait extraction failed. Retried once; at 2 attempts it is failed.
+
+    A failed film gets no MovieTraits row at all - never one filled with defaults.
+    """
+
+    __tablename__ = "trait_failures"
+
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True
+    )
+    attempts: Mapped[int] = mapped_column(SmallInteger, default=1)
+    last_error: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class User(Base):

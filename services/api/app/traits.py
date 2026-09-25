@@ -24,6 +24,8 @@ def trait_keys() -> tuple[str, ...]:
 
 TRAIT_KEYS: tuple[str, ...] = trait_keys()
 TRAIT_COUNT: int = len(TRAIT_KEYS)
+# Stored with every trait vector, so vectors scored under an older spec can be found.
+SPEC_VERSION: int = int(_spec()["version"])
 
 
 def to_vector(traits: dict[str, float]) -> list[float]:
