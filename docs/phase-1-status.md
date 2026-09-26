@@ -119,5 +119,5 @@ migrations run as `python -m alembic upgrade head`. `tasks.ps1` / `tasks.sh` alr
 
 ## Housekeeping
 
-- Local commits are not pushed to GitHub yet.
-- `docs/TZ.md` v1.2 was edited outside the session; commit it with this if it is final.
+- Everything up to `7cf3274` is pushed to GitHub (`origin/main`).
+- `docs/TZ.md` v1.2 is committed.

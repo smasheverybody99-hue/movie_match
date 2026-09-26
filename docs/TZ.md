@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.1 · 2026-09-25 · Holat: tasdiqlangan
+Versiya 1.2 · 2026-09-25 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -102,12 +102,19 @@ Foydalanuvchi Google, Apple yoki email (magic link) orqali kiradi.
 
 ### FR-2 · Film bazasi
 
-Kamida 20 000 film: nomi, yili, davomiyligi, tavsifi, janrlari, aktyorlari,
-rejissyori, kalit so'zlari, posteri, striming provayderlari.
+**5 000 film** birinchi versiyada: nomi, yili, davomiyligi, tavsifi, janrlari,
+aktyorlari, rejissyori, kalit so'zlari, posteri.
+
+Son `catalogue_target` sozlamasida turadi, kodda emas — ko'tarish bitta qator o'zgarishi.
+20 000 dan 5 000 ga tushirildi, chunki trait ekstraksiyasi narxi film soniga to'g'ri
+proporsional, va mashhur filmlar shu miqdorda ham qamrab olinadi. Kamroq mashhurlari
+mahsulot ishlayotgani tasdiqlangandan keyin qo'shiladi.
 
 **Qabul mezoni:**
 - TMDB'dan kunlik sinxronizatsiya, uzilishdan keyin davom eta oladi.
 - Har filmda trait vektori va embedding bor (100% qamrov).
+- Katalog o'n yilliklar bo'ylab taqsimlanadi va bitta til bir o'n yillik kvotasining
+  55% dan ortig'ini egallamaydi — aks holda katalog faqat so'nggi yillardagi Gollivud bo'lib qoladi.
 - Qidiruv 300 ms ichida javob beradi.
 - Ma'lumot manbai `app/pipelines/tmdb.py` dan tashqariga sizib chiqmaydi.
 - TMDB bepul tarifida quriladi; tijorat litsenziyasi monetizatsiyadan oldin kerak (ADR 0002).
@@ -305,3 +312,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 |---|---|---|
 | 1.0 | 2026-09-24 | Birinchi versiya |
 | 1.1 | 2026-09-25 | Ma'lumot manbai qarori: TMDB bepul tarifi, litsenziya monetizatsiyadan oldin (ADR 0002) |
+| 1.2 | 2026-09-25 | Katalog 20 000 dan 5 000 ga; son sozlamaga chiqarildi; o'n yillik va til taqsimoti qo'shildi |
