@@ -99,7 +99,8 @@ flutter run
 | `DATABASE_URL` | Supabase → Project Settings → Database → Connection string (URI) |
 | `SUPABASE_JWT_SECRET` | Supabase → Project Settings → API → JWT Secret |
 | `TMDB_API_KEY` | themoviedb.org → Settings → API |
-| `ANTHROPIC_API_KEY` | console.anthropic.com |
+| `GEMINI_API_KEY` | aistudio.google.com/apikey — to'lov yoqilgan (paid) loyihaning kaliti; trait va embedding uchun (ADR 0004) |
+| `ANTHROPIC_API_KEY` | console.anthropic.com — faqat assistant (F4) uchun; data pipeline ishlatmaydi |
 
 ## Hujjatlar
 

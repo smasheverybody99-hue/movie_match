@@ -1,6 +1,6 @@
 # ADR 0003 — Embedding provider
 
-Date: 2026-09-25 · Status: **open** · Blocks: the Phase 1 embedding step
+Date: 2026-09-25 · Status: **resolved by [ADR 0004](0004-llm-provider.md)** (2026-09-26): Gemini `gemini-embedding-2` at 1,536 dimensions, no migration
 
 ## Context
 
@@ -68,7 +68,8 @@ differences:
 
 ## Decision
 
-Not taken. Choose before the Phase 1 embedding step.
+Resolved by ADR 0004: Gemini Embedding 2 at 1,536 dimensions. None of the options
+below was taken; the analysis is kept as the record of what was considered.
 
 A reasonable default if no one has a preference: **`voyage-4` at 1024 dims** — free at
 this scale, multilingual, and the documented partner for our LLM vendor. Pick OpenAI
