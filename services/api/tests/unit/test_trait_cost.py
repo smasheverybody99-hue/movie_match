@@ -9,8 +9,9 @@ from app.pipelines.traits import CostEstimate, build_prompt, estimate_cost
 
 
 def test_usd_from_tokens_at_batch_rates() -> None:
-    # 1M input at $0.50 + 1M output at $2.50
-    assert CostEstimate(films=10, input_tokens=1_000_000, output_tokens=1_000_000).usd == 3.0
+    # 1M input at $0.15 + 1M output at $1.25
+    estimate = CostEstimate(films=10, input_tokens=1_000_000, output_tokens=1_000_000)
+    assert estimate.usd == pytest.approx(1.40)
 
 
 def test_estimate_counts_prompt_characters_and_expected_output() -> None:

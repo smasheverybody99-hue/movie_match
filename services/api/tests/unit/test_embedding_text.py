@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.config import Settings
 from app.models import EMBEDDING_DIM
 from app.pipelines.embeddings import (
     MAX_KEYWORDS,
@@ -54,10 +55,10 @@ def test_keywords_are_capped() -> None:
     assert len(line.removeprefix("Keywords: ").split(", ")) == MAX_KEYWORDS
 
 
-def test_no_provider_means_no_embedder() -> None:
-    """Until a provider is chosen, nothing can reach a paid API by accident."""
-    with pytest.raises(RuntimeError, match="No embedding provider"):
-        get_embedder()
+def test_no_key_means_no_embedder() -> None:
+    """Without GEMINI_API_KEY nothing can reach a paid API by accident."""
+    with pytest.raises(SystemExit, match="GEMINI_API_KEY"):
+        get_embedder(Settings(_env_file=None, gemini_api_key=""))
 
 
 class _WrongSize:

@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""
 
     tmdb_api_key: str = ""
+    # Trait extraction and embeddings (ADR 0004). Paid tier: the free tier lets Google use
+    # submitted content to train its models.
+    gemini_api_key: str = ""
+    # Not used by the data pipelines; the Phase 4 assistant still runs on Claude.
     anthropic_api_key: str = ""
     redis_url: str = ""
 

@@ -6,8 +6,8 @@
     python -m app.pipelines.traits collect <batch_id>
     python -m app.pipelines.traits status
 
-Runs as a batch job, never inside a request. Uses Claude Haiku through the Batch API,
-which halves the token cost. Runs are staged (CLAUDE.md): 50 films, check by hand, then
+Runs as a batch job, never inside a request. Uses Gemini through the Batch API (paid tier;
+ADR 0004), which halves the token cost. Runs are staged (CLAUDE.md): 50 films, check by hand, then
 500, then the rest - `--limit` has no default so every run states its size. `--ids`
 takes a hand-picked list instead (ids, or a file such as docs/review-films.md).
 """
@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
+from google.genai import types
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,15 +41,20 @@ from app.models import (
 )
 from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
+from app.pipelines.gemini import gemini_client
 from app.traits import SPEC_VERSION, TRAIT_KEYS, to_vector
 
-MODEL = "claude-haiku-4-5"
-MAX_TOKENS = 1024  # expected output is ~250 tokens; the ceiling only guards truncation
+MODEL = "gemini-3.5-flash-lite"
+# Expected output is ~250 tokens. The ceiling only guards truncation, and it also has to
+# cover any thinking tokens, which Gemini counts against it and bills as output.
+MAX_OUTPUT_TOKENS = 2048
+THINKING_LEVEL = "MINIMAL"  # scoring a film from its metadata does not need reasoning
 MAX_ATTEMPTS = 2  # first try + one retry, then the film is recorded as failed
 
-# Claude Haiku 4.5, Batch API (50% of the $1 / $5 standard rate), USD per million tokens.
-BATCH_INPUT_USD_PER_MTOK = 0.50
-BATCH_OUTPUT_USD_PER_MTOK = 2.50
+# gemini-3.5-flash-lite, Batch API, paid tier (50% of the $0.30 / $2.50 standard rate),
+# USD per million tokens. Prices checked 2026-09-26 (ADR 0004); other models differ.
+BATCH_INPUT_USD_PER_MTOK = 0.15
+BATCH_OUTPUT_USD_PER_MTOK = 1.25
 # Estimation constants until a staged run measures the real numbers.
 CHARS_PER_TOKEN = 3.5  # conservative for English prose; real tokenisation is usually denser
 EXPECTED_OUTPUT_TOKENS = 250  # 14 integers + a two-sentence summary, as JSON
@@ -68,6 +74,16 @@ Scoring guidance:
 - darkness: 0 light and warm, 100 bleak.
 - ending_ambiguity: 0 fully resolved, 100 deliberately unresolved.
 - Score what the film IS, not how good it is. Quality is not a dimension."""
+
+# The same contract as the prompt, enforced by the API. parse_response still validates.
+RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        **{key: {"type": "integer", "minimum": 0, "maximum": 100} for key in TRAIT_KEYS},
+        "summary": {"type": "string"},
+    },
+    "required": [*TRAIT_KEYS, "summary"],
+}
 
 
 def build_prompt(movie: dict[str, Any]) -> str:
@@ -126,14 +142,19 @@ def movie_id_from(custom: str) -> int:
 
 
 def build_request(film: dict[str, Any]) -> dict[str, Any]:
-    """One film -> one Message Batches request."""
+    """One film -> one inline batch request (a `types.InlinedRequest`).
+
+    `metadata` is echoed back on the result; it is how a result finds its film.
+    """
     return {
-        "custom_id": custom_id(film["id"]),
-        "params": {
-            "model": MODEL,
-            "max_tokens": MAX_TOKENS,
-            "system": SYSTEM_PROMPT,
-            "messages": [{"role": "user", "content": build_prompt(film)}],
+        "metadata": {"key": custom_id(film["id"])},
+        "contents": [{"role": "user", "parts": [{"text": build_prompt(film)}]}],
+        "config": {
+            "system_instruction": SYSTEM_PROMPT,
+            "response_mime_type": "application/json",
+            "response_json_schema": RESPONSE_SCHEMA,
+            "max_output_tokens": MAX_OUTPUT_TOKENS,
+            "thinking_config": {"thinking_level": THINKING_LEVEL},
         },
     }
 
@@ -279,60 +300,115 @@ async def record_failure(session: AsyncSession, movie_id: int, error: str) -> No
     )
 
 
-# --- Anthropic side ---------------------------------------------------------------
+# --- Gemini side --------------------------------------------------------------------
 
 
 class BatchesClient(Protocol):
-    """The slice of AsyncAnthropic this module uses. Tests pass a fake."""
+    """The slice of the async Gemini client this module uses. Tests pass a fake."""
 
     @property
-    def messages(self) -> Any: ...
+    def batches(self) -> Any: ...
+
+
+class BatchNotReady(Exception):
+    """The batch job has not reached a final state yet."""
 
 
 async def submit(session: AsyncSession, client: BatchesClient, films: Sequence[dict]) -> str:
-    batch = await client.messages.batches.create(requests=[build_request(f) for f in films])
+    job = await client.batches.create(
+        model=MODEL,
+        src=[build_request(f) for f in films],
+        config={"display_name": f"traits-{len(films)}-films"},
+    )
     session.add(
         TraitBatch(
-            id=batch.id,
+            id=job.name,
             movie_ids=[f["id"] for f in films],
             model=MODEL,
             status="submitted",
         )
     )
     await session.commit()
-    return batch.id
+    return job.name
 
 
 @dataclass
 class CollectResult:
     stored: int = 0
     failed: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0  # includes thinking tokens: they are billed as output
+    state: str = "collected"  # or failed / cancelled / expired: the job produced no results
+
+
+_DONE = {types.JobState.JOB_STATE_SUCCEEDED, types.JobState.JOB_STATE_PARTIALLY_SUCCEEDED}
+_DEAD = {
+    types.JobState.JOB_STATE_FAILED: "failed",
+    types.JobState.JOB_STATE_CANCELLED: "cancelled",
+    types.JobState.JOB_STATE_EXPIRED: "expired",
+}
+_CLEAN_STOPS = (None, types.FinishReason.STOP, types.FinishReason.FINISH_REASON_UNSPECIFIED)
+
+
+def read_item(item: types.InlinedResponse) -> tuple[str | None, str | None]:
+    """One batch result -> (text to parse, None) or (None, why there is nothing to parse)."""
+    if item.error is not None:
+        return None, f"batch result errored: {item.error.message or item.error.code}"
+    response = item.response
+    candidates = (response.candidates if response else None) or []
+    if not candidates:
+        feedback = response.prompt_feedback if response else None
+        blocked = feedback.block_reason if feedback and feedback.block_reason else None
+        return None, f"no candidates (prompt blocked: {blocked})" if blocked else "no candidates"
+    candidate = candidates[0]
+    reason = candidate.finish_reason
+    if reason == types.FinishReason.MAX_TOKENS:
+        return None, "truncated at max_tokens"
+    if reason not in _CLEAN_STOPS:
+        return None, f"finish_reason {reason.value}"
+    parts = (candidate.content.parts if candidate.content else None) or []
+    return "".join(p.text for p in parts if p.text and not p.thought), None
 
 
 async def collect(session: AsyncSession, client: BatchesClient, batch_id: str) -> CollectResult:
-    """Store every valid result; count every malformed or errored one as an attempt."""
+    """Store every valid result; count every malformed or errored one as an attempt.
+
+    Raises BatchNotReady while the job is still running. A job that ended without results
+    (failed, cancelled, expired) is recorded as such and its films stay pending, uncounted.
+    """
+    job = await client.batches.get(name=batch_id)
     outcome = CollectResult()
-    async for item in await client.messages.batches.results(batch_id):
-        movie_id = movie_id_from(item.custom_id)
-        error = None
-        if item.result.type == "succeeded":
-            message = item.result.message
-            text = next((b.text for b in message.content if b.type == "text"), "")
-            if message.stop_reason == "max_tokens":
-                error = "truncated at max_tokens"
-            else:
-                try:
-                    await store_traits(session, movie_id, parse_response(text))
-                    outcome.stored += 1
-                    continue
-                except ValueError as exc:
-                    error = f"malformed: {exc}"
-        else:
-            error = f"batch result {item.result.type}"
-        await record_failure(session, movie_id, error)
+    batch = await session.get(TraitBatch, batch_id)
+    if job.state in _DEAD:
+        outcome.state = _DEAD[job.state]
+        if batch is not None:
+            batch.status = outcome.state
+            await session.commit()
+        return outcome
+    if job.state not in _DONE:
+        raise BatchNotReady(f"batch {batch_id} is {job.state.value if job.state else 'unknown'}")
+    if job.dest is None or job.dest.inlined_responses is None:
+        raise ValueError(f"batch {batch_id} finished without inline results")
+
+    for item in job.dest.inlined_responses:
+        movie_id = movie_id_from((item.metadata or {}).get("key", ""))
+        if item.response and item.response.usage_metadata:
+            usage = item.response.usage_metadata
+            outcome.input_tokens += usage.prompt_token_count or 0
+            outcome.output_tokens += (usage.candidates_token_count or 0) + (
+                usage.thoughts_token_count or 0
+            )
+        text, error = read_item(item)
+        if text is not None:
+            try:
+                await store_traits(session, movie_id, parse_response(text))
+                outcome.stored += 1
+                continue
+            except ValueError as exc:
+                error = f"malformed: {exc}"
+        await record_failure(session, movie_id, error or "no result")
         outcome.failed += 1
 
-    batch = await session.get(TraitBatch, batch_id)
     if batch is not None:
         batch.status = "collected"
         batch.collected_at = datetime.now(UTC)
@@ -345,7 +421,7 @@ async def collect(session: AsyncSession, client: BatchesClient, batch_id: str) -
 
 def _print_estimate(estimate: CostEstimate, catalogue: int) -> None:
     rates = f"${BATCH_INPUT_USD_PER_MTOK} in / ${BATCH_OUTPUT_USD_PER_MTOK} out per MTok"
-    print(f"model {MODEL} via Batch API ({rates})")
+    print(f"model {MODEL} via Batch API, paid tier ({rates})")
     for label, e in (("this run", estimate), ("full catalogue", estimate.scaled_to(catalogue))):
         print(
             f"  {label:15} {e.films:>6} films  ~{e.input_tokens:>10,} in  "
@@ -403,26 +479,29 @@ async def main(argv: Sequence[str] | None = None) -> None:
                 return
             if not args.yes:
                 raise SystemExit("paid run: re-run with --yes once the estimate is approved")
-            if not settings.anthropic_api_key:
-                raise SystemExit("ANTHROPIC_API_KEY is not configured")
-            import anthropic  # imported here so dry runs work without the key
-
-            client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+            client = gemini_client(settings)
             for start in range(0, len(films), settings.trait_batch_size):
                 chunk = films[start : start + settings.trait_batch_size]
                 print(f"submitted batch {await submit(session, client, chunk)}: {len(chunk)} films")
             return
 
-        if not settings.anthropic_api_key:
-            raise SystemExit("ANTHROPIC_API_KEY is not configured")
-        import anthropic
-
-        client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
-        status = await client.messages.batches.retrieve(args.batch_id)
-        if status.processing_status != "ended":
-            raise SystemExit(f"batch {args.batch_id} is {status.processing_status}; try later")
-        result = await collect(session, client, args.batch_id)
+        client = gemini_client(settings)
+        try:
+            result = await collect(session, client, args.batch_id)
+        except BatchNotReady as exc:
+            raise SystemExit(f"{exc}; try later") from exc
+        if result.state != "collected":
+            raise SystemExit(
+                f"batch {args.batch_id} {result.state}: no results; films stay pending"
+            )
         print(f"stored {result.stored}, failed {result.failed}")
+        measured = CostEstimate(
+            result.stored + result.failed, result.input_tokens, result.output_tokens
+        )
+        print(
+            f"measured: {result.input_tokens:,} in, {result.output_tokens:,} out "
+            f"(thinking included) = ${measured.usd:.4f}"
+        )
 
 
 if __name__ == "__main__":

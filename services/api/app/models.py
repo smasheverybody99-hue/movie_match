@@ -172,14 +172,16 @@ class SyncRun(Base):
 
 
 class TraitBatch(Base):
-    """An Anthropic message batch submitted by the trait pipeline."""
+    """A Gemini batch job submitted by the trait pipeline."""
 
     __tablename__ = "trait_batches"
 
-    id: Mapped[str] = mapped_column(String(100), primary_key=True)  # Anthropic batch id
+    # Gemini job name, e.g. "batches/abc123"
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
     movie_ids: Mapped[list] = mapped_column(JSONB)
     model: Mapped[str] = mapped_column(String(100))
-    status: Mapped[str] = mapped_column(String(20))  # submitted | collected
+    # submitted | collected | failed | cancelled | expired
+    status: Mapped[str] = mapped_column(String(20))
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

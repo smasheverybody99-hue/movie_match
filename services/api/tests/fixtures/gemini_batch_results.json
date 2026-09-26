@@ -1,0 +1,92 @@
+[
+  {
+    "metadata": {
+      "key": "movie-550"
+    },
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"psychological_complexity\": 92, \"plot_twist\": 95, \"mystery\": 70, \"character_depth\": 88, \"emotional_intensity\": 78, \"pacing\": 66, \"humor\": 35, \"romance\": 22, \"action\": 58, \"violence\": 80, \"visual_style\": 85, \"realism\": 55, \"darkness\": 86, \"ending_ambiguity\": 48, \"summary\": \"For viewers who like a film that argues with them. Expect a dark, restless satire with a twist that reframes everything.\"}"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 412,
+        "candidatesTokenCount": 231,
+        "thoughtsTokenCount": 0,
+        "totalTokenCount": 643
+      },
+      "modelVersion": "gemini-3.5-flash-lite"
+    }
+  },
+  {
+    "metadata": {
+      "key": "movie-13"
+    },
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"psychological_complexity\": 40, \"plot_twist\": 20, \"summary\": \"Missing most keys.\"}"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 398,
+        "candidatesTokenCount": 41,
+        "thoughtsTokenCount": 0,
+        "totalTokenCount": 439
+      },
+      "modelVersion": "gemini-3.5-flash-lite"
+    }
+  },
+  {
+    "metadata": {
+      "key": "movie-680"
+    },
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"psychological_complexity\": 70, \"plot_tw"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 405,
+        "candidatesTokenCount": 2000,
+        "thoughtsTokenCount": 48,
+        "totalTokenCount": 2453
+      },
+      "modelVersion": "gemini-3.5-flash-lite"
+    }
+  },
+  {
+    "metadata": {
+      "key": "movie-155"
+    },
+    "error": {
+      "code": 503,
+      "message": "The model is overloaded. Please try again later."
+    }
+  }
+]

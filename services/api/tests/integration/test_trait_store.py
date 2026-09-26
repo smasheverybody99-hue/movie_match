@@ -1,14 +1,16 @@
-"""Trait batches end to end, with a fake Anthropic client. No real API call anywhere.
+"""Trait batches end to end, with a fake Gemini client. No real API call anywhere.
 
-Batch results come from tests/fixtures/anthropic_batch_results.json, parsed through the
-SDK's own MessageBatchIndividualResponse, so a fixture in the wrong shape fails loudly.
+Batch results come from tests/fixtures/gemini_batch_results.json, parsed through the SDK's
+own InlinedResponse, and requests are checked against its InlinedRequest, so a payload in
+the wrong shape fails loudly.
 """
 
 import uuid
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
-from anthropic.types.messages import MessageBatchIndividualResponse
+from google.genai import types
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +20,7 @@ from app.pipelines.tmdb import to_film_record
 from app.pipelines.traits import (
     MAX_ATTEMPTS,
     MODEL,
+    BatchNotReady,
     build_prompt,
     collect,
     load_films,
@@ -28,30 +31,34 @@ from app.traits import SPEC_VERSION, TRAIT_KEYS
 from tests.conftest import load_fixture
 
 IDS = [550, 13, 680, 155]
+RESULTS = "gemini_batch_results.json"
 
 
 class FakeBatches:
-    def __init__(self, results: list[dict]) -> None:
-        self._results = [MessageBatchIndividualResponse.model_validate(r) for r in results]
-        self.created: list[list[dict]] = []
+    """`client.batches`: create() records what was sent, get() serves the job's results."""
 
-    async def create(self, *, requests: list[dict]) -> SimpleNamespace:
-        self.created.append(requests)
-        return SimpleNamespace(id=f"msgbatch_fake_{uuid.uuid4().hex}")  # unique, like real ids
+    def __init__(self, results: list[dict], state: str = "JOB_STATE_SUCCEEDED") -> None:
+        self._results = results
+        self._state = state
+        self.created: list[dict[str, Any]] = []
 
-    async def results(self, batch_id: str):
-        async def stream():
-            for item in self._results:
-                yield item
+    async def create(self, *, model: str, src: list[dict], config: dict) -> types.BatchJob:
+        for request in src:
+            types.InlinedRequest.model_validate(request)  # the SDK's own shape check
+        self.created.append({"model": model, "src": src, "config": config})
+        return types.BatchJob(name=f"batches/fake{uuid.uuid4().hex}")  # unique, like real names
 
-        return stream()
+    async def get(self, *, name: str) -> types.BatchJob:
+        job: dict[str, Any] = {"name": name, "state": self._state}
+        if self._state in ("JOB_STATE_SUCCEEDED", "JOB_STATE_PARTIALLY_SUCCEEDED"):
+            job["dest"] = {"inlinedResponses": self._results}
+        return types.BatchJob.model_validate(job)
 
 
-def _client(results: list[dict] | None = None) -> SimpleNamespace:
-    batches = FakeBatches(
-        results if results is not None else load_fixture("anthropic_batch_results.json")
+def _client(results: list[dict] | None = None, state: str = "JOB_STATE_SUCCEEDED") -> Any:
+    return SimpleNamespace(
+        batches=FakeBatches(results if results is not None else load_fixture(RESULTS), state)
     )
-    return SimpleNamespace(messages=SimpleNamespace(batches=batches))
 
 
 @pytest.fixture
@@ -84,10 +91,12 @@ async def test_submit_records_the_batch(films: AsyncSession) -> None:
     client = _client()
     batch_id = await submit(films, client, await load_films(films, [550, 13]))
 
-    sent = client.messages.batches.created[0]
-    assert [r["custom_id"] for r in sent] == ["movie-550", "movie-13"]
+    sent = client.batches.created[0]
+    assert sent["model"] == MODEL
+    assert [r["metadata"]["key"] for r in sent["src"]] == ["movie-550", "movie-13"]
     batch = await films.get(TraitBatch, batch_id)
     assert batch is not None
+    assert batch.id.startswith("batches/")
     assert batch.movie_ids == [550, 13]
     assert batch.model == MODEL
     assert batch.status == "submitted"
@@ -98,7 +107,7 @@ async def test_collect_stores_valid_and_records_the_rest(films: AsyncSession) ->
     batch_id = await submit(films, client, await load_films(films, IDS))
     outcome = await collect(films, client, batch_id)
 
-    assert (outcome.stored, outcome.failed) == (1, 3)
+    assert (outcome.stored, outcome.failed, outcome.state) == (1, 3, "collected")
 
     traits = await films.get(MovieTraits, 550)
     assert traits is not None
@@ -117,7 +126,7 @@ async def test_collect_stores_valid_and_records_the_rest(films: AsyncSession) ->
     assert set(failures) == {13, 680, 155}
     assert failures[13].last_error.startswith("malformed: missing trait")
     assert failures[680].last_error == "truncated at max_tokens"
-    assert failures[155].last_error == "batch result errored"
+    assert failures[155].last_error.startswith("batch result errored: The model is overloaded")
     assert all(f.attempts == 1 for f in failures.values())
 
     # Malformed films get NO trait row - never one filled with defaults.
@@ -126,6 +135,50 @@ async def test_collect_stores_valid_and_records_the_rest(films: AsyncSession) ->
 
     batch = await films.get(TraitBatch, batch_id)
     assert batch is not None and batch.status == "collected" and batch.collected_at is not None
+
+
+async def test_collect_measures_tokens_thinking_included(films: AsyncSession) -> None:
+    client = _client()
+    outcome = await collect(
+        films, client, await submit(films, client, await load_films(films, IDS))
+    )
+    # prompt 412 + 398 + 405; output 231 + 41 + (2000 + 48 thinking); the errored item has none
+    assert outcome.input_tokens == 1215
+    assert outcome.output_tokens == 2320
+
+
+async def test_running_batch_is_not_collected(films: AsyncSession) -> None:
+    client = _client(state="JOB_STATE_RUNNING")
+    batch_id = await submit(films, client, await load_films(films, IDS))
+    with pytest.raises(BatchNotReady, match="JOB_STATE_RUNNING"):
+        await collect(films, client, batch_id)
+
+    batch = await films.get(TraitBatch, batch_id)
+    assert batch is not None and batch.status == "submitted"
+    assert await films.get(TraitFailure, 13) is None
+
+
+@pytest.mark.parametrize(
+    ("job_state", "status"),
+    [
+        ("JOB_STATE_FAILED", "failed"),
+        ("JOB_STATE_CANCELLED", "cancelled"),
+        ("JOB_STATE_EXPIRED", "expired"),
+    ],
+)
+async def test_dead_batch_leaves_its_films_pending(
+    films: AsyncSession, job_state: str, status: str
+) -> None:
+    client = _client(state=job_state)
+    batch_id = await submit(films, client, await load_films(films, IDS))
+    outcome = await collect(films, client, batch_id)
+
+    assert (outcome.state, outcome.stored, outcome.failed) == (status, 0, 0)
+    batch = await films.get(TraitBatch, batch_id)
+    assert batch is not None and batch.status == status
+    # A job that never produced results is not the film's fault: no attempt is counted.
+    assert await films.get(TraitFailure, 13) is None
+    assert {550, 13, 680, 155} <= set(await select_pending(films, limit=100))
 
 
 async def test_failed_film_is_retried_once_then_given_up(films: AsyncSession) -> None:
@@ -145,8 +198,8 @@ async def test_success_after_a_failure_clears_the_failure(films: AsyncSession) -
     await collect(films, client, await submit(films, client, await load_films(films, IDS)))
     assert await films.get(TraitFailure, 13) is not None
 
-    fixed = load_fixture("anthropic_batch_results.json")[0]
-    fixed["custom_id"] = "movie-13"
+    fixed = load_fixture(RESULTS)[0]
+    fixed["metadata"]["key"] = "movie-13"
     retry = _client([fixed])
     await collect(films, retry, await submit(films, retry, await load_films(films, [13])))
     assert await films.get(MovieTraits, 13) is not None
@@ -154,7 +207,7 @@ async def test_success_after_a_failure_clears_the_failure(films: AsyncSession) -
 
 
 async def test_pending_excludes_scored_films_and_orders_by_popularity(films: AsyncSession) -> None:
-    client = _client([load_fixture("anthropic_batch_results.json")[0]])
+    client = _client([load_fixture(RESULTS)[0]])
     await collect(films, client, await submit(films, client, await load_films(films, [550])))
 
     pending = [i for i in await select_pending(films, limit=100) if i in IDS]
@@ -167,7 +220,7 @@ async def test_pending_respects_limit(films: AsyncSession) -> None:
 
 
 async def test_pending_by_hand_picked_ids_keeps_the_list_order(films: AsyncSession) -> None:
-    client = _client([load_fixture("anthropic_batch_results.json")[0]])
+    client = _client([load_fixture(RESULTS)[0]])
     await collect(films, client, await submit(films, client, await load_films(films, [550])))
 
     # 550 is scored and 999_999_999 is not in the catalogue: both are skipped.

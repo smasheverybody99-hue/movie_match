@@ -1,9 +1,13 @@
 """The trait prompt names every dimension and carries the film's actual data."""
 
+from google.genai import types
+
 from app.pipelines.traits import (
-    MAX_TOKENS,
+    MAX_OUTPUT_TOKENS,
     MODEL,
+    RESPONSE_SCHEMA,
     SYSTEM_PROMPT,
+    THINKING_LEVEL,
     build_prompt,
     build_request,
     custom_id,
@@ -56,13 +60,33 @@ def test_missing_data_is_marked_not_invented() -> None:
 
 def test_batch_request_shape() -> None:
     request = build_request(FILM)
-    assert request["custom_id"] == "movie-550"
-    params = request["params"]
-    assert params["model"] == MODEL == "claude-haiku-4-5"
-    assert params["max_tokens"] == MAX_TOKENS
-    assert params["system"] == SYSTEM_PROMPT
-    assert params["messages"] == [{"role": "user", "content": build_prompt(FILM)}]
-    assert "temperature" not in params  # removed from the 1.x SDK surface
+    assert MODEL == "gemini-3.5-flash-lite"
+    assert request["metadata"] == {"key": "movie-550"}
+    assert request["contents"] == [{"role": "user", "parts": [{"text": build_prompt(FILM)}]}]
+    config = request["config"]
+    assert config["system_instruction"] == SYSTEM_PROMPT
+    assert config["response_mime_type"] == "application/json"
+    assert config["response_json_schema"] == RESPONSE_SCHEMA
+    assert config["max_output_tokens"] == MAX_OUTPUT_TOKENS
+    assert config["thinking_config"] == {"thinking_level": THINKING_LEVEL}
+    assert "temperature" not in config  # Gemini 3 is tuned for its default
+
+
+def test_batch_request_is_accepted_by_the_sdk_types() -> None:
+    """The SDK models forbid unknown fields, so a misspelt key fails here, not in a paid run."""
+    parsed = types.InlinedRequest.model_validate(build_request(FILM))
+    assert parsed.config is not None
+    assert parsed.config.thinking_config is not None
+    assert parsed.config.thinking_config.thinking_level == types.ThinkingLevel.MINIMAL
+    assert parsed.metadata == {"key": "movie-550"}
+
+
+def test_response_schema_asks_for_every_trait_in_vector_order() -> None:
+    props = RESPONSE_SCHEMA["properties"]
+    assert list(props)[: len(TRAIT_KEYS)] == list(TRAIT_KEYS)
+    assert RESPONSE_SCHEMA["required"] == [*TRAIT_KEYS, "summary"]
+    for key in TRAIT_KEYS:
+        assert props[key] == {"type": "integer", "minimum": 0, "maximum": 100}
 
 
 def test_custom_id_round_trip() -> None:
