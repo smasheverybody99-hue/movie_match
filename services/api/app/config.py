@@ -44,6 +44,10 @@ class Settings(BaseSettings):
 
     # Cost guards. Raise deliberately, never silently.
     assistant_daily_calls_per_user: int = 30
+    # "Why you'll like this" generations per user per day. Cached ones are free and
+    # unlimited. 20 a day at ~$0.0003 each keeps even a daily heavy user near TZ's
+    # $0.20 a month.
+    explanation_daily_calls_per_user: int = 20
     trait_batch_size: int = 200
 
     @property

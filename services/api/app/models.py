@@ -231,6 +231,10 @@ class Rating(Base):
     score: Mapped[float] = mapped_column(Float)  # 0.5 .. 10.0
     liked_aspects: Mapped[list | None] = mapped_column(JSONB)  # trait keys the user picked
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # When the score was last set. The taste vector weighs recent ratings higher by this.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_rating_user_movie"),)
 
@@ -260,6 +264,21 @@ class Explanation(Base):
     movie_id: Mapped[int] = mapped_column(
         ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True
     )
+    lang: Mapped[str] = mapped_column(String(2), primary_key=True, server_default="uz")
     text: Mapped[str] = mapped_column(Text)
     model: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Dismissal(Base):
+    """A film the user said "not for me" to. Recommendations never show it again."""
+
+    __tablename__ = "dismissals"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

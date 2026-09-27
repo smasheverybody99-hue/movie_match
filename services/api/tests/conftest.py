@@ -14,7 +14,8 @@ Set it like this before running the full suite:
 """
 
 import json
-from collections.abc import AsyncGenerator, Iterator
+from collections.abc import AsyncGenerator, AsyncIterator, Iterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -60,16 +61,13 @@ def client() -> Iterator[TestClient]:
         yield test_client
 
 
-@pytest.fixture
-async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, None]:
-    """A session against the test database, rolled back after each test.
+@asynccontextmanager
+async def rolled_back_session() -> AsyncIterator[AsyncSession]:
+    """A session against the test database whose work is all thrown away at the end.
 
     The outer transaction is never committed, so tests cannot leak rows into
     each other even when the code under test calls `commit()`.
     """
-    if not TEST_DATABASE_URL:
-        pytest.skip("TEST_DATABASE_URL is not set")
-
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=None)
     connection = await engine.connect()
     transaction = await connection.begin()
@@ -89,3 +87,12 @@ async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, Non
     await transaction.rollback()
     await connection.close()
     await engine.dispose()
+
+
+@pytest.fixture
+async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, None]:
+    """A session against the test database, rolled back after each test."""
+    if not TEST_DATABASE_URL:
+        pytest.skip("TEST_DATABASE_URL is not set")
+    async with rolled_back_session() as session:
+        yield session

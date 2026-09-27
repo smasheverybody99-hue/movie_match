@@ -35,7 +35,8 @@ percentage and a plain-language reason.
    - Recompute on every rating change. Store on `users`.
 
 4. **Matching** — `app/services/matching.py`
-   - Implement exactly the formula in `docs/architecture.md`. Do not invent a different one.
+   - Implement exactly the formula in `docs/TZ.md` FR-5 (also in `docs/architecture.md`).
+     Do not invent a different one.
    - `match_percentage(taste, weights, movie_vector) -> int`
    - `top_reasons(taste, movie_vector, n=3) -> list[str]` — the trait keys that
      contributed most to a high score.
@@ -51,7 +52,8 @@ percentage and a plain-language reason.
    - `GET /recommendations` returns the sections.
 
 6. **Explanations** — `app/services/explain.py`
-   - Generate with Haiku, from the actual top reasons — never a generic sentence.
+   - Generate with Gemini `gemini-3.5-flash-lite` (ADR 0004), from the actual top
+     reasons — never a generic sentence.
    - Check the `explanations` table before every call. Never regenerate a cached one.
    - If generation fails, return the recommendation without an explanation. Never block.
 

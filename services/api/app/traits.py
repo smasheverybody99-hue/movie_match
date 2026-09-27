@@ -28,6 +28,11 @@ TRAIT_COUNT: int = len(TRAIT_KEYS)
 SPEC_VERSION: int = int(_spec()["version"])
 
 
+def trait_labels(lang: str) -> dict[str, str]:
+    """Trait key -> display label in `lang` ("en" or "uz"), from traits.json."""
+    return {d["key"]: d[f"label_{lang}"] for d in _spec()["dimensions"]}
+
+
 def to_vector(traits: dict[str, float]) -> list[float]:
     """Dict of trait scores -> ordered vector. Missing dimensions default to 50 (neutral)."""
     return [float(traits.get(key, 50.0)) for key in TRAIT_KEYS]

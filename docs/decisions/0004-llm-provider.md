@@ -1,7 +1,18 @@
 # ADR 0004 — LLM provider for trait extraction and embeddings: Gemini
 
-Date: 2026-09-26 · Status: accepted · Supersedes: the AI bullet of CLAUDE.md "Stack
-decisions" (for bulk trait extraction only) · Resolves: ADR 0003
+Date: 2026-09-26 · Status: accepted, amended 2026-09-27 (explanations, below) ·
+Supersedes: the AI bullet of CLAUDE.md "Stack decisions" (bulk trait extraction and,
+from the amendment, explanations) · Resolves: ADR 0003
+
+## Amendment, 2026-09-27: explanations move to Gemini too
+
+The user directed that the Phase 2 explanations ("why you'll like this", cached per user
+and film) use Gemini as well: `gemini-3.5-flash-lite`, the same model as traits, until
+the Phase 2 explanation check (5 explanations read by a person) says otherwise. The
+original text below kept them on Haiku; where it says so, this amendment wins. Claude
+Sonnet 5 stays for the Phase 4 assistant, so an Anthropic account is still needed then,
+and only then. CLAUDE.md, `docs/architecture.md` and the phase prompts were updated in
+the same change.
 
 ## Context
 
@@ -132,9 +143,8 @@ into the measured cost.
   with the reason and never stored with default scores. The review list includes 365 Days.
 - **Prices move.** Google's pages were read on 2026-09-26; `gemini-3.8-flash` input/output
   prices are stated "through 12/31/26". Re-check before stage 3.
-- **The Anthropic account is still needed later.** Phase 2+ explanations and the Phase 4
-  assistant remain on Claude per CLAUDE.md, so the "one fewer account" benefit holds for
-  Phase 1 only, unless those are moved too. That is a separate decision.
+- **The Anthropic account is still needed later.** The Phase 4 assistant remains on
+  Claude Sonnet 5. (Explanations moved to Gemini in the 2026-09-27 amendment.)
 
 ## Consequences
 
@@ -150,6 +160,7 @@ into the measured cost.
 
 ## Follow-ups (not done here)
 
-- Update CLAUDE.md (Stack decisions, "Keep the running cost down"), `docs/architecture.md`
-  and `README.md`, which still say Haiku for bulk trait extraction.
+- ~~Update CLAUDE.md, `docs/architecture.md` and the prompts~~ — done 2026-09-27.
+  Still open: the two budget rows in `docs/roadmap.html` (monthly "Claude API — izohlar va
+  assistant", and the one-off 20k-film Haiku trait cost) need new numbers.
 - Rerun the stage plan: 50 films, hand review, then 500, then all, asking before each step.

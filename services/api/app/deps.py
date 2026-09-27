@@ -1,12 +1,17 @@
-"""Request dependencies: authentication."""
+"""Request dependencies: authentication, and the explanation generator."""
 
 import uuid
+from functools import lru_cache
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
+from app.db import get_session
+from app.services.explain import Explainer, GeminiExplainer
+from app.services.users import ensure_user
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -42,4 +47,35 @@ async def current_user_id(
     if not sub:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token has no subject")
 
-    return uuid.UUID(sub)
+    try:
+        return uuid.UUID(str(sub))
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token subject is not a user id") from exc
+
+
+async def current_user(
+    user_id: uuid.UUID = Depends(current_user_id),
+    session: AsyncSession = Depends(get_session),
+) -> uuid.UUID:
+    """The caller's id, with their local `users` row created on first sight.
+
+    Supabase is the identity source; our table mirrors it so ratings have a user to
+    belong to.
+    """
+    await ensure_user(session, user_id)
+    return user_id
+
+
+def get_explainer(settings: Settings = Depends(get_settings)) -> Explainer | None:
+    """The explanation generator, or None without a Gemini key (explanations stay null)."""
+    if not settings.gemini_api_key:
+        return None
+    return _explainer(settings.gemini_api_key)
+
+
+@lru_cache
+def _explainer(api_key: str) -> Explainer:
+    """One client per process (per key), not one per request."""
+    from google import genai
+
+    return GeminiExplainer(genai.Client(api_key=api_key).aio)
