@@ -5,8 +5,7 @@ first successful paid call**
 
 Phase prompt: `docs/prompts/phase-01-data.md`. Adjustments for this run (from the user):
 catalogue of 5,000 not 20,000 (TZ v1.2 now says the same); TMDB ingestion run for real;
-trait extraction and embeddings on Gemini instead of Claude Haiku + a second embeddings
-vendor (2026-09-26, ADR 0004). **No paid API call — not even one film — until the user has
+trait extraction and embeddings on Gemini, one vendor for both (2026-09-26, ADR 0004). **No paid API call — not even one film — until the user has
 seen the estimate below and said go.**
 
 ## Is Phase 1 finished?

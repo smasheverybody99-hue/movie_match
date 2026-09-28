@@ -49,3 +49,6 @@ Claude outputs/
 # coverage output
 .coverage
 htmlcov/
+
+# Database backups (Supabase "Download backup" and similar). Never commit these.
+*.backup.gz

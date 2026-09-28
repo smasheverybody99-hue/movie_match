@@ -276,7 +276,7 @@ footer a{ color:var(--muted); }
       <ul class="check">
         <li><input type="checkbox" id="f0-1"><label for="f0-1">TMDB'ga tijorat litsenziyasi bo'yicha xat yuborish (mahsulot tavsifi, kutilayotgan hajm, monetizatsiya rejasi)</label></li>
         <li><input type="checkbox" id="f0-2"><label for="f0-2">MVP doirasini muzlatish: deckdagi 9 ta funksiya. Character Match — F7, Taste Twin — F8</label></li>
-        <li><input type="checkbox" id="f0-3"><label for="f0-3">Akkauntlar: GitHub, Supabase, Anthropic Console, Vercel, Fly.io, Sentry, PostHog</label></li>
+        <li><input type="checkbox" id="f0-3"><label for="f0-3">Akkauntlar: GitHub, Supabase, Google AI Studio (Gemini, to'lov yoqilgan loyiha — ADR 0004), Anthropic Console (faqat F4 assistant uchun), Vercel, Fly.io, Sentry, PostHog</label></li>
         <li><input type="checkbox" id="f0-4"><label for="f0-4">Monorepo: <code>apps/web</code>, <code>apps/mobile</code>, <code>services/api</code>, <code>packages/shared</code></label></li>
         <li><input type="checkbox" id="f0-5"><label for="f0-5"><code>CLAUDE.md</code> yozish: stack, papka tuzilmasi, nomlash, test qoidalari, "nima qilma"lar</label></li>
         <li><input type="checkbox" id="f0-6"><label for="f0-6">Dizayn tokenlari: deckdagi ranglar → CSS o'zgaruvchilari + Flutter <code>ThemeData</code></label></li>
@@ -557,14 +557,15 @@ footer a{ color:var(--muted); }
         <tr><td>API hosting (Fly.io / Railway)</td><td class="num">$10–20</td><td>2 kichik instans + worker</td></tr>
         <tr><td>Web hosting (Vercel)</td><td class="num">$0–20</td><td>Hobby tarifi alfa uchun yetarli</td></tr>
         <tr><td>Redis (Upstash)</td><td class="num">$0–10</td><td>Kesh va rate limit</td></tr>
-        <tr><td>Claude API — izohlar va assistant</td><td class="num">$30–80</td><td>Haiku 4.5 $1/$5 per MTok; kesh bilan ancha arzon</td></tr>
+        <tr><td>Gemini API — "nega yoqadi" izohlari</td><td class="num">$0–5</td><td>gemini-3.5-flash-lite, $0.30/$2.50 per MTok (ADR 0004); izoh ≈ $0.0003, keshlanadi; kunlik 20 ta limit bilan foydalanuvchi boshiga ≤ $0.18/oy</td></tr>
+        <tr><td>Claude API — assistant (F4)</td><td class="num">—</td><td>Claude Sonnet 5; narxi F4 da hisoblanadi. Kunlik 30 so'rov limiti</td></tr>
         <tr><td>Sentry + PostHog</td><td class="num">$0–25</td><td>Bepul tariflar boshida yetadi</td></tr>
         <tr><td>Domen</td><td class="num">~$1</td><td>$12/yil</td></tr>
       </tbody>
-      <tfoot><tr><td>Oylik jami</td><td class="num">$65–180</td><td>+ TMDB litsenziyasi</td></tr></tfoot>
+      <tfoot><tr><td>Oylik jami</td><td class="num">$36–106</td><td>+ assistant (F4) + TMDB litsenziyasi</td></tr></tfoot>
     </table>
   </div>
-  <p class="note" style="margin-top:12px;">Bir martalik xarajatlar: trait pipeline (20k film, Haiku Batch API bilan) ≈ <b>$30–60</b>; Apple Developer $99/yil; Google Play $25 bir marta; yurist ko'rigi — mintaqangizga qarab.</p>
+  <p class="note" style="margin-top:12px;">Bir martalik xarajatlar: trait pipeline + embeddinglar (5 000 film, Gemini Flash-Lite Batch API + Gemini Embedding 2) ≈ <b>$2</b> (taxmin, hali o'lchanmagan — docs/phase-1-status.md); Apple Developer $99/yil; Google Play $25 bir marta; yurist ko'rigi — mintaqangizga qarab.</p>
 </section>
 
 <section>
