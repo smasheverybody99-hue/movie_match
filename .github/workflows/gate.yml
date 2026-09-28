@@ -60,10 +60,10 @@ jobs:
           cache: pip
           cache-dependency-path: services/api/pyproject.toml
 
-      # The version comes from apps/web/package.json ("engines").
+      # The version comes from apps/web/.nvmrc, the same file local tooling reads.
       - uses: actions/setup-node@v4
         with:
-          node-version-file: apps/web/package.json
+          node-version-file: apps/web/.nvmrc
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
