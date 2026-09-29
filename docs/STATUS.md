@@ -1,65 +1,69 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-09-29 · `main` = `3a8181c` · F3 ishi `phase-3-web` branch'ida (hali `main` ga qo'shilmagan)
+Oxirgi yangilanish: 2026-09-30 · `main` = `4ccd878` (F3 `66bc7a0` da qo'shilgan) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
-`docs/prompts/README.md`.
+`docs/prompts/README.md`. Xarajatlar: `docs/costs.md`.
 
 ## Fazalar
 
 | Faza | Holat |
 |---|---|
 | F0 — Poydevor | **Tugagan** (`b2a4d35`, gate o'tgan) |
-| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 5 000 film TMDB'dan yuklangan. Traitlar va embeddinglar hali yo'q: birinchi pullik qadam (50 film) tasdiq kutmoqda |
+| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 5 000 film TMDB'dan yuklangan; katalog maqsadi endi 500 (TZ 1.5). Traitlar va embeddinglar hali yo'q: birinchi pullik qadam (50 film) provayder tanlovini va tasdiqni kutmoqda |
 | F2 — Tavsiya dvigateli | **Kod tugagan va `main` da, qo'lda tekshiruv chala.** Gate yashil. Qo'lda tekshiruv F1 ma'lumotini talab qiladi |
-| F3 — Web ilova | **Kod tugagan, `phase-3-web` branch'ida, CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
+| F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | F4 va keyingilari | Boshlanmagan |
 
 ## Oxirgi gate natijasi
 
 | | |
 |---|---|
-| CI (GitHub Actions, `phase-3-web`, `9b046e1`) | **Yashil**, 2026-09-29: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36538488478 — endi web uchun `typecheck`, `npm test` va `": any"` tekshiruvi ham bor |
-| CI (`main`, `4084b5e`) | Yashil, 2026-09-29: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36522528019 |
+| CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
+| CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
+| CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
 | Web testlari | Mahalliy, 2026-09-29: 11 fayl, 90 test, hammasi o'tgan; lint 0, typecheck 0 |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
-| Testlar | Mahalliy, 2026-09-28: 371 o'tgan, 1 yiqilgan. Yiqilgani tarmoq uzilishi (`WinError 1236`), assert emas. CI'da hammasi o'tgan |
+| API testlari | Mahalliy to'liq run, 2026-09-30 (`852c767` holatida): 424 o'tgan, 1 yiqilgan — CI'dagi o'sha log testi; tuzatishdan keyin u juftlik (migratsiya + provayder testlari) bilan qayta o'tgan |
 
 CI Supabase'ga ulanmaydi: runner'dagi Postgres 17 + pgvector konteyneri ishlatiladi,
 secret yo'q (`.github/workflows/gate.yml`).
 
 ## Chala
 
-1. **F1: traitlar va embeddinglar.** 5 000 filmning hammasida yo'q. Bosqichlar:
-   50 → 500 → 5 000, har biridan oldin tasdiq (CLAUDE.md). 1-bosqich ≈ $0.02
-   (`docs/phase-1-status.md`, "Cost estimates"). Gemini kaliti bilan oxirgi urinish
-   `400 FAILED_PRECONDITION` bilan rad etilgan; birinchi gumon: kalit loyihasida billing
-   yoqilmagan.
-2. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` hali qoralama.
-3. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
-   hisoblash; 5 ta izohni o'qish (≈ $0.002 Gemini, tasdiq bilan).
-4. **F3: kirish sozlanmagan.** `apps/web/.env` da `VITE_SUPABASE_URL` va
+1. **Provayder tanlanmagan (ADR 0006).** Gemini Google Cloud'ning $50 karta hold talabi
+   bilan yopiq. Kod provayder interfeysi orqasida; yangi provayder = bitta modul + bitta
+   qator. Variantlar narxi bilan: `docs/costs.md`. Agar tanlangan provayderning
+   embeddingi 1 536 o'lchamli bo'lmasa — migratsiya va qayta embed kerak (API bu holatda
+   ishga tushmaydi, xato matni yo'lni aytadi).
+2. **F1: traitlar va embeddinglar.** Hech bir filmda yo'q. Bosqichlar: 50 → 500, har
+   biridan oldin tasdiq (CLAUDE.md). 500 filmni o'n yillik kvotasi bilan tanlash —
+   backlog'da (TZ §2).
+3. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` hali qoralama.
+4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
+   hisoblash; 5 ta izohni o'qish (bir necha sent ulushi, provayder tanlangach, tasdiq bilan).
+5. **F3: kirish sozlanmagan.** `apps/web/.env` da `VITE_SUPABASE_URL` va
    `VITE_SUPABASE_ANON_KEY` yo'q; Supabase'da Google provayderi va redirect URL'lar
    yoqilishi kerak. Apple kirishi Apple Developer Program'ni talab qiladi ($99/yil) —
    foydalanuvchi qarori.
-5. **F3: qo'lda tekshiruv chala.** Onboarding vaqti o'lchanmagan; Lighthouse dev serverda
+6. **F3: qo'lda tekshiruv chala.** Onboarding vaqti o'lchanmagan; Lighthouse dev serverda
    o'lchangan (LCP 2.1 s mobil, INP 80 ms) — production build va haqiqiy posterlar bilan
    qayta o'lchash kerak. axe: 0 buzilish, 320px: gorizontal scroll yo'q
    (`docs/phase-3-status.md`).
-6. **Tezlik (TZ: tavsiya < 500 ms) o'lchanmagan.** Dev mashinadan bazagacha so'rov
+7. **Tezlik (TZ: tavsiya < 500 ms) o'lchanmagan.** Dev mashinadan bazagacha so'rov
    150–1000 ms; bazaga yaqin serverdan o'lchash kerak.
 
 ## Keyingi qadam
 
-F1 1-bosqichi hamon asosiy to'siq: F2 va F3 qo'lda tekshiruvlari trait'li filmlarni
-talab qiladi. Kalit billing'ini tekshirish (bepul `models.list` so'rovi), keyin
-`docs/review-films.md` ni tuzatib, 50 filmga trait ekstraksiyasi (≈ $0.02), **faqat
-tasdiqdan keyin**.
+1. **Provayderni tanlash** (foydalanuvchi qarori, `docs/costs.md`). Gemini bo'lmasa:
+   `app/providers/<nom>.py` + `PROVIDERS` ga bitta qator + kalit `config.py` da.
+2. Keyin F1 1-bosqichi: `docs/review-films.md` ni tuzatish, `traits submit --dry-run`
+   bilan narx, **faqat tasdiqdan keyin** 50 film. F2 va F3 qo'lda tekshiruvlari shunga
+   bog'liq.
 
 Parallel (pulsiz): `apps/web/.env` ga Supabase URL va anon kalitni qo'yish, Supabase'da
 Google provayderini yoqish — shunda web'da haqiqiy kirish sinab ko'riladi.
-`phase-3-web` ni `main` ga qo'shish — foydalanuvchi qarori.
 
 ## Muhit
 
