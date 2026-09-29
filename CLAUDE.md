@@ -145,6 +145,11 @@ constraint, not an afterthought.
   it to the user before the real run.
 - **Per-user caps stay on.** `assistant_daily_calls_per_user` exists to stop one user
   from running up the bill. Do not raise it to make a test pass.
+- **`docs/costs.md` follows every price change.** When a provider's price changes, a
+  provider or model is added or considered, a free tier's limits change, or a measured
+  run replaces an estimate, update `docs/costs.md` in the same commit: the number, its
+  source link and the check date. A `Pricing` in `app/providers/` and the table in
+  costs.md must never disagree.
 
 ## Do not
 
