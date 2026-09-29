@@ -104,3 +104,20 @@ async def test_invalid_movie_id_in_path_is_422(
     async with api_client(seeded) as client:
         response = await client.request(method, path, headers=auth(uuid.uuid4()))
     assert response.status_code == 422
+
+
+async def test_rows_carry_the_personal_match(db_session: AsyncSession) -> None:
+    """The same FR-5 number the film page shows; null for a film without traits."""
+    liked, saved, unscored = 9_200_011, 9_200_012, 9_200_013
+    await seed_films(db_session, {liked: [60.0] * 14, saved: [60.0] * 14, unscored: None})
+    me = auth(uuid.uuid4())
+    async with api_client(db_session) as client:
+        empty_taste = await client.post("/watchlist", json={"movie_id": saved}, headers=me)
+        await client.post("/ratings", json={"movie_id": liked, "score": 9}, headers=me)
+        await client.post("/watchlist", json={"movie_id": unscored}, headers=me)
+        listed = (await client.get("/watchlist", headers=me)).json()
+        detail = (await client.get(f"/movies/{saved}", headers=me)).json()
+    assert empty_taste.json()["match"] is None  # no taste yet when it was added
+    by_id = {row["movie"]["id"]: row["match"] for row in listed}
+    assert by_id == {saved: 100, unscored: None}  # identical vectors: a 100% match
+    assert detail["match"] == by_id[saved]

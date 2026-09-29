@@ -27,6 +27,7 @@ PROTECTED = [
     ("DELETE", f"/watchlist/{FILM}", None),
     ("POST", f"/watchlist/{FILM}/watched", None),
     ("GET", "/me", None),
+    ("GET", "/me/dna", None),
     ("DELETE", "/me", None),
     ("GET", "/recommendations", None),
     ("GET", f"/recommendations/{FILM}/explanation", None),
@@ -35,6 +36,9 @@ PROTECTED = [
     ("GET", "/onboarding/films", None),
 ]
 IDS = [f"{m} {p}" for m, p, _ in PROTECTED]
+
+# Endpoints where a token is optional (TZ §6): fine without one, 401 with a forged one.
+OPTIONAL = [("GET", f"/movies/{FILM}")]
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="module")
@@ -59,7 +63,8 @@ async def test_every_protected_route_is_listed_here() -> None:
         if operation.get("security")
     }
     listed = {(m, p.replace(str(FILM), "{movie_id}")) for m, p, _ in PROTECTED}
-    assert routes == listed
+    optional = {(m, p.replace(str(FILM), "{movie_id}")) for m, p in OPTIONAL}
+    assert routes == listed | optional
 
 
 @pytest.mark.parametrize(("method", "path", "body"), PROTECTED, ids=IDS)
@@ -96,6 +101,26 @@ async def test_valid_token_is_let_through(
             await client.post("/dismissals", json={"movie_id": FILM}, headers=me)
         response = await client.request(method, path, json=body, headers=me)
     assert response.status_code in (200, 204), response.text
+
+
+@pytest.mark.parametrize(("method", "path"), OPTIONAL)
+async def test_optional_auth_without_a_token_is_200(
+    seeded: AsyncSession, method: str, path: str
+) -> None:
+    async with api_client(seeded) as client:
+        response = await client.request(method, path)
+    assert response.status_code == 200, response.text
+
+
+@pytest.mark.parametrize(("method", "path"), OPTIONAL)
+async def test_optional_auth_with_a_forged_token_is_401(
+    seeded: AsyncSession, method: str, path: str
+) -> None:
+    forged = auth(uuid.uuid4(), secret="not-the-project-secret-at-all-1234")
+    async with api_client(seeded) as client:
+        response = await client.request(method, path, headers=forged)
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid token"}
 
 
 @pytest.mark.parametrize(

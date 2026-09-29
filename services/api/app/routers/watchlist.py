@@ -9,17 +9,18 @@ from app.db import get_session
 from app.deps import current_user
 from app.models import Movie, WatchlistItem
 from app.schemas import MovieOut, WatchlistIn, WatchlistItemOut
-from app.services import watchlist
+from app.services import movies, watchlist
 from app.services.ratings import MovieNotFound
 
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 
 
-def _out(item: WatchlistItem, movie: Movie) -> WatchlistItemOut:
+def _out(item: WatchlistItem, movie: Movie, match: int | None = None) -> WatchlistItemOut:
     return WatchlistItemOut(
         movie=MovieOut.model_validate(movie),
         added_at=item.created_at,
         watched_at=item.watched_at,
+        match=match,
     )
 
 
@@ -28,7 +29,13 @@ async def list_watchlist(
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[WatchlistItemOut]:
-    return [_out(item, movie) for item, movie in await watchlist.list_items(session, user_id)]
+    """Unwatched first. Each row carries the caller's match, as the film page shows it."""
+    rows = await watchlist.list_items(session, user_id)
+    matches = await movies.personal_matches(session, user_id, [movie.id for _, movie in rows])
+    return [
+        _out(item, movie, matches[movie.id].match if movie.id in matches else None)
+        for item, movie in rows
+    ]
 
 
 @router.post("", response_model=WatchlistItemOut)
@@ -74,4 +81,5 @@ async def mark_watched(
 async def _with_movie(session: AsyncSession, item: WatchlistItem) -> WatchlistItemOut:
     movie = await session.get(Movie, item.movie_id)
     assert movie is not None  # the foreign key guarantees it
-    return _out(item, movie)
+    matches = await movies.personal_matches(session, item.user_id, [movie.id])
+    return _out(item, movie, matches[movie.id].match if movie.id in matches else None)

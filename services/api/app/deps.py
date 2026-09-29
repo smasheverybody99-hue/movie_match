@@ -53,6 +53,20 @@ async def current_user_id(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token subject is not a user id") from exc
 
 
+async def optional_user_id(
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    settings: Settings = Depends(get_settings),
+) -> uuid.UUID | None:
+    """The caller's id when a token is sent, None when none is.
+
+    For endpoints where auth is optional (TZ §6: film detail). A token that is sent but
+    does not verify is still a 401: optional means "may be absent", not "may be forged".
+    """
+    if creds is None:
+        return None
+    return await current_user_id(creds, settings)
+
+
 async def current_user(
     user_id: uuid.UUID = Depends(current_user_id),
     session: AsyncSession = Depends(get_session),

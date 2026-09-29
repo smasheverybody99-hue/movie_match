@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.deps import current_user
-from app.schemas import MeOut
-from app.services import users
+from app.schemas import MeOut, MovieDnaOut
+from app.services import movies, users
 from app.services.recommend import MIN_RATINGS
 
 router = APIRouter(prefix="/me", tags=["me"])
@@ -28,6 +28,23 @@ async def get_me(
         ratings_needed=max(MIN_RATINGS - profile.rating_count, 0),
         has_taste_profile=user.taste_vector is not None,
         taste_updated_at=user.taste_updated_at,
+    )
+
+
+@router.get("/dna", response_model=MovieDnaOut)
+async def get_dna(
+    user_id: uuid.UUID = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> MovieDnaOut:
+    """The caller's Movie DNA (FR-7). Below 10 ratings `ratings_needed` says how many more."""
+    dna = await movies.dna(session, user_id)
+    return MovieDnaOut(
+        scores=dna.scores,
+        summary=None,
+        rating_count=dna.rating_count,
+        ratings_needed=max(MIN_RATINGS - dna.rating_count, 0),
+        average_rating=dna.average_rating,
+        top_genre=dna.top_genre,
     )
 
 
