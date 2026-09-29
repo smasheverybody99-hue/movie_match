@@ -112,9 +112,11 @@ jobs:
         working-directory: services/api
         run: ruff format --check .
 
+      # scripts/ holds ops tools such as migrate_db.py, which writes to the production
+      # database; they get the same type check as the application.
       - name: mypy
         working-directory: services/api
-        run: mypy app
+        run: mypy app scripts
 
       - name: npm run lint
         working-directory: apps/web
