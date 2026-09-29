@@ -14,6 +14,11 @@ Read this file before touching code. If something here conflicts with a request,
 Work only within the current phase. A good idea that belongs to a later phase goes into
 the backlog in `docs/TZ.md` section 2, not into this commit.
 
+- `docs/STATUS.md` — one page: which phase is finished, what is incomplete, the next
+  step, and the latest gate result (date, `app/services/` coverage, CI run link).
+  **Update it at the end of every phase**, in the same commit that closes the phase.
+  Numbers in it come from a real run or a real command, never from memory.
+
 ## Repo layout
 
 ```
