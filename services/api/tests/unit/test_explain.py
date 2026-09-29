@@ -4,7 +4,8 @@ from datetime import date
 from types import SimpleNamespace
 
 from app.models import Movie
-from app.services.explain import MAX_CHARS, GeminiExplainer, build_prompt, clean
+from app.providers.gemini import EXPLAIN_MODEL, GeminiExplainer
+from app.services.explain import MAX_CHARS, SYSTEM_PROMPT, build_prompt, clean
 from app.traits import TRAIT_KEYS
 
 
@@ -42,13 +43,19 @@ async def test_gemini_explainer_sends_the_brief() -> None:
     class Models:
         async def generate_content(self, **kwargs: object) -> SimpleNamespace:
             calls.append(kwargs)
-            return SimpleNamespace(text="Because.")
+            usage = SimpleNamespace(
+                prompt_token_count=120, candidates_token_count=30, thoughts_token_count=5
+            )
+            return SimpleNamespace(text="Because.", usage_metadata=usage)
 
     explainer = GeminiExplainer(SimpleNamespace(models=Models()))
-    assert await explainer.generate("the prompt") == "Because."
+    generated = await explainer.generate(SYSTEM_PROMPT, "the prompt")
+    assert generated.text == "Because."
+    assert (generated.usage.input_tokens, generated.usage.output_tokens) == (120, 35)
     (call,) = calls
-    assert call["model"] == "gemini-3.5-flash-lite"
+    assert call["model"] == EXPLAIN_MODEL == "gemini-3.5-flash-lite"
     assert call["contents"] == "the prompt"
+    assert call["config"]["system_instruction"] == SYSTEM_PROMPT  # type: ignore[index]
     assert call["config"]["thinking_config"] == {"thinking_level": "MINIMAL"}  # type: ignore[index]
 
 
@@ -57,16 +64,16 @@ async def test_an_empty_answer_is_an_empty_string() -> None:
         async def generate_content(self, **kwargs: object) -> SimpleNamespace:
             return SimpleNamespace(text=None)
 
-    assert await GeminiExplainer(SimpleNamespace(models=Models())).generate("p") == ""
+    generated = await GeminiExplainer(SimpleNamespace(models=Models())).generate("s", "p")
+    assert generated.text == ""
+    assert generated.usage.requests == 1
 
 
 def test_the_client_is_built_once_per_key() -> None:
     from app.config import Settings
-    from app.deps import _explainer, get_explainer
+    from app.deps import get_explainer
 
-    _explainer.cache_clear()
     first = get_explainer(Settings(_env_file=None, gemini_api_key="fake-key-not-used"))
     second = get_explainer(Settings(_env_file=None, gemini_api_key="fake-key-not-used"))
-    assert first is second
+    assert first is not None and first is second
     assert get_explainer(Settings(_env_file=None, gemini_api_key="")) is None
-    _explainer.cache_clear()

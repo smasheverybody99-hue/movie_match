@@ -29,10 +29,12 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.config import get_settings
 from app.db import Base
 from app.traits import TRAIT_COUNT
 
-EMBEDDING_DIM = 1536
+# settings.embedding_dim; must match the database column (app/schema_checks.py).
+EMBEDDING_DIM = get_settings().embedding_dim
 
 
 class Movie(Base):

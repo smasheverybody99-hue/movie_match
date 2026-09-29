@@ -1,4 +1,4 @@
-"""Trait batches end to end, with a fake Gemini client. No real API call anywhere.
+"""Trait batches end to end: the Gemini extractor over a fake SDK. No real API call.
 
 Batch results come from tests/fixtures/gemini_batch_results.json, parsed through the SDK's
 own InlinedResponse, and requests are checked against its InlinedRequest, so a payload in
@@ -14,12 +14,12 @@ from google.genai import types
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import Settings
 from app.models import MovieTraits, TraitBatch, TraitFailure
 from app.pipelines.ingest import SqlIngestStore
 from app.pipelines.tmdb import to_film_record
 from app.pipelines.traits import (
     MAX_ATTEMPTS,
-    MODEL,
     BatchNotReady,
     build_prompt,
     collect,
@@ -27,6 +27,8 @@ from app.pipelines.traits import (
     select_pending,
     submit,
 )
+from app.providers.gemini import TRAIT_MODEL as MODEL
+from app.providers.gemini import GeminiTraitExtractor
 from app.traits import SPEC_VERSION, TRAIT_KEYS
 from tests.conftest import load_fixture
 
@@ -55,10 +57,13 @@ class FakeBatches:
         return types.BatchJob.model_validate(job)
 
 
-def _client(results: list[dict] | None = None, state: str = "JOB_STATE_SUCCEEDED") -> Any:
-    return SimpleNamespace(
+def _client(
+    results: list[dict] | None = None, state: str = "JOB_STATE_SUCCEEDED"
+) -> GeminiTraitExtractor:
+    sdk = SimpleNamespace(
         batches=FakeBatches(results if results is not None else load_fixture(RESULTS), state)
     )
+    return GeminiTraitExtractor(Settings(_env_file=None), sdk=sdk)
 
 
 @pytest.fixture
@@ -91,7 +96,7 @@ async def test_submit_records_the_batch(films: AsyncSession) -> None:
     client = _client()
     batch_id = await submit(films, client, await load_films(films, [550, 13]))
 
-    sent = client.batches.created[0]
+    sent = client._sdk.batches.created[0]
     assert sent["model"] == MODEL
     assert [r["metadata"]["key"] for r in sent["src"]] == ["movie-550", "movie-13"]
     batch = await films.get(TraitBatch, batch_id)

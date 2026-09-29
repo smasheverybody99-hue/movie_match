@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from google.genai import types
 
-from app.pipelines.traits import read_item
+from app.providers.gemini import read_item
 from tests.conftest import load_fixture
 
 

@@ -10,12 +10,15 @@ from tenacity import wait_none
 
 from app.config import Settings
 from app.models import EMBEDDING_DIM
-from app.pipelines.embeddings import (
+from app.pipelines.embeddings import get_embedder
+from app.providers.base import UnsupportedDimension
+from app.providers.gemini import (
     EMBED_ATTEMPTS,
     EMBEDDING_MODEL,
     GeminiEmbedder,
-    get_embedder,
 )
+
+NO_KEY = Settings(_env_file=None)
 
 
 def _response(values: list[float]) -> types.EmbedContentResponse:
@@ -47,12 +50,15 @@ class FakeModels:
 
 
 def _embedder(models: FakeModels, **kwargs: Any) -> GeminiEmbedder:
-    return GeminiEmbedder(SimpleNamespace(models=models), wait=wait_none(), **kwargs)
+    return GeminiEmbedder(
+        NO_KEY, EMBEDDING_DIM, sdk=SimpleNamespace(models=models), wait=wait_none(), **kwargs
+    )
 
 
 async def test_one_request_per_text_at_the_column_size() -> None:
     models = FakeModels()
-    vectors = await _embedder(models).embed(["alpha", "beta", "gamma"])
+    embedded = await _embedder(models).embed(["alpha", "beta", "gamma"])
+    vectors = embedded.vectors
 
     assert len(models.calls) == 3  # Embedding 2 aggregates a list into ONE vector
     assert all(len(v) == EMBEDDING_DIM for v in vectors)
@@ -64,7 +70,7 @@ async def test_one_request_per_text_at_the_column_size() -> None:
 
 async def test_vectors_come_back_in_the_order_of_the_texts() -> None:
     texts = ["x" * n for n in (30, 5, 20, 1, 12)]
-    vectors = await _embedder(FakeModels(), concurrency=3).embed(texts)
+    vectors = (await _embedder(FakeModels(), concurrency=3).embed(texts)).vectors
     # each vector's first value is the length of the sent content: prefix + text
     prefix = len("title: none | text: ")
     assert [v[0] for v in vectors] == [float(prefix + len(t)) for t in texts]
@@ -72,13 +78,13 @@ async def test_vectors_come_back_in_the_order_of_the_texts() -> None:
 
 async def test_no_texts_no_calls() -> None:
     models = FakeModels()
-    assert await _embedder(models).embed([]) == []
+    assert (await _embedder(models).embed([])).vectors == []
     assert models.calls == []
 
 
 async def test_a_rate_limit_is_retried() -> None:
     models = FakeModels(failures=[429, 503])
-    vectors = await _embedder(models).embed(["alpha"])
+    vectors = (await _embedder(models).embed(["alpha"])).vectors
     assert len(vectors) == 1
     assert len(models.calls) == 3
 
@@ -122,6 +128,31 @@ def test_embedder_reports_the_column_size() -> None:
     assert (embedder.model, embedder.dim) == (EMBEDDING_MODEL, EMBEDDING_DIM)
 
 
-def test_with_a_key_the_embedder_builds_without_touching_the_network() -> None:
-    embedder = get_embedder(Settings(_env_file=None, gemini_api_key="test-key"))
+def test_the_configured_embedder_builds_without_a_key_or_the_network() -> None:
+    embedder = get_embedder(NO_KEY)
     assert isinstance(embedder, GeminiEmbedder)
+    assert embedder.dim == NO_KEY.embedding_dim == 1536
+
+
+def test_the_embedder_is_built_at_the_configured_size() -> None:
+    embedder = get_embedder(Settings(_env_file=None, embedding_dim=1024))
+    assert embedder.dim == 1024
+
+
+@pytest.mark.parametrize("dim", [0, 3073])
+def test_a_size_the_model_cannot_produce_is_refused(dim: int) -> None:
+    with pytest.raises(UnsupportedDimension, match=str(dim)):
+        GeminiEmbedder(NO_KEY, dim)
+
+
+async def test_usage_is_estimated_from_characters() -> None:
+    """The embeddings API reports no token count, so the cost line says 'estimated'."""
+    embedded = await _embedder(FakeModels()).embed(["x" * 330])
+    assert embedded.usage.requests == 1
+    assert embedded.usage.estimated is True
+    assert embedded.usage.input_tokens == round(len("title: none | text: " + "x" * 330) / 3.5)
+
+
+async def test_without_a_key_the_first_real_call_says_so() -> None:
+    with pytest.raises(SystemExit, match="GEMINI_API_KEY"):
+        await GeminiEmbedder(NO_KEY, EMBEDDING_DIM, wait=wait_none()).embed(["alpha"])

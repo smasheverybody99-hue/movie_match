@@ -9,21 +9,25 @@ from app.models import EMBEDDING_DIM, MovieEmbedding, MovieTraits
 from app.pipelines.embeddings import embed_films, select_pending
 from app.pipelines.ingest import SqlIngestStore
 from app.pipelines.tmdb import to_film_record
+from app.providers.base import Embedded, Pricing, Usage
 from app.traits import TRAIT_KEYS, to_vector
 from tests.conftest import load_fixture
 
 
 class FakeEmbedder:
+    provider = "fake"
     model = "fake-embedder"
     dim = EMBEDDING_DIM
+    pricing = Pricing(1.0, 0.0, "test rates")
 
     def __init__(self, *, short_by: int = 0) -> None:
         self.texts: list[str] = []
         self._short_by = short_by
 
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
+    async def embed(self, texts: Sequence[str]) -> Embedded:
         self.texts.extend(texts)
-        return [[float(len(t))] + [0.0] * (self.dim - 1 - self._short_by) for t in texts]
+        vectors = [[float(len(t))] + [0.0] * (self.dim - 1 - self._short_by) for t in texts]
+        return Embedded(vectors, Usage(requests=len(texts), input_tokens=10 * len(texts)))
 
 
 @pytest.fixture
@@ -53,9 +57,10 @@ async def test_only_films_with_traits_are_pending(scored: AsyncSession) -> None:
 
 async def test_embeddings_are_stored_from_the_built_text(scored: AsyncSession) -> None:
     embedder = FakeEmbedder()
-    stored = await embed_films(scored, embedder, [(550, "For viewers who argue.")])
+    stored, usage = await embed_films(scored, embedder, [(550, "For viewers who argue.")])
 
     assert stored == 1
+    assert (usage.requests, usage.input_tokens) == (1, 10)
     assert "Title: Fight Club (1999)" in embedder.texts[0]
     assert "For viewers: For viewers who argue." in embedder.texts[0]
     row = await scored.get(MovieEmbedding, 550)

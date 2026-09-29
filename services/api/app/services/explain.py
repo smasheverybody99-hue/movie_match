@@ -11,28 +11,30 @@ Money rules (CLAUDE.md "Keep the running cost down"):
 Generation never blocks or breaks a recommendation: any failure returns None, and the
 client shows the recommendation without the sentence.
 
-Gemini `gemini-3.5-flash-lite` on the standard (not batch) API, since a user is waiting
-(ADR 0004, amendment 2026-09-27).
+The configured provider's explainer (`LLM_PROVIDER`, ADR 0006) on its standard (not
+batch) API, since a user is waiting. Every generation writes one cost line.
 """
 
 import asyncio
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal, Protocol
+from typing import Literal
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Explanation, Movie, MovieTraits, User
+from app.providers import usage as cost_log
+from app.providers.base import Explainer
 from app.services.matching import top_reasons, weights_vector
 from app.traits import to_dict, trait_labels
 
 log = logging.getLogger(__name__)
 
-MODEL = "gemini-3.5-flash-lite"
-MAX_OUTPUT_TOKENS = 512  # two sentences need ~80; the rest covers any thinking tokens
+__all__ = ["Explainer", "build_prompt", "cached", "clean", "explain"]
+
 TIMEOUT_SECONDS = 10.0
 MAX_CHARS = 400  # longer than two sentences means the model ignored the brief
 
@@ -43,30 +45,6 @@ SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a
 their taste. Use only the shared qualities you are given, in plain everyday words, and
 name what the film does on them. No generic praise ("a must-see", "you'll love it"), no
 plot spoilers, no rating numbers, no percentages, no quotation marks, no markdown."""
-
-
-class Explainer(Protocol):
-    model: str
-
-    async def generate(self, prompt: str) -> str: ...
-
-
-class GeminiExplainer:
-    def __init__(self, client: Any, model: str = MODEL) -> None:
-        self.client = client  # google.genai async client (`Client(...).aio`)
-        self.model = model
-
-    async def generate(self, prompt: str) -> str:
-        response = await self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config={
-                "system_instruction": SYSTEM_PROMPT,
-                "max_output_tokens": MAX_OUTPUT_TOKENS,
-                "thinking_config": {"thinking_level": "MINIMAL"},
-            },
-        )
-        return response.text or ""
 
 
 def build_prompt(
@@ -159,10 +137,16 @@ async def explain(
 
     prompt = build_prompt(movie, reasons, to_dict(taste), to_dict(film), lang)
     try:
-        answer = clean(await asyncio.wait_for(explainer.generate(prompt), TIMEOUT_SECONDS))
+        generated = await asyncio.wait_for(
+            explainer.generate(SYSTEM_PROMPT, prompt), TIMEOUT_SECONDS
+        )
     except Exception:  # a failed explanation must never fail the request
         log.warning("explanation failed for movie %s", movie_id, exc_info=True)
         return None
+    cost_log.record(
+        "explanation", explainer.provider, explainer.model, generated.usage, explainer.pricing
+    )
+    answer = clean(generated.text)
     if answer is None:
         return None
 

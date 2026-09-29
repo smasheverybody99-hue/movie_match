@@ -13,6 +13,13 @@ Set it like this before running the full suite:
     export TEST_DATABASE_URL="postgresql+asyncpg://postgres:pw@localhost:5432/moviematch_test"
 """
 
+import os
+
+# Before anything imports app.config: the API's start-up schema check would otherwise
+# connect to DATABASE_URL (the real database) whenever a test starts the app. Tests of
+# the check call it directly against the test database.
+os.environ.setdefault("SCHEMA_CHECK_ON_STARTUP", "false")
+
 import json
 from collections.abc import AsyncGenerator, AsyncIterator, Iterator
 from contextlib import asynccontextmanager

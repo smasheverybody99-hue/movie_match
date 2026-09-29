@@ -45,9 +45,13 @@ Rules:
 
 - **DB**: PostgreSQL via Supabase, `pgvector` for embeddings, HNSW index.
 - **Auth**: Supabase Auth. The API verifies the Supabase JWT; it never issues its own.
-- **AI** (ADR 0004): Gemini `gemini-3.5-flash-lite` for bulk trait extraction (Batch API)
-  and cached "why you'll like this" text; Gemini `gemini-embedding-2` (1,536-d) for
-  embeddings. Claude Sonnet 5 only for the conversational assistant.
+- **AI provider** (ADR 0006): traits, embeddings and explanations go through the
+  `app/providers/` interface, chosen by `LLM_PROVIDER`. **Which provider is open.** The
+  current implementation is Gemini (ADR 0004): `gemini-3.5-flash-lite` for bulk trait
+  extraction (Batch API) and cached "why you'll like this" text, `gemini-embedding-2` for
+  embeddings. Never import a vendor SDK outside `app/providers/`. Embedding size is
+  `EMBEDDING_DIM` and must match the column. Claude Sonnet 5 only for the conversational
+  assistant.
 - **Movie data**: TMDB. Commercial licence required before public launch — see docs/legal.md.
 
 ## Conventions
@@ -131,9 +135,9 @@ constraint, not an afterthought.
 - **Always stage a batch run.** 50 films first, check the output by hand, then 500, then
   the full catalogue — and ask before each step up. A bad prompt found at film 50 costs
   cents; found at film 20,000 it costs the whole run.
-- **Gemini Flash-Lite for bulk work.** Trait extraction and explanations use
-  `gemini-3.5-flash-lite` (ADR 0004). Never a Pro-, Opus- or Sonnet-class model for a job
-  measured in thousands of rows.
+- **A Flash-Lite-class model for bulk work.** Trait extraction and explanations use the
+  provider's cheapest capable model (today `gemini-3.5-flash-lite`, ADR 0004/0006). Never
+  a Pro-, Opus- or Sonnet-class model for a job measured in thousands of rows.
 - **Use the Batch API** for anything that is not user-facing: half the token price.
 - **Cache before you generate.** Check the `explanations` table before every call; a
   regenerated explanation is money spent twice for the same sentence.

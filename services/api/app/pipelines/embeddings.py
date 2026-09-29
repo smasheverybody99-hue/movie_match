@@ -1,11 +1,11 @@
 """Embeddings: film -> vector in movie_embeddings, for ANN retrieval.
 
     python -m app.pipelines.embeddings --limit 50 --dry-run   # text, size and cost, no call
-    python -m app.pipelines.embeddings --limit 50             # real, paid
+    python -m app.pipelines.embeddings --limit 50 --yes       # real, paid
 
-Gemini Embedding 2 on the paid tier (ADR 0004), behind the `Embedder` protocol. It returns
-3,072 dimensions by default; we ask for 1,536 (`output_dimensionality`), which fits the
-column and pgvector's 2,000-dimension HNSW limit, and the API normalises truncated vectors.
+The configured provider's embedder (`LLM_PROVIDER`, ADR 0006) at `EMBEDDING_DIM`
+dimensions. Before anything is embedded - dry run included - the size is checked against
+the movie_embeddings column; a mismatch stops the run with the way out in the message.
 
 Embedding text is built from title, year, genres, keywords, overview and the trait
 summary, so a film must have traits before it can be embedded.
@@ -14,107 +14,31 @@ summary, so a film must have traits before it can be embedded.
 import argparse
 import asyncio
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import Any
 
-from google.genai import errors, types
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from tenacity import (
-    AsyncRetrying,
-    retry_if_exception,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from app.config import Settings, get_settings
 from app.models import EMBEDDING_DIM, Movie, MovieEmbedding, MovieTraits
 from app.pipelines.cli import utf8_console
 from app.pipelines.db import job_session
-from app.pipelines.gemini import gemini_client
 from app.pipelines.traits import load_films
+from app.providers import get_provider
+from app.providers import usage as cost_log
+from app.providers.base import Embedder, Usage
+from app.schema_checks import EmbeddingDimMismatch, check_embedding_dim
 
 MAX_KEYWORDS = 30
 EMBED_CHUNK = 64
 CHARS_PER_TOKEN = 3.5
 
-EMBEDDING_MODEL = "gemini-embedding-2"
-# Standard (not batch) paid-tier rate, USD per million tokens, checked 2026-09-26. The Batch
-# API is half of this; not worth a second polling loop for ~$0.09 per 5,000 films (ADR 0004).
-EMBEDDING_USD_PER_MTOK = 0.20
-EMBED_CONCURRENCY = 8
-EMBED_ATTEMPTS = 5
-_BACKOFF = wait_exponential(multiplier=1, max=30)
-_TRANSIENT_CODES = {429, 500, 502, 503, 504}
-
-
-class Embedder(Protocol):
-    model: str
-    dim: int
-
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]: ...
-
-
-def _is_transient(exc: BaseException) -> bool:
-    return isinstance(exc, errors.APIError) and exc.code in _TRANSIENT_CODES
-
-
-class GeminiEmbedder:
-    """Film text -> 1,536-d vectors through Gemini Embedding 2.
-
-    The model returns ONE aggregated embedding for a request with several inputs, so each
-    text is its own request. Requests run a few at a time; rate limits and server errors
-    are retried with backoff, anything else stops the run.
-    """
-
-    model = EMBEDDING_MODEL
-    dim = EMBEDDING_DIM
-
-    def __init__(
-        self,
-        client: Any,
-        *,
-        concurrency: int = EMBED_CONCURRENCY,
-        wait: Any = _BACKOFF,
-    ) -> None:
-        self._client = client
-        self._concurrency = concurrency
-        self._wait = wait
-
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
-        gate = asyncio.Semaphore(self._concurrency)
-
-        async def one(text: str) -> list[float]:
-            async with gate:
-                return await self._embed_one(text)
-
-        async with asyncio.TaskGroup() as group:  # a failure cancels the rest
-            tasks = [group.create_task(one(t)) for t in texts]
-        return [t.result() for t in tasks]
-
-    async def _embed_one(self, text: str) -> list[float]:
-        # Embedding 2 takes no task_type; the documented document format is "title | text".
-        content = f"title: none | text: {text}"
-        config = types.EmbedContentConfig(output_dimensionality=self.dim)
-        async for attempt in AsyncRetrying(
-            retry=retry_if_exception(_is_transient),
-            wait=self._wait,
-            stop=stop_after_attempt(EMBED_ATTEMPTS),
-            reraise=True,
-        ):
-            with attempt:
-                response = await self._client.models.embed_content(
-                    model=self.model, contents=content, config=config
-                )
-        embeddings = response.embeddings or []
-        if len(embeddings) != 1 or not embeddings[0].values:
-            raise ValueError(f"expected one embedding, got {len(embeddings)}")
-        return list(embeddings[0].values)
-
 
 def get_embedder(settings: Settings | None = None) -> Embedder:
-    """The configured embedder, or exit if there is no API key."""
-    return GeminiEmbedder(gemini_client(settings or get_settings()))
+    """The configured provider's embedder at the configured size. No network."""
+    settings = settings or get_settings()
+    return get_provider(settings).embedder(settings.embedding_dim)
 
 
 def build_embedding_text(film: dict[str, Any], trait_summary: str | None) -> str:
@@ -150,20 +74,22 @@ async def select_pending(session: AsyncSession, limit: int) -> list[tuple[int, s
 
 async def embed_films(
     session: AsyncSession, embedder: Embedder, pending: Sequence[tuple[int, str | None]]
-) -> int:
-    """Embed and store. Rejects vectors of the wrong size instead of storing them."""
+) -> tuple[int, Usage]:
+    """Embed and store; returns (stored, usage). Rejects vectors of the wrong size."""
     if embedder.dim != EMBEDDING_DIM:
         raise ValueError(f"embedder is {embedder.dim}-d, column is {EMBEDDING_DIM}-d")
     summaries = dict(pending)
     films = await load_films(session, [movie_id for movie_id, _ in pending])
     stored = 0
+    usage = Usage()
     for start in range(0, len(films), EMBED_CHUNK):
         chunk = films[start : start + EMBED_CHUNK]
         texts = [build_embedding_text(f, summaries.get(f["id"])) for f in chunk]
-        vectors = await embedder.embed(texts)
-        if len(vectors) != len(chunk):
-            raise ValueError(f"asked for {len(chunk)} embeddings, got {len(vectors)}")
-        for film, vector in zip(chunk, vectors, strict=True):
+        embedded = await embedder.embed(texts)
+        usage = usage + embedded.usage
+        if len(embedded.vectors) != len(chunk):
+            raise ValueError(f"asked for {len(chunk)} embeddings, got {len(embedded.vectors)}")
+        for film, vector in zip(chunk, embedded.vectors, strict=True):
             if len(vector) != EMBEDDING_DIM:
                 raise ValueError(f"film {film['id']}: {len(vector)}-d vector")
             stmt = insert(MovieEmbedding).values(
@@ -177,7 +103,7 @@ async def embed_films(
             )
             stored += 1
         await session.commit()
-    return stored
+    return stored, usage
 
 
 async def main(argv: Sequence[str] | None = None) -> None:
@@ -187,27 +113,42 @@ async def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--yes", action="store_true", help="confirm a paid run")
     args = parser.parse_args(argv)
     utf8_console()
+    cost_log.configure()
+    settings = get_settings()
+    embedder = get_embedder(settings)
 
     async with job_session() as session:
+        try:
+            await check_embedding_dim(session, settings.embedding_dim)
+        except EmbeddingDimMismatch as exc:
+            raise SystemExit(str(exc)) from exc
         pending = await select_pending(session, args.limit)
         if args.dry_run:
             films = await load_films(session, [movie_id for movie_id, _ in pending])
             summaries = dict(pending)
             texts = [build_embedding_text(f, summaries.get(f["id"])) for f in films]
-            tokens = sum(len(t) for t in texts) / CHARS_PER_TOKEN
-            usd = tokens * EMBEDDING_USD_PER_MTOK / 1_000_000
+            estimate = Usage(
+                requests=len(texts),
+                input_tokens=round(sum(len(t) for t in texts) / CHARS_PER_TOKEN),
+                estimated=True,
+            )
             print(
-                f"{len(texts)} films ready to embed with {EMBEDDING_MODEL} at {EMBEDDING_DIM}-d, "
-                f"~{tokens:,.0f} tokens in total, ~${usd:.4f} "
-                f"(${EMBEDDING_USD_PER_MTOK}/MTok standard, paid tier)"
+                f"{len(texts)} films ready to embed with {embedder.provider} {embedder.model} "
+                f"at {embedder.dim}-d, ~{estimate.input_tokens:,} tokens, "
+                f"~${embedder.pricing.usd(estimate):.4f} ({embedder.pricing.source})"
             )
             if texts:
                 print("\n--- first text ---\n" + texts[0])
             return
         if not args.yes:
             raise SystemExit("paid run: re-run with --yes once the --dry-run cost is approved")
-        stored = await embed_films(session, get_embedder(), pending)
+        stored, usage = await embed_films(session, embedder, pending)
         print(f"stored {stored} embeddings")
+        print(
+            cost_log.record(
+                "embeddings", embedder.provider, embedder.model, usage, embedder.pricing
+            )
+        )
 
 
 if __name__ == "__main__":

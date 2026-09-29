@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Explanation, Rating
+from app.providers.base import Generated, Pricing, Usage
 from app.services.taste import recompute_taste
 from app.services.users import ensure_user
 from app.traits import TRAIT_COUNT
@@ -29,28 +30,30 @@ NOTHING_SHARED = 9_620_001  # every dimension under 50 for the film: no reason t
 
 
 class FakeExplainer:
+    provider = "fake"
     model = "fake-explainer"
+    pricing = Pricing(1.0, 2.0, "test rates")
 
     def __init__(self, answer: str = "Dark and twisty, the way you like it.") -> None:
         self.answer = answer
         self.prompts: list[str] = []
 
-    async def generate(self, prompt: str) -> str:
+    async def generate(self, system: str, prompt: str) -> Generated:
         self.prompts.append(prompt)
-        return self.answer
+        return Generated(self.answer, Usage(requests=1, input_tokens=100, output_tokens=20))
 
 
 class FailingExplainer(FakeExplainer):
-    async def generate(self, prompt: str) -> str:
+    async def generate(self, system: str, prompt: str) -> Generated:
         self.prompts.append(prompt)
         raise RuntimeError("model unavailable")
 
 
 class SlowExplainer(FakeExplainer):
-    async def generate(self, prompt: str) -> str:
+    async def generate(self, system: str, prompt: str) -> Generated:
         self.prompts.append(prompt)
         await asyncio.sleep(3600)
-        return self.answer
+        return Generated(self.answer, Usage())
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="module")

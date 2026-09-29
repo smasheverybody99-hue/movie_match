@@ -6,33 +6,39 @@ import pytest
 
 from app.pipelines import traits
 from app.pipelines.traits import CostEstimate, build_prompt, estimate_cost
+from app.providers.base import Pricing
+
+# Hand-written rates, so the arithmetic below does not depend on any provider's prices.
+RATES = Pricing(0.15, 1.25, "test rates")
 
 
 def test_usd_from_tokens_at_batch_rates() -> None:
     # 1M input at $0.15 + 1M output at $1.25
-    estimate = CostEstimate(films=10, input_tokens=1_000_000, output_tokens=1_000_000)
+    estimate = CostEstimate(
+        films=10, input_tokens=1_000_000, output_tokens=1_000_000, pricing=RATES
+    )
     assert estimate.usd == pytest.approx(1.40)
 
 
 def test_estimate_counts_prompt_characters_and_expected_output() -> None:
     films = [{"id": 1, "title": "A"}, {"id": 2, "title": "Bee", "overview": "x" * 700}]
     chars = sum(len(traits.SYSTEM_PROMPT) + 20 + len(build_prompt(f)) for f in films)
-    estimate = estimate_cost(films)
+    estimate = estimate_cost(films, RATES)
     assert estimate.films == 2
     assert estimate.input_tokens == math.ceil(chars / traits.CHARS_PER_TOKEN)
     assert estimate.output_tokens == 2 * traits.EXPECTED_OUTPUT_TOKENS
 
 
 def test_scaling_keeps_per_film_averages() -> None:
-    fifty = CostEstimate(films=50, input_tokens=20_000, output_tokens=12_500)
+    fifty = CostEstimate(films=50, input_tokens=20_000, output_tokens=12_500, pricing=RATES)
     full = fifty.scaled_to(5000)
     assert (full.films, full.input_tokens, full.output_tokens) == (5000, 2_000_000, 1_250_000)
     assert full.usd == pytest.approx(fifty.usd * 100)
 
 
 def test_scaling_an_empty_estimate() -> None:
-    assert CostEstimate(0, 0, 0).scaled_to(5000).usd == 0.0
+    assert CostEstimate(0, 0, 0, RATES).scaled_to(5000).usd == 0.0
 
 
 def test_no_films_costs_nothing() -> None:
-    assert estimate_cost([]).usd == 0.0
+    assert estimate_cost([], RATES).usd == 0.0

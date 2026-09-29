@@ -3,6 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # services/api/.env, wherever the process was started from.
@@ -21,8 +22,18 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""
 
     tmdb_api_key: str = ""
-    # Trait extraction and embeddings (ADR 0004). Paid tier: the free tier lets Google use
-    # submitted content to train its models.
+    # Which provider does traits, embeddings and explanations: a key of
+    # app.providers.PROVIDERS. The choice is open (ADR 0006); "gemini" is what exists.
+    llm_provider: str = "gemini"
+    # Size of movie_embeddings.embedding. Must equal the column in the database: the API
+    # and the embeddings pipeline check it on start and refuse to run on a mismatch.
+    # Changing it means a migration and re-embedding every film (ADR 0006).
+    embedding_dim: int = Field(default=1536, ge=1)
+    # The API's start-up schema check (embedding size). Tests switch it off so that
+    # importing the app never connects to DATABASE_URL.
+    schema_check_on_startup: bool = True
+    # Gemini (ADR 0004). Paid tier: the free tier lets Google use submitted content to
+    # train its models.
     gemini_api_key: str = ""
     # Not used by the data pipelines; the Phase 4 assistant still runs on Claude.
     anthropic_api_key: str = ""

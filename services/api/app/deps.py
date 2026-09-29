@@ -1,7 +1,6 @@
 """Request dependencies: authentication, and the explanation generator."""
 
 import uuid
-from functools import lru_cache
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -10,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
-from app.services.explain import Explainer, GeminiExplainer
+from app.providers import get_provider
+from app.providers.base import Explainer
 from app.services.users import ensure_user
 
 _bearer = HTTPBearer(auto_error=False)
@@ -81,15 +81,6 @@ async def current_user(
 
 
 def get_explainer(settings: Settings = Depends(get_settings)) -> Explainer | None:
-    """The explanation generator, or None without a Gemini key (explanations stay null)."""
-    if not settings.gemini_api_key:
-        return None
-    return _explainer(settings.gemini_api_key)
-
-
-@lru_cache
-def _explainer(api_key: str) -> Explainer:
-    """One client per process (per key), not one per request."""
-    from google import genai
-
-    return GeminiExplainer(genai.Client(api_key=api_key).aio)
+    """The configured provider's explanation generator, or None without its key
+    (explanations then stay null). The provider keeps one client per process."""
+    return get_provider(settings).explainer()

@@ -55,10 +55,12 @@ def test_keywords_are_capped() -> None:
     assert len(line.removeprefix("Keywords: ").split(", ")) == MAX_KEYWORDS
 
 
-def test_no_key_means_no_embedder() -> None:
-    """Without GEMINI_API_KEY nothing can reach a paid API by accident."""
+async def test_no_key_means_no_call() -> None:
+    """Without GEMINI_API_KEY nothing can reach a paid API by accident. Building the
+    embedder needs no key (a dry run reads its prices); the first real call stops."""
+    embedder = get_embedder(Settings(_env_file=None, gemini_api_key=""))
     with pytest.raises(SystemExit, match="GEMINI_API_KEY"):
-        get_embedder(Settings(_env_file=None, gemini_api_key=""))
+        await embedder.embed(["any film"])
 
 
 class _WrongSize:

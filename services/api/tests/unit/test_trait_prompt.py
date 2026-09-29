@@ -1,13 +1,8 @@
 """The trait prompt names every dimension and carries the film's actual data."""
 
-from google.genai import types
-
 from app.pipelines.traits import (
-    MAX_OUTPUT_TOKENS,
-    MODEL,
     RESPONSE_SCHEMA,
     SYSTEM_PROMPT,
-    THINKING_LEVEL,
     build_prompt,
     build_request,
     custom_id,
@@ -58,27 +53,12 @@ def test_missing_data_is_marked_not_invented() -> None:
     assert "Overview: none" in prompt
 
 
-def test_batch_request_shape() -> None:
+def test_request_is_provider_neutral() -> None:
     request = build_request(FILM)
-    assert MODEL == "gemini-3.5-flash-lite"
-    assert request["metadata"] == {"key": "movie-550"}
-    assert request["contents"] == [{"role": "user", "parts": [{"text": build_prompt(FILM)}]}]
-    config = request["config"]
-    assert config["system_instruction"] == SYSTEM_PROMPT
-    assert config["response_mime_type"] == "application/json"
-    assert config["response_json_schema"] == RESPONSE_SCHEMA
-    assert config["max_output_tokens"] == MAX_OUTPUT_TOKENS
-    assert config["thinking_config"] == {"thinking_level": THINKING_LEVEL}
-    assert "temperature" not in config  # Gemini 3 is tuned for its default
-
-
-def test_batch_request_is_accepted_by_the_sdk_types() -> None:
-    """The SDK models forbid unknown fields, so a misspelt key fails here, not in a paid run."""
-    parsed = types.InlinedRequest.model_validate(build_request(FILM))
-    assert parsed.config is not None
-    assert parsed.config.thinking_config is not None
-    assert parsed.config.thinking_config.thinking_level == types.ThinkingLevel.MINIMAL
-    assert parsed.metadata == {"key": "movie-550"}
+    assert request.key == "movie-550"
+    assert request.system == SYSTEM_PROMPT
+    assert request.prompt == build_prompt(FILM)
+    assert request.schema == RESPONSE_SCHEMA
 
 
 def test_response_schema_asks_for_every_trait_in_vector_order() -> None:
