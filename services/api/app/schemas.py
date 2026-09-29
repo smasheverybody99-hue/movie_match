@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
+from datetime import date, datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.traits import TRAIT_KEYS
 
 
 class MovieOut(BaseModel):
@@ -42,17 +45,78 @@ class RecommendationOut(BaseModel):
     explanation: str | None = None
 
 
-class RatingIn(BaseModel):
+Lang = Literal["uz", "en"]
+SectionKey = Literal["for_you", "because_you_loved", "under_90", "outside_usual"]
+
+
+class SectionOut(BaseModel):
+    """One row of recommendations. Clients turn `key` into a title in the user's language."""
+
+    key: SectionKey
+    seed: MovieOut | None = Field(
+        default=None, description="The film in 'Because you loved {film}'; null otherwise"
+    )
+    items: list[RecommendationOut]
+
+
+class RecommendationsOut(BaseModel):
+    status: Literal["ok", "not_enough_data"]
+    ratings_needed: int = Field(ge=0, description="Ratings still needed before recommendations")
+    sections: list[SectionOut] = Field(default_factory=list)
+
+
+class ExplanationOut(BaseModel):
     movie_id: int
+    lang: Lang
+    text: str | None = Field(description="Null when it could not be generated; try later")
+
+
+class DismissalIn(BaseModel):
+    movie_id: int = Field(gt=0)
+
+
+class MeOut(BaseModel):
+    id: uuid.UUID
+    created_at: datetime
+    rating_count: int
+    ratings_needed: int = Field(ge=0, description="Ratings still needed before recommendations")
+    has_taste_profile: bool
+    taste_updated_at: datetime | None = None
+
+
+class RatingIn(BaseModel):
+    movie_id: int = Field(gt=0)
     score: float = Field(ge=0.5, le=10.0)
-    liked_aspects: list[str] = Field(default_factory=list)
+    liked_aspects: list[str] = Field(
+        default_factory=list, max_length=len(TRAIT_KEYS), description="Trait keys, no repeats"
+    )
+
+    @field_validator("liked_aspects")
+    @classmethod
+    def _known_trait_keys(cls, value: list[str]) -> list[str]:
+        unknown = [key for key in value if key not in TRAIT_KEYS]
+        if unknown:
+            raise ValueError(f"unknown trait keys: {', '.join(unknown)}")
+        if len(set(value)) != len(value):
+            raise ValueError("repeated trait key")
+        return value
 
 
 class RatingOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     movie_id: int
     score: float
+    liked_aspects: list[str] = Field(default_factory=list)
+    rated_at: datetime = Field(description="When the score was last set")
+
+
+class WatchlistIn(BaseModel):
+    movie_id: int = Field(gt=0)
+
+
+class WatchlistItemOut(BaseModel):
+    movie: MovieOut
+    added_at: datetime
+    watched_at: datetime | None = None
 
 
 class MovieDnaOut(BaseModel):

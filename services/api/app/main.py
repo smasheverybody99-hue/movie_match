@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import health, movies
+from app.routers import health, me, movies, onboarding, ratings, recommendations, watchlist
 
 settings = get_settings()
 
@@ -37,3 +37,8 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(movies.router)
+app.include_router(ratings.router)
+app.include_router(watchlist.router)
+app.include_router(me.router)
+app.include_router(recommendations.router)
+app.include_router(onboarding.router)

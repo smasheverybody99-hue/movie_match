@@ -28,7 +28,8 @@ speed here.
    - Write a `sync_runs` table recording start, end, counts and last processed id.
 
 2. **Trait extraction** — finish `app/pipelines/traits.py`
-   - Submit batches through the Anthropic Batch API using Claude Haiku.
+   - Submit batches through the Gemini Batch API using `gemini-3.5-flash-lite`
+     (ADR 0004).
    - Batch size from `settings.trait_batch_size`.
    - Validate every response with `parse_response`; a malformed response is retried once,
      then recorded as failed — never written with default values.
@@ -70,7 +71,7 @@ No recommendation logic (that is Phase 2). No user-facing endpoints. No UI.
 - `tests/integration/test_upsert_idempotent.py` — ingesting the same film twice leaves one
   row with the newer data
 
-Use recorded fixtures for TMDB and Anthropic responses. **No test may call a real API.**
+Use recorded fixtures for TMDB and Gemini responses. **No test may call a real API.**
 
 ## Gate — do not skip
 

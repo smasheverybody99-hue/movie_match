@@ -1,0 +1,134 @@
+# The phase gate (CLAUDE.md, docs/prompts/phase-02-engine.md), run in CI.
+#
+# The database is a throwaway Postgres + pgvector container on the runner. CI never
+# connects to Supabase: DATABASE_URL is not set, and no secrets are used. Tests that
+# touch Gemini or TMDB use fakes and recorded fixtures.
+
+name: gate
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        # Local test databases ran Postgres 17.6 with pgvector 0.8.2.
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The version comes from pyproject.toml ([tool.mypy] python_version), not from here.
+      - name: Read Python version from pyproject.toml
+        id: python-version
+        run: |
+          version=$(grep -m1 '^python_version' services/api/pyproject.toml | cut -d'"' -f2)
+          test -n "$version"
+          echo "Python $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.python-version.outputs.version }}
+          cache: pip
+          cache-dependency-path: services/api/pyproject.toml
+
+      # The version comes from apps/web/.nvmrc, the same file local tooling reads.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install API dependencies
+        working-directory: services/api
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Enable pgvector
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE EXTENSION IF NOT EXISTS vector" \
+            -c "SELECT extversion FROM pg_extension WHERE extname = 'vector'"
+
+      # The Alembic CLI always targets DATABASE_URL (migrations/env.py). CI has none, so
+      # the test database is passed explicitly, the same way tests/test_migrations.py does.
+      - name: alembic upgrade head (test database)
+        working-directory: services/api
+        run: |
+          python - <<'EOF'
+          from alembic import command
+          from alembic.config import Config
+
+          from app.config import get_settings
+
+          url = get_settings().test_database_url
+          assert "localhost" in url, "CI must only migrate the runner's own database"
+          config = Config("alembic.ini")
+          config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
+          command.upgrade(config, "head")
+          command.current(config)
+          EOF
+
+      - name: ruff check
+        working-directory: services/api
+        run: ruff check .
+
+      - name: ruff format --check
+        working-directory: services/api
+        run: ruff format --check .
+
+      - name: mypy
+        working-directory: services/api
+        run: mypy app
+
+      - name: npm run lint
+        working-directory: apps/web
+        run: npm run lint
+
+      - name: npm run build
+        working-directory: apps/web
+        run: npm run build
+
+      - name: pytest
+        working-directory: services/api
+        run: python -m pytest --cov=app --cov-report=term-missing
+
+      # The phase requirement: app/services/ at 85% or more, on its own.
+      - name: Coverage of app/services/ (85% minimum)
+        working-directory: services/api
+        run: python -m coverage report --include="app/services/*" --fail-under=85

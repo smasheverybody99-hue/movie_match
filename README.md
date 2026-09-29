@@ -121,4 +121,4 @@ flutter run
 3. Claude ishlab bo'lgach, **darvoza buyruqlarini o'zingiz ishga tushiring**.
 4. Hammasi 100% o'tsa — keyingi fazaga o'ting. O'tmasa — tuzattiring, qayta tekshiring.
 
-Hozirgi faza: **F0 — poydevor**.
+Hozirgi faza: **F2 — tavsiya dvigateli**.

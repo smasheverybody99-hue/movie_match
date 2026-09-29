@@ -31,7 +31,8 @@ recommendations.
 2. **Character traits** — 11 dimensions (strategic, independence, curiosity, leadership,
    risk-taking, problem-solving, teamwork, loyalty, adaptability, humor, ambition).
    Define them in `packages/shared/character_traits.json`, mirrored in Python, exactly the
-   way film traits are handled. Extract with Haiku, validate, never default silently.
+   way film traits are handled. Extract with Gemini Flash-Lite (ADR 0004), validate,
+   never default silently.
 3. **Quiz** — 12 questions, 4 options each, skippable. `character_quiz_answers` table.
 4. **Character DNA** — `app/services/character.py`
    - Combine the film taste vector and, if present, the quiz answers into an 11-dimension

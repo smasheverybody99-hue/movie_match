@@ -16,7 +16,7 @@ dependencies = [
   "pydantic-settings>=2.6",
   "pyjwt[crypto]>=2.9",
   "httpx>=0.27",
-  # Trait extraction (Batch API) and embeddings. Chosen in ADR 0004; replaces anthropic here.
+  # Trait extraction (Batch API), embeddings and explanations. Chosen in ADR 0004.
   "google-genai>=2.25,<3",
   "tenacity>=9.0",
   "redis>=5.2",
@@ -58,6 +58,11 @@ filterwarnings = ["error::DeprecationWarning:app.*"]
 [tool.coverage.run]
 source = ["app"]
 omit = ["app/__init__.py"]
+# SQLAlchemy's async layer runs the session inside greenlets. Without "greenlet" here
+# coverage loses track of a coroutine after its first `await session...`, and every line
+# after it is reported as unexecuted even when a test runs it (ratings.py measured 54%
+# without this, 100% with it). This fixes the measurement; it does not relax any test.
+concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
 show_missing = true

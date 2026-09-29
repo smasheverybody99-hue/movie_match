@@ -5,8 +5,7 @@ first successful paid call**
 
 Phase prompt: `docs/prompts/phase-01-data.md`. Adjustments for this run (from the user):
 catalogue of 5,000 not 20,000 (TZ v1.2 now says the same); TMDB ingestion run for real;
-trait extraction and embeddings on Gemini instead of Claude Haiku + a second embeddings
-vendor (2026-09-26, ADR 0004). **No paid API call — not even one film — until the user has
+trait extraction and embeddings on Gemini, one vendor for both (2026-09-26, ADR 0004). **No paid API call — not even one film — until the user has
 seen the estimate below and said go.**
 
 ## Is Phase 1 finished?
@@ -25,9 +24,9 @@ prompt makes the manual checklist part of the phase:
 The phase report's items 2–4 (review table and verdict, measured cost, trait definitions
 that did not work in practice) cannot be written until those are done.
 
-The phase prompt says "run the pipeline on 200 films"; this run is staged 50 → 500 → 5,000
-instead (CLAUDE.md). **Open question for the user:** keep a separate 200-film step, or
-count the 500-film stage as covering it?
+The phase prompt says "run the pipeline on 200 films"; that step is **dropped** (user,
+2026-09-27): the 500-film stage covers it. The 200 predates the agreed 50 → 500 → 5,000
+staging (CLAUDE.md).
 
 ## Where things stand
 
@@ -168,13 +167,11 @@ migrations run as `python -m alembic upgrade head`. `tasks.ps1` / `tasks.sh` alr
 
 ## Housekeeping
 
-- Everything up to `7cf3274` is pushed to GitHub (`origin/main`). `docs/TZ.md` v1.2 is
-  committed locally (`4fa0c07`), not pushed.
-- The switch to Gemini (ADR 0004, `traits.py`, `embeddings.py`, tests) is in the working
-  tree, uncommitted.
-- The README env table now lists `GEMINI_API_KEY` (uncommitted). CLAUDE.md,
-  `docs/architecture.md` and the rest of `README.md` still say Claude Haiku for bulk trait
-  extraction; update them to match ADR 0004.
+- TZ v1.2 (`4fa0c07`), the Gemini switch (`f791ecd`) and its docs (`022801b`) are pushed
+  to GitHub (`origin/main`).
+- The README env table lists `GEMINI_API_KEY`. CLAUDE.md, `docs/architecture.md` and the
+  phase prompts match ADR 0004 since 2026-09-27; two budget rows in `docs/roadmap.html`
+  still need new numbers.
 - `google-genai` 2.25 is installed in `services/api/.venv` and replaces `anthropic` in
   `pyproject.toml`. Re-add `anthropic` when the Phase 4 assistant is built.
 - `.env.txt` at the repo root is an old copy of the local config and holds a real

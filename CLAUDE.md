@@ -40,8 +40,9 @@ Rules:
 
 - **DB**: PostgreSQL via Supabase, `pgvector` for embeddings, HNSW index.
 - **Auth**: Supabase Auth. The API verifies the Supabase JWT; it never issues its own.
-- **AI**: Claude Haiku 4.5 for bulk trait extraction (Batch API) and cached "why you'll
-  like this" text. Claude Sonnet 5 only for the conversational assistant.
+- **AI** (ADR 0004): Gemini `gemini-3.5-flash-lite` for bulk trait extraction (Batch API)
+  and cached "why you'll like this" text; Gemini `gemini-embedding-2` (1,536-d) for
+  embeddings. Claude Sonnet 5 only for the conversational assistant.
 - **Movie data**: TMDB. Commercial licence required before public launch — see docs/legal.md.
 
 ## Conventions
@@ -125,8 +126,9 @@ constraint, not an afterthought.
 - **Always stage a batch run.** 50 films first, check the output by hand, then 500, then
   the full catalogue — and ask before each step up. A bad prompt found at film 50 costs
   cents; found at film 20,000 it costs the whole run.
-- **Claude Haiku for bulk work.** Trait extraction and explanations. Never Opus or Sonnet
-  for a job measured in thousands of rows.
+- **Gemini Flash-Lite for bulk work.** Trait extraction and explanations use
+  `gemini-3.5-flash-lite` (ADR 0004). Never a Pro-, Opus- or Sonnet-class model for a job
+  measured in thousands of rows.
 - **Use the Batch API** for anything that is not user-facing: half the token price.
 - **Cache before you generate.** Check the `explanations` table before every call; a
   regenerated explanation is money spent twice for the same sentence.
@@ -137,7 +139,7 @@ constraint, not an afterthought.
 
 ## Do not
 
-- Do not write TMDB API keys, Supabase service keys or Anthropic keys into any file.
+- Do not write TMDB API keys, Supabase service keys, Gemini or Anthropic keys into any file.
   They live in `.env` only, and `.env` is gitignored.
 - Do not fetch from TMDB inside a request handler. Ingestion is a background job.
 - Do not call an LLM inside a request handler without a cache lookup first.
