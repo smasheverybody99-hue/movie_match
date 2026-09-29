@@ -60,7 +60,7 @@ export default function Feed() {
             );
           }
           return sections.map((section) => (
-            <section key={section.key} aria-labelledby={`section-${section.key}`}>
+            <section key={section.key} className="feed-section" aria-labelledby={`section-${section.key}`}>
               <h2 className="section-title" id={`section-${section.key}`}>
                 <SectionTitle section={section} />
               </h2>

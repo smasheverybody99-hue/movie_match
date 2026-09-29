@@ -126,7 +126,7 @@ a { color: inherit; }
 /* ---------- type ---------- */
 .screen-title { font-family: var(--font-head); font-weight: 800; font-size: 24px; margin: 0 0 var(--space-3); }
 .section-title { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: var(--space-4) 0 12px; }
-.section-title:first-child { margin-top: 0; }
+.feed-section:first-of-type .section-title { margin-top: 0; }
 .muted { color: var(--muted); }
 .meta { font-size: 12px; color: var(--muted); }
 .mono { font-family: var(--font-mono); }
@@ -223,7 +223,7 @@ select.field { appearance: auto; }
 @media (min-width: 768px) { .row-scroll { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1024px) { .row-scroll { grid-template-columns: repeat(5, 1fr); } }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
 @media (min-width: 640px) { .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
 
 .panel { background: var(--surface); border-radius: var(--radius); padding: var(--space-3); }
@@ -238,9 +238,12 @@ select.field { appearance: auto; }
 .bar .band-strong { background: var(--red); }
 .bar .band-medium { background: var(--gold); }
 .bar .band-weak { background: var(--faint); }
-.bar .taste { background: var(--muted); opacity: .45; }
-.bar.compare { height: 10px; }
-.bar.compare .film { top: 3px; bottom: 3px; }
+.bar.compare { height: 10px; overflow: visible; }
+/* The user's taste is a tick on the film's bar, so neither hides the other. */
+.bar .taste-tick {
+  position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px;
+  border-radius: 2px; background: var(--text);
+}
 
 .ring {
   --size: 84px;
@@ -317,6 +320,7 @@ select.field { appearance: auto; }
 .foot-actions .btn:first-child { flex: 1; }
 
 /* ---------- film page ---------- */
+.backdrop.empty { height: 88px; }
 .backdrop { position: relative; height: 200px; margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) 0; overflow: hidden; background: var(--surface); }
 .backdrop img { width: 100%; height: 100%; object-fit: cover; opacity: .55; }
 .backdrop::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg)); }
@@ -368,13 +372,17 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 
 /* ---------- watchlist ---------- */
 .list { list-style: none; margin: 0; padding: 0; }
-.list-row { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.list-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .list-row:last-child { border-bottom: none; }
 .list-row .poster { width: 52px; }
 .list-row-meta { flex: 1; min-width: 0; }
-.list-row-title { font-weight: 600; font-size: 14px; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-row-title { font-weight: 600; font-size: 14px; text-decoration: none; display: block; overflow-wrap: break-word; }
 .match { font-family: var(--font-head); font-weight: 800; color: var(--gold); font-size: 15px; }
 .row-actions { display: flex; gap: var(--space-1); flex-wrap: wrap; justify-content: flex-end; }
+/* Narrow screens: the buttons take their own line under the title, aligned with it. */
+@media (max-width: 559px) {
+  .row-actions { flex-basis: 100%; justify-content: flex-start; padding-left: 64px; }
+}
 
 /* ---------- DNA ---------- */
 .dna-summary { font-family: var(--font-head); font-style: italic; font-weight: 700; font-size: 18px; line-height: 1.45; margin: 0; }

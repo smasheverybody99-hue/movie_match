@@ -31,7 +31,7 @@ export function TraitBar({ trait, value }: { trait: TraitKey; value: number }) {
   );
 }
 
-/** Two layers: the user's taste (light) under the film (coloured). */
+/** The film as the bar (coloured by strength), the user's taste as a tick on it. */
 export function TraitCompare({
   trait,
   taste,
@@ -57,8 +57,8 @@ export function TraitCompare({
         </span>
       </div>
       <div className="bar compare" aria-hidden="true">
-        <i className="taste" style={{ width: `${you}%` }} />
-        <i className={`film band-${traitBand(film)}`} style={{ width: `${it}%` }} />
+        <i className={`band-${traitBand(film)}`} style={{ width: `${it}%` }} />
+        <i className="taste-tick" style={{ left: `${you}%` }} />
       </div>
     </div>
   );

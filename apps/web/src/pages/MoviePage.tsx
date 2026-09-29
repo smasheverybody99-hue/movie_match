@@ -214,7 +214,7 @@ export default function MoviePage() {
   const backdrop = imageUrl(detail.backdrop_path, "w1280");
   return (
     <article>
-      <div className="backdrop">{backdrop && <img src={backdrop} alt="" fetchPriority="high" />}</div>
+      <div className={backdrop ? "backdrop" : "backdrop empty"}>{backdrop && <img src={backdrop} alt="" fetchPriority="high" />}</div>
       <div className="film-head">
         <Poster title={detail.title} path={detail.poster_path} describe eager />
         <div>

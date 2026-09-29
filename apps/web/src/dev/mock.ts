@@ -8,6 +8,7 @@
  * it never reaches a production bundle. Controls, in the browser console:
  *   localStorage["mm.mock.scenario"] = "new" | "active"   (then reload)
  *   localStorage["mm.mock.down"] = "1"                     (every request fails)
+ *   localStorage["mm.mock.signedOut"] = "1"                (start at /welcome)
  */
 import type { AuthClient, Session } from "../lib/supabase";
 import type { Movie, MovieDetail, Rating, WatchlistItem } from "../lib/types";
@@ -134,7 +135,7 @@ export function install(): AuthClient {
   };
 
   const session: Session = { accessToken: "mock-token", userId: "mock-user", email: "demo@example.com" };
-  let current: Session | null = session;
+  let current: Session | null = flag("mm.mock.signedOut") === "1" ? null : session;
   const listeners = new Set<(s: Session | null) => void>();
   return {
     getSession: async () => current,

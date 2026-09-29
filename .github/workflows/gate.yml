@@ -135,7 +135,7 @@ jobs:
         run: npm test
 
       # Phase 3 pass condition: no `any` in the web codebase.
-      - name: No ": any" in apps/web/src
+      - name: 'No ": any" in apps/web/src'
         working-directory: apps/web
         run: |
           if grep -rn ": any" src/; then
