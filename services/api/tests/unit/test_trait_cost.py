@@ -40,5 +40,17 @@ def test_scaling_an_empty_estimate() -> None:
     assert CostEstimate(0, 0, 0, RATES).scaled_to(5000).usd == 0.0
 
 
+def test_the_full_catalogue_is_the_target_not_everything_ingested() -> None:
+    assert traits.full_catalogue(ingested=5000, target=500) == 500
+    assert traits.full_catalogue(ingested=300, target=500) == 300
+
+
+def test_the_catalogue_target_is_500() -> None:
+    """Lowered from 5,000 for cost (TZ FR-2, docs/costs.md)."""
+    from app.config import Settings
+
+    assert Settings(_env_file=None).catalogue_target == 500
+
+
 def test_no_films_costs_nothing() -> None:
     assert estimate_cost([], RATES).usd == 0.0

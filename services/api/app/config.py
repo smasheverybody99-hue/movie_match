@@ -42,7 +42,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
 
     # Catalogue. The target is deliberately a setting: raise it here, not in code.
-    catalogue_target: int = 5000
+    # 500 since 2026-09-30, for cost: trait and embedding spend grow with the film count
+    # (docs/costs.md, TZ FR-2). The database may hold more films than this.
+    catalogue_target: int = 500
     # Floor on TMDB vote count, so "popular" means known rather than briefly trending.
     catalogue_min_votes: int = 100
     # No single original language may fill more than this share of a decade's quota

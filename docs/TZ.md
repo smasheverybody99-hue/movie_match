@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.4 · 2026-09-29 · Holat: tasdiqlangan
+Versiya 1.5 · 2026-09-30 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -67,6 +67,7 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | DNA ulashish uchun server tomonda rasm (FR-7). Hozir web matnni ulashadi/nusxalaydi. Ommaviy havola (token, maxfiylik) dizayni kerak | F5 dan oldin | 2026-09-29 |
 | Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
 | Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
+| 500 filmni o'n yillik/til kvotasi bilan tanlash (FR-2). Bazadagi 5 000 film 5 000 uchun rejalashtirilgan; `traits submit --limit 500` eng mashhurlarini oladi va o'n yillik taqsimoti buzilishi mumkin. Yechim: `ingest --plan-only --target 500` (TMDB, bepul) ro'yxatini `traits submit --ids` ga berish | 1-bosqichdan keyin, 500 ga o'tishdan oldin | 2026-09-30 |
 
 ---
 
@@ -116,13 +117,15 @@ Foydalanuvchi Google, Apple yoki email (magic link) orqali kiradi.
 
 ### FR-2 · Film bazasi
 
-**5 000 film** birinchi versiyada: nomi, yili, davomiyligi, tavsifi, janrlari,
+**500 film** birinchi versiyada: nomi, yili, davomiyligi, tavsifi, janrlari,
 aktyorlari, rejissyori, kalit so'zlari, posteri.
 
 Son `catalogue_target` sozlamasida turadi, kodda emas — ko'tarish bitta qator o'zgarishi.
-20 000 dan 5 000 ga tushirildi, chunki trait ekstraksiyasi narxi film soniga to'g'ri
-proporsional, va mashhur filmlar shu miqdorda ham qamrab olinadi. Kamroq mashhurlari
-mahsulot ishlayotgani tasdiqlangandan keyin qo'shiladi.
+20 000 dan 5 000 ga (v1.2), keyin 5 000 dan 500 ga (v1.5) tushirildi: trait va embedding
+narxi film soniga to'g'ri proporsional (`docs/costs.md`), provayder hali tanlanmagan, va
+birinchi maqsad — mahsulot ishlashini tasdiqlash. Kamroq mashhurlari shundan keyin
+qo'shiladi. Bazada 5 000 film allaqachon yuklangan; ulardan faqat trait'lisi tavsiya va
+onboarding'da qatnashadi.
 
 **Qabul mezoni:**
 - TMDB'dan kunlik sinxronizatsiya, uzilishdan keyin davom eta oladi.
@@ -338,3 +341,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.2 | 2026-09-25 | Katalog 20 000 dan 5 000 ga; son sozlamaga chiqarildi; o'n yillik va til taqsimoti qo'shildi |
 | 1.3 | 2026-09-29 | 2-bo'limga "Backlog" kichik bo'limi; birinchi band: migrate skriptiga testlar |
 | 1.4 | 2026-09-29 | §6 API jadvali F2–F3 endpointlari bilan to'ldirildi; backlog'ga F3 dan qolgan to'rt band (DNA AI xulosasi, ulashish rasmi, provayder filtri, filmga xos chiplar) |
+| 1.5 | 2026-09-30 | FR-2: katalog 5 000 dan 500 ga (xarajat); `catalogue_target = 500` |

@@ -371,6 +371,15 @@ async def collect(session: AsyncSession, extractor: TraitExtractor, batch_id: st
 # --- CLI ----------------------------------------------------------------------------
 
 
+def full_catalogue(ingested: int, target: int) -> int:
+    """The films a full run would score: the target, or fewer if fewer are ingested.
+
+    The database can hold more films than `catalogue_target` (5,000 were ingested before
+    the target dropped to 500); the estimate is for the target, not for all of them.
+    """
+    return min(ingested, target)
+
+
 def _print_estimate(extractor: TraitExtractor, estimate: CostEstimate, catalogue: int) -> None:
     p = extractor.pricing
     rates = f"${p.input_usd_per_mtok} in / ${p.output_usd_per_mtok} out per MTok"
@@ -425,7 +434,8 @@ async def main(argv: Sequence[str] | None = None) -> None:
             else:
                 ids = await select_pending(session, args.limit)
             films = await load_films(session, ids)
-            catalogue = await session.scalar(select(func.count()).select_from(Movie)) or 0
+            ingested = await session.scalar(select(func.count()).select_from(Movie)) or 0
+            catalogue = full_catalogue(ingested, settings.catalogue_target)
             _print_estimate(extractor, estimate_cost(films, extractor.pricing), catalogue)
             if args.dry_run:
                 if films:
