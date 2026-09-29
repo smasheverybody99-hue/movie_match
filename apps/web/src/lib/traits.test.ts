@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import sharedSpec from "../../../../packages/shared/traits.json";
 
-import { TRAIT_COUNT, TRAIT_KEYS, TRAIT_LABELS_UZ, traitBand } from "./traits";
+import { isTraitKey, TRAIT_COUNT, TRAIT_KEYS, traitBand } from "./traits";
 
 interface TraitSpec {
   version: number;
@@ -30,10 +30,9 @@ describe("trait contract", () => {
     expect(TRAIT_COUNT).toBe(spec.dimensions.length);
   });
 
-  it("has an Uzbek label for every trait", () => {
-    for (const key of TRAIT_KEYS) {
-      expect(TRAIT_LABELS_UZ[key], `missing label for ${key}`).toBeTruthy();
-    }
+  it("recognises trait keys", () => {
+    expect(isTraitKey("darkness")).toBe(true);
+    expect(isTraitKey("sparkle")).toBe(false);
   });
 
   it("uses a 0-100 scale", () => {
