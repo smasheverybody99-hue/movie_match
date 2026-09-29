@@ -36,12 +36,9 @@ secret yo'q (`.github/workflows/gate.yml`).
 2. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` hali qoralama.
 3. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
    hisoblash; 5 ta izohni o'qish (≈ $0.002 Gemini, tasdiq bilan).
-4. **Asosiy baza (Singapur) `0002` da.** `0003` (ratings.updated_at) va `0004`
-   (dismissals, explanations.lang) faqat test bazasiga qo'yilgan. F2 API asosiy bazada
-   ishlashidan oldin qo'llash kerak (tasdiq bilan).
-5. **TZ §6 API jadvali** yangi endpointlarni (`/me`, `/dismissals`,
+4. **TZ §6 API jadvali** yangi endpointlarni (`/me`, `/dismissals`,
    `/recommendations/{id}/explanation`, `/onboarding/films`) hali sanamaydi.
-6. **Tezlik (TZ: tavsiya < 500 ms) o'lchanmagan.** Dev mashinadan bazagacha so'rov
+5. **Tezlik (TZ: tavsiya < 500 ms) o'lchanmagan.** Dev mashinadan bazagacha so'rov
    150–1000 ms; bazaga yaqin serverdan o'lchash kerak.
 
 ## Keyingi qadam
@@ -54,6 +51,9 @@ tasdiqdan keyin**.
 
 - Test bazasi: Supabase, Frankfurt (`eu-central-1`). Asosiy baza: Singapur
   (`ap-southeast-1`), 5 000 film — testlar unga hech qachon ulanmaydi.
+- Ikkala baza ham migratsiya `0004` (head) da, 2026-09-29 dan. Asosiy bazada
+  `lock_timeout = 5s` bilan, COMMIT'dan keyin yangi ulanishda tekshirilgan; `movies`
+  5 000 → 5 000. Vosita: `services/api/scripts/migrate_db.py` (testlari backlog'da).
 - Node: `apps/web/.nvmrc` (24); CI ham shuni o'qiydi. Python: 3.12 (`pyproject.toml`).
 - Dev mashinada Windows Application Control ba'zi native fayllarni bloklaydi
   (`alembic.exe`; 2026-09-29 dan rollup'ning `rollup.win32-x64-msvc.node` —

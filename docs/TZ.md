@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.2 · 2026-09-25 · Holat: tasdiqlangan
+Versiya 1.3 · 2026-09-29 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -53,6 +53,16 @@ Taste Twin (1000+ faol foydalanuvchisiz ishlamaydi) · TV/anime/kitob · ijtimoi
 izohlar · reyting agregatori · striming ichida ko'rish
 
 Bu ro'yxatga yangi funksiya **faqat yangi TZ versiyasi bilan** qo'shiladi.
+
+### Backlog
+
+Keyinga qoldirilgan ishlar: texnik qarz va keyingi fazaga tegishli g'oyalar
+(CLAUDE.md: joriy fazaga sig'maydigan narsa shu yerga yoziladi). Funksiya emas —
+yuqoridagi doiraga ta'sir qilmaydi.
+
+| Band | Qachongacha | Qo'shilgan |
+|---|---|---|
+| `services/api/scripts/migrate_db.py` ga testlar (himoyalar: `lock_timeout`, COMMIT'dan keyin yangi ulanishda tekshiruv, `movies` soni). Hozircha faqat qo'lda sinalgan | Keyingi migratsiyadan oldin | 2026-09-29 |
 
 ---
 
@@ -313,3 +323,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.0 | 2026-09-24 | Birinchi versiya |
 | 1.1 | 2026-09-25 | Ma'lumot manbai qarori: TMDB bepul tarifi, litsenziya monetizatsiyadan oldin (ADR 0002) |
 | 1.2 | 2026-09-25 | Katalog 20 000 dan 5 000 ga; son sozlamaga chiqarildi; o'n yillik va til taqsimoti qo'shildi |
+| 1.3 | 2026-09-29 | 2-bo'limga "Backlog" kichik bo'limi; birinchi band: migrate skriptiga testlar |
