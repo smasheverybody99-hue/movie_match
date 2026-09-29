@@ -55,6 +55,12 @@ tasdiqdan keyin**.
   `lock_timeout = 5s` bilan, COMMIT'dan keyin yangi ulanishda tekshirilgan; `movies`
   5 000 → 5 000. Vosita: `services/api/scripts/migrate_db.py` (testlari backlog'da).
 - Node: `apps/web/.nvmrc` (24); CI ham shuni o'qiydi. Python: 3.12 (`pyproject.toml`).
-- Dev mashinada Windows Application Control ba'zi native fayllarni bloklaydi
-  (`alembic.exe`; 2026-09-29 dan rollup'ning `rollup.win32-x64-msvc.node` —
-  mahalliy `npm run build` shu sabab yiqiladi). CI'da (Linux) build o'tadi.
+- **Hal qilingan: Windows Smart App Control (SAC).** 2026-09-29 gacha SAC shu dev
+  mashinada `alembic.exe`, `mypy`, `npm run build` va `npm run dev` ni bloklagan edi
+  (oxirgi ikkalasi rollup'ning `rollup.win32-x64-msvc.node` fayli sababli). Microsoft'ning
+  Smart App Control FAQ'iga ko'ra, SAC yoqilgan holda alohida faylga istisno qo'shib
+  bo'lmaydi, shuning uchun SAC o'chirildi. O'chirish qaytariladi: SAC'ni Windows
+  Security ichidan qayta yoqish mumkin, lekin **qayta yoqilsa, o'sha bloklar qaytadi.**
+  - O'chirilgandan keyin tekshirilgan (2026-09-29): `npm run dev` — sahifa HTTP 200
+    bilan ochildi; `npm run build` — exit 0; `mypy app scripts` — exit 0 (39 fayl);
+    `alembic.exe --version` va `python -m alembic --version` — ikkalasi ishladi.
