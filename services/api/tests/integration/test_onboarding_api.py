@@ -38,3 +38,22 @@ async def test_limit_is_validated(db_session: AsyncSession) -> None:
     async with api_client(db_session) as client:
         response = await client.get("/onboarding/films?limit=0", headers=auth(uuid.uuid4()))
     assert response.status_code == 422
+
+
+async def test_offset_pages_through_the_same_order(db_session: AsyncSession) -> None:
+    """'I have not seen any of these' asks for the next page: no film is shown twice."""
+    await seed_catalogue(db_session, [{**f, "vector": [60.0] * 14} for f in FILMS])
+    me = auth(uuid.uuid4())
+    async with api_client(db_session) as client:
+        whole = (await client.get("/onboarding/films?limit=100", headers=me)).json()
+        page_1 = (await client.get("/onboarding/films?limit=2", headers=me)).json()
+        page_2 = (await client.get("/onboarding/films?limit=2&offset=2", headers=me)).json()
+    ids = [m["id"] for m in whole]
+    assert [m["id"] for m in page_1] == ids[:2]
+    assert [m["id"] for m in page_2] == ids[2:4]
+
+
+async def test_offset_is_validated(db_session: AsyncSession) -> None:
+    async with api_client(db_session) as client:
+        response = await client.get("/onboarding/films?offset=-1", headers=auth(uuid.uuid4()))
+    assert response.status_code == 422

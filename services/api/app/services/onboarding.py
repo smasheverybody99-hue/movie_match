@@ -2,7 +2,8 @@
 
 Each genre contributes its most popular scored films; the list takes them in turns
 (genre 1's first, genre 2's first, ..., then genre 1's second, ...), skipping repeats,
-so the first screen is not twenty action films. Only films with a trait vector are
+so the first screen is not twenty action films. `offset` pages through the same order
+("I haven't seen any of these" loads the next screenful). Only films with a trait vector are
 offered: rating one of those is what builds the taste profile. Films the user has
 already rated are left out, so a user who comes back resumes where they stopped (FR-3).
 """
@@ -32,7 +33,13 @@ def interleave(by_genre: list[list[int]], limit: int) -> list[int]:
     return picked
 
 
-async def onboarding_films(session: AsyncSession, user_id: uuid.UUID, limit: int) -> list[Movie]:
+async def onboarding_films(
+    session: AsyncSession, user_id: uuid.UUID, limit: int, offset: int = 0
+) -> list[Movie]:
+    # Round-robin order does not depend on how long each genre's list is, only on its
+    # prefix, so taking more per genre for a later page keeps the earlier pages as they
+    # were; offset + limit per genre is enough even if one genre had every film.
+    per_genre = max(PER_GENRE, offset + limit)
     rated = select(Rating.movie_id).where(Rating.user_id == user_id)
     rank = (
         func.row_number()
@@ -52,7 +59,7 @@ async def onboarding_films(session: AsyncSession, user_id: uuid.UUID, limit: int
     rows = await session.execute(
         select(ranked.c.genre_id, ranked.c.movie_id, ranked.c.popularity)
         .join(Genre, Genre.id == ranked.c.genre_id)
-        .where(ranked.c.rank <= PER_GENRE)
+        .where(ranked.c.rank <= per_genre)
         .order_by(ranked.c.genre_id, ranked.c.rank)
     )
     by_genre: dict[int, list[int]] = {}
@@ -62,7 +69,7 @@ async def onboarding_films(session: AsyncSession, user_id: uuid.UUID, limit: int
         top_popularity.setdefault(genre_id, popularity or 0.0)
     # Genres in order of their most popular film, so the best-known lists lead.
     order = sorted(by_genre, key=lambda g: (-top_popularity[g], g))
-    ids = interleave([by_genre[g] for g in order], limit)
+    ids = interleave([by_genre[g] for g in order], offset + limit)[offset:]
     if not ids:
         return []
     movies = {m.id: m for m in await session.scalars(select(Movie).where(Movie.id.in_(ids)))}

@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.3 · 2026-09-29 · Holat: tasdiqlangan
+Versiya 1.4 · 2026-09-29 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -63,6 +63,10 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | Band | Qachongacha | Qo'shilgan |
 |---|---|---|
 | `services/api/scripts/migrate_db.py` ga testlar (himoyalar: `lock_timeout`, COMMIT'dan keyin yangi ulanishda tekshiruv, `movies` soni). Hozircha faqat qo'lda sinalgan | Keyingi migratsiyadan oldin | 2026-09-29 |
+| Movie DNA AI xulosasi (FR-7). Hozir web uchta eng kuchli traitdan shablon jumla quradi; `/me/dna` `summary: null` qaytaradi. AI versiyasi uchun kesh jadvali (migratsiya) va narx qarori kerak | F5 dan oldin | 2026-09-29 |
+| DNA ulashish uchun server tomonda rasm (FR-7). Hozir web matnni ulashadi/nusxalaydi. Ommaviy havola (token, maxfiylik) dizayni kerak | F5 dan oldin | 2026-09-29 |
+| Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
+| Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
 
 ---
 
@@ -237,14 +241,23 @@ To'liq shartnoma — `services/api/app/schemas.py` va `/docs` (OpenAPI).
 | Metod | Yo'l | Vazifa | Auth |
 |---|---|---|---|
 | GET | `/health` | Tiriklik | yo'q |
-| GET | `/movies?q=` | Qidiruv | yo'q |
-| GET | `/movies/{id}` | Film detali | ixtiyoriy |
+| GET | `/movies?q=&year_from=&year_to=&max_runtime=&trait=key:min` | Qidiruv va filtrlar | yo'q |
+| GET | `/movies/{id}` | Film detali; token bilan shaxsiy match va sabablar | ixtiyoriy |
 | POST | `/ratings` | Baho qo'yish | ha |
+| GET | `/ratings` | O'z baholari | ha |
 | DELETE | `/ratings/{movie_id}` | Bahoni olib tashlash | ha |
-| GET | `/watchlist` | Watchlist | ha |
+| GET | `/watchlist` | Watchlist (har qatorda shaxsiy match) | ha |
 | POST | `/watchlist` | Qo'shish | ha |
+| DELETE | `/watchlist/{movie_id}` | O'chirish | ha |
+| POST | `/watchlist/{movie_id}/watched` | Ko'rildi deb belgilash | ha |
 | GET | `/recommendations` | Tavsiyalar | ha |
-| GET | `/me/dna` | Movie DNA | ha |
+| GET | `/recommendations/{movie_id}/explanation` | "Nega sizga yoqadi" (kesh yoki yangi, kunlik limit) | ha |
+| POST | `/dismissals` | "Men uchun emas" | ha |
+| DELETE | `/dismissals/{movie_id}` | Rad etishni bekor qilish | ha |
+| GET | `/onboarding/films?limit=&offset=` | Onboarding uchun filmlar | ha |
+| GET | `/me` | Akkaunt xulosasi | ha |
+| DELETE | `/me` | Akkaunt ma'lumotini o'chirish | ha |
+| GET | `/me/dna` | Movie DNA: ta'm vektori, statistika | ha |
 | POST | `/assistant/chat` | Assistant (SSE oqim) | ha |
 | GET | `/character/match` | Character Match | ha |
 
@@ -324,3 +337,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.1 | 2026-09-25 | Ma'lumot manbai qarori: TMDB bepul tarifi, litsenziya monetizatsiyadan oldin (ADR 0002) |
 | 1.2 | 2026-09-25 | Katalog 20 000 dan 5 000 ga; son sozlamaga chiqarildi; o'n yillik va til taqsimoti qo'shildi |
 | 1.3 | 2026-09-29 | 2-bo'limga "Backlog" kichik bo'limi; birinchi band: migrate skriptiga testlar |
+| 1.4 | 2026-09-29 | §6 API jadvali F2–F3 endpointlari bilan to'ldirildi; backlog'ga F3 dan qolgan to'rt band (DNA AI xulosasi, ulashish rasmi, provayder filtri, filmga xos chiplar) |

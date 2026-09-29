@@ -28,23 +28,10 @@ export type TraitKey = (typeof TRAIT_KEYS)[number];
 
 export const TRAIT_COUNT = TRAIT_KEYS.length;
 
-/** Uzbek labels for display. Keys must cover every trait. */
-export const TRAIT_LABELS_UZ: Record<TraitKey, string> = {
-  psychological_complexity: "Psixologik murakkablik",
-  plot_twist: "Syujet burilishi",
-  mystery: "Sirlilik",
-  character_depth: "Personaj chuqurligi",
-  emotional_intensity: "Hissiy zichlik",
-  pacing: "Temp",
-  humor: "Hazil",
-  romance: "Romantika",
-  action: "Ekshn",
-  violence: "Zo'ravonlik",
-  visual_style: "Vizual uslub",
-  realism: "Realizm",
-  darkness: "Qorong'ulik",
-  ending_ambiguity: "Ochiq tugash",
-};
+/** Display labels live in the i18n dictionaries (`trait.<key>`), taken from traits.json. */
+export function isTraitKey(value: string): value is TraitKey {
+  return (TRAIT_KEYS as readonly string[]).includes(value);
+}
 
 /** Bar colour band. Strength, not quality — see the design system. */
 export function traitBand(score: number): "strong" | "medium" | "weak" {

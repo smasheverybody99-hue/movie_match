@@ -30,10 +30,20 @@ class TraitScores(BaseModel):
 
 
 class MovieDetailOut(MovieOut):
+    backdrop_path: str | None = None
     traits: TraitScores | None = None
     genres: list[str] = Field(default_factory=list)
     director: str | None = None
     cast: list[str] = Field(default_factory=list)
+    match: int | None = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="The caller's match (FR-5). Null signed out, or without traits or taste",
+    )
+    reasons: list[str] = Field(
+        default_factory=list, description="Trait keys that drove the match, strongest first"
+    )
 
 
 class RecommendationOut(BaseModel):
@@ -117,12 +127,24 @@ class WatchlistItemOut(BaseModel):
     movie: MovieOut
     added_at: datetime
     watched_at: datetime | None = None
+    match: int | None = Field(
+        default=None, ge=0, le=100, description="The caller's match; null without traits or taste"
+    )
 
 
 class MovieDnaOut(BaseModel):
-    scores: dict[str, float]
-    summary: str | None = None
+    scores: dict[str, float] = Field(
+        description="The taste vector by trait key, 0..100. Empty until a scored film is liked"
+    )
+    summary: str | None = Field(
+        default=None, description="AI summary. Not generated yet (backlog): always null"
+    )
     rating_count: int
+    ratings_needed: int = Field(ge=0, description="Ratings still needed before the DNA shows")
+    average_rating: float | None = None
+    top_genre: str | None = Field(
+        default=None, description="The genre on most of the user's rated films"
+    )
 
 
 class UserOut(BaseModel):

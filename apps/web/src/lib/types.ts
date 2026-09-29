@@ -16,10 +16,15 @@ export interface TraitScores {
 }
 
 export interface MovieDetail extends Movie {
+  backdrop_path: string | null;
   traits: TraitScores | null;
   genres: string[];
   director: string | null;
   cast: string[];
+  /** The caller's match (FR-5). Null signed out, or without traits or taste. */
+  match: number | null;
+  /** Trait keys that drove the match, strongest first. */
+  reasons: string[];
 }
 
 export interface Recommendation {
@@ -32,9 +37,16 @@ export interface Recommendation {
 }
 
 export interface MovieDna {
+  /** The taste vector by trait key, 0-100. Empty until a scored film is liked. */
   scores: Record<string, number>;
+  /** AI summary. Not generated yet (backlog): always null. */
   summary: string | null;
   rating_count: number;
+  /** Ratings still needed before the DNA shows. */
+  ratings_needed: number;
+  average_rating: number | null;
+  /** The genre on most of the user's rated films. */
+  top_genre: string | null;
 }
 
 export type Lang = "uz" | "en";
@@ -100,4 +112,6 @@ export interface WatchlistItem {
   movie: Movie;
   added_at: string;
   watched_at: string | null;
+  /** The caller's match; null without traits or taste. */
+  match: number | null;
 }
