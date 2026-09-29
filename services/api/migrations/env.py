@@ -28,7 +28,10 @@ from app.db import Base
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Keep loggers that exist before a migration: fileConfig's default disables them, and
+    # a process that migrates and then runs a pipeline (scripts/migrate_db.py, the test
+    # suite) would silently lose the app.cost lines (ADR 0006).
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 
