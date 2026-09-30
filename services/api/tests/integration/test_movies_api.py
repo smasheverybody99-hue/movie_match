@@ -168,7 +168,7 @@ async def test_detail_invalid_id_is_422(seeded: AsyncSession) -> None:
 
 
 async def test_detail_with_a_forged_token_is_401_not_signed_out(seeded: AsyncSession) -> None:
-    forged = auth(uuid.uuid4(), secret="not-the-project-secret-at-all-1234")
+    forged = auth(uuid.uuid4(), forged=True)
     async with api_client(seeded) as client:
         response = await client.get(f"/movies/{DARK}", headers=forged)
     assert response.status_code == 401

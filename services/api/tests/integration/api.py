@@ -1,44 +1,34 @@
 """Helpers for API tests: the app on the rolled-back test session, and signed tokens.
 
+Tokens are ES256, signed with a test key pair and verified against a test JWKS that is
+served without the network (tests/jwt_keys.py), the way Supabase's signing keys work.
+
 The app runs in-process through httpx's ASGI transport, on the test's own event loop and
 database session, so everything a request writes disappears with the test.
 """
 
-import time
 import uuid
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 
 import httpx
-import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
-from app.deps import get_explainer
+from app.deps import get_explainer, get_jwks_client
 from app.main import app
 from app.models import EMBEDDING_DIM, MovieEmbedding, MovieTraits
 from app.pipelines.ingest import SqlIngestStore
 from app.pipelines.tmdb import to_film_record
 from app.traits import TRAIT_COUNT, TRAIT_KEYS
+from tests.jwt_keys import PROJECT_URL, StaticJWKClient, token
 
-SECRET = "test-jwt-secret-for-the-api-tests-only"
-
-
-def token(
-    user_id: uuid.UUID | str,
-    *,
-    secret: str = SECRET,
-    audience: str = "authenticated",
-    expires_in: int = 3600,
-) -> str:
-    """A Supabase-shaped access token."""
-    now = int(time.time())
-    claims = {"sub": str(user_id), "aud": audience, "iat": now, "exp": now + expires_in}
-    return jwt.encode(claims, secret, algorithm="HS256")
+__all__ = ["PROJECT_URL", "api_client", "auth", "seed_catalogue", "seed_films", "token"]
 
 
-def auth(user_id: uuid.UUID | str, **kwargs: object) -> dict[str, str]:
+def auth(user_id: uuid.UUID | str | None, **kwargs: object) -> dict[str, str]:
+    """Bearer header with a Supabase-shaped token; `forged=True` signs with a stranger's key."""
     return {"Authorization": f"Bearer {token(user_id, **kwargs)}"}  # type: ignore[arg-type]
 
 
@@ -46,20 +36,24 @@ def auth(user_id: uuid.UUID | str, **kwargs: object) -> dict[str, str]:
 async def api_client(
     session: AsyncSession,
     *,
-    jwt_secret: str = SECRET,
+    project_url: str = PROJECT_URL,
+    jwks: StaticJWKClient | None = None,
     explainer: object = None,
     settings: dict | None = None,
 ) -> AsyncIterator[httpx.AsyncClient]:
     """The app on `session`. No explanation generator unless a fake one is passed:
-    tests never reach a real LLM."""
+    tests never reach a real LLM. Tokens verify against the test key set, never the
+    network; `project_url=""` leaves the server without auth configuration."""
 
     async def _session() -> AsyncIterator[AsyncSession]:
         yield session
 
     app.dependency_overrides[get_session] = _session
     app.dependency_overrides[get_settings] = lambda: Settings(
-        _env_file=None, supabase_jwt_secret=jwt_secret, **(settings or {})
+        _env_file=None, supabase_project_url=project_url, **(settings or {})
     )
+    key_set = jwks or StaticJWKClient()
+    app.dependency_overrides[get_jwks_client] = lambda: key_set if project_url else None
     app.dependency_overrides[get_explainer] = lambda: explainer
     try:
         transport = httpx.ASGITransport(app=app)

@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     # Throwaway database for DB-backed tests and the migration round-trip. Only tests
     # read it; the Alembic CLI always targets database_url. Never point it at real data.
     test_database_url: str = ""
+    # The Supabase project, e.g. https://abcd.supabase.co (the web's VITE_SUPABASE_URL).
+    # Access tokens are verified against its public signing keys, `<url>/auth/v1/.well-known
+    # /jwks.json`, and its issuer `<url>/auth/v1` (ADR 0007).
+    supabase_project_url: str = ""
+    # Legacy HS256 shared secret. Leave empty: the project signs with asymmetric keys now,
+    # and while this is set, HS256 tokens made with it are accepted (ADR 0007).
     supabase_jwt_secret: str = ""
 
     tmdb_api_key: str = ""

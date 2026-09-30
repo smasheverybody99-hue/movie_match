@@ -96,5 +96,6 @@ Uzbek UI.
 - **Apple sign-in needs an Apple Developer Program membership ($99/year).** Not started:
   a paid plan is the user's decision. Until then the Apple button says the method is not
   switched on.
-- The API verifies HS256 tokens with `SUPABASE_JWT_SECRET`. Projects created with
-  asymmetric JWT signing keys would fail that check; confirm on the first real sign-in.
+- ~~The API verifies HS256 tokens with `SUPABASE_JWT_SECRET`.~~ Resolved 2026-09-30: the
+  project signs with ES256 signing keys, and the API now verifies against the project's
+  JWKS (`SUPABASE_PROJECT_URL`, ADR 0007).

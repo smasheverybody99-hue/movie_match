@@ -2,11 +2,12 @@
 
 import uuid
 
-import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt import PyJWKClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import auth
 from app.config import Settings, get_settings
 from app.db import get_session
 from app.providers import get_provider
@@ -16,31 +17,42 @@ from app.services.users import ensure_user
 _bearer = HTTPBearer(auto_error=False)
 
 
+def get_jwks_client(settings: Settings = Depends(get_settings)) -> PyJWKClient | None:
+    """The project's cached JWKS client; None when SUPABASE_PROJECT_URL is not set.
+    Tests override this with a client that serves a test key set without the network."""
+    if not settings.supabase_project_url:
+        return None
+    return auth.jwks_client(auth.jwks_url(settings.supabase_project_url))
+
+
 async def current_user_id(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
     settings: Settings = Depends(get_settings),
+    jwks: PyJWKClient | None = Depends(get_jwks_client),
 ) -> uuid.UUID:
-    """Verify the Supabase access token and return its subject.
-
-    Supabase signs access tokens with the project's JWT secret (HS256).
-    The API never issues tokens of its own.
-    """
+    """Verify the Supabase access token and return its subject (app/auth.py, ADR 0007)."""
     if creds is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing bearer token")
 
-    if not settings.supabase_jwt_secret:
+    if not settings.supabase_project_url and not settings.supabase_jwt_secret:
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR, "SUPABASE_JWT_SECRET is not configured"
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "SUPABASE_PROJECT_URL is not configured"
         )
 
     try:
-        payload = jwt.decode(
+        payload = await auth.verify(
             creds.credentials,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
-            audience="authenticated",
+            project_url=settings.supabase_project_url,
+            legacy_secret=settings.supabase_jwt_secret,
+            client=jwks,
         )
-    except jwt.PyJWTError as exc:
+    except auth.AuthNotConfigured as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc)) from exc
+    except auth.AuthKeysUnavailable as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Sign-in keys are unavailable, try again"
+        ) from exc
+    except auth.InvalidToken as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from exc
 
     sub = payload.get("sub")
@@ -56,6 +68,7 @@ async def current_user_id(
 async def optional_user_id(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
     settings: Settings = Depends(get_settings),
+    jwks: PyJWKClient | None = Depends(get_jwks_client),
 ) -> uuid.UUID | None:
     """The caller's id when a token is sent, None when none is.
 
@@ -64,7 +77,7 @@ async def optional_user_id(
     """
     if creds is None:
         return None
-    return await current_user_id(creds, settings)
+    return await current_user_id(creds, settings, jwks)
 
 
 async def current_user(

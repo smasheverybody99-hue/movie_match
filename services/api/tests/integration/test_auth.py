@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User
 from tests.conftest import rolled_back_session
 from tests.integration.api import api_client, auth, seed_films, token
+from tests.jwt_keys import StaticJWKClient
 
 # One seeded session for the module (the test database is remote); every test acts as
 # its own new user, so tests cannot see each other's rows.
@@ -81,7 +82,7 @@ async def test_missing_token_is_401(
 async def test_forged_token_is_401(
     seeded: AsyncSession, method: str, path: str, body: dict | None
 ) -> None:
-    forged = auth(uuid.uuid4(), secret="not-the-project-secret-at-all-1234")
+    forged = auth(uuid.uuid4(), forged=True)
     async with api_client(seeded) as client:
         response = await client.request(method, path, json=body, headers=forged)
     assert response.status_code == 401
@@ -116,7 +117,7 @@ async def test_optional_auth_without_a_token_is_200(
 async def test_optional_auth_with_a_forged_token_is_401(
     seeded: AsyncSession, method: str, path: str
 ) -> None:
-    forged = auth(uuid.uuid4(), secret="not-the-project-secret-at-all-1234")
+    forged = auth(uuid.uuid4(), forged=True)
     async with api_client(seeded) as client:
         response = await client.request(method, path, headers=forged)
     assert response.status_code == 401
@@ -140,25 +141,40 @@ async def test_bad_tokens_are_401(seeded: AsyncSession, headers: dict[str, str])
 
 
 async def test_token_without_subject_is_401(seeded: AsyncSession) -> None:
-    import time
-
-    import jwt
-
-    from tests.integration.api import SECRET
-
-    no_sub = jwt.encode(
-        {"aud": "authenticated", "exp": int(time.time()) + 60}, SECRET, algorithm="HS256"
-    )
     async with api_client(seeded) as client:
-        response = await client.get("/ratings", headers={"Authorization": f"Bearer {no_sub}"})
+        response = await client.get("/ratings", headers=auth(None))
     assert response.status_code == 401
     assert response.json() == {"detail": "Token has no subject"}
 
 
-async def test_missing_server_secret_is_500_not_a_pass(seeded: AsyncSession) -> None:
-    async with api_client(seeded, jwt_secret="") as client:
+async def test_missing_server_auth_config_is_500_not_a_pass(seeded: AsyncSession) -> None:
+    async with api_client(seeded, project_url="") as client:
         response = await client.get("/ratings", headers=auth(uuid.uuid4()))
     assert response.status_code == 500
+    assert response.json() == {"detail": "SUPABASE_PROJECT_URL is not configured"}
+
+
+async def test_a_legacy_hs256_token_is_401(seeded: AsyncSession) -> None:
+    """The project signs with ES256 now; SUPABASE_JWT_SECRET is unset, so HS256 is refused."""
+    legacy = token(uuid.uuid4(), key="legacy-hs256-secret-for-tests-0123456789", algorithm="HS256")
+    async with api_client(seeded) as client:
+        response = await client.get("/ratings", headers={"Authorization": f"Bearer {legacy}"})
+    assert response.status_code == 401
+
+
+async def test_a_token_from_another_project_is_401(seeded: AsyncSession) -> None:
+    other = auth(uuid.uuid4(), issuer="https://another-project.supabase.co/auth/v1")
+    async with api_client(seeded) as client:
+        response = await client.get("/ratings", headers=other)
+    assert response.status_code == 401
+
+
+async def test_unreachable_signing_keys_are_503_not_401(seeded: AsyncSession) -> None:
+    """A JWKS outage is ours, not the user's: 503 so the client retries, not "signed out"."""
+    async with api_client(seeded, jwks=StaticJWKClient(down=True)) as client:
+        response = await client.get("/ratings", headers=auth(uuid.uuid4()))
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Sign-in keys are unavailable, try again"}
 
 
 async def test_first_request_creates_the_user_row_once(seeded: AsyncSession) -> None:

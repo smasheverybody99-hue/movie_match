@@ -45,10 +45,11 @@ secret yo'q (`.github/workflows/gate.yml`).
    yo'q edi, o'rniga *Dumb and Dumber*).
 4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
    hisoblash; 5 ta izohni o'qish (bir necha sent ulushi, provayder tanlangach, tasdiq bilan).
-5. **F3: kirish sozlanmagan.** `apps/web/.env` da `VITE_SUPABASE_URL` va
-   `VITE_SUPABASE_ANON_KEY` yo'q; Supabase'da Google provayderi va redirect URL'lar
-   yoqilishi kerak. Apple kirishi Apple Developer Program'ni talab qiladi ($99/yil) —
-   foydalanuvchi qarori.
+5. **F3: haqiqiy kirish hali sinalmagan.** Web kalitlari (`VITE_SUPABASE_URL`,
+   `VITE_SUPABASE_ANON_KEY`) qo'yilgan. Loyiha ES256 signing keys'ga o'tgan; API endi
+   tokenlarni JWKS bilan tekshiradi (ADR 0007) — `services/api/.env` ga
+   `SUPABASE_PROJECT_URL` kerak, `SUPABASE_JWT_SECRET` bo'sh qolsin. Apple kirishi Apple
+   Developer Program'ni talab qiladi ($99/yil) — foydalanuvchi qarori.
 6. **F3: qo'lda tekshiruv chala.** Onboarding vaqti o'lchanmagan; Lighthouse dev serverda
    o'lchangan (LCP 2.1 s mobil, INP 80 ms) — production build va haqiqiy posterlar bilan
    qayta o'lchash kerak. axe: 0 buzilish, 320px: gorizontal scroll yo'q
