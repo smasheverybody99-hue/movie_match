@@ -5,9 +5,9 @@ baholaydi, keyin `report.py` ularning raqamlarini chiqaradi va odam ularni teksh
 1-faza qoidasi: 50 tadan 5 tasidan ko'prog'i aniq noto'g'ri bo'lsa, 2-bosqichdan oldin
 trait prompti tuzatiladi.
 
-**Holat: tasdiqlangan (2026-09-30).** Jadvalda **49 film**: 23-o'rindagi *Home Alone*
-(1990) katalogda yo'q — pastda qarang. Uning o'rniga foydalanuvchi tanlagan film qo'shilgach,
-ro'yxat 50 ta bo'ladi.
+**Holat: tasdiqlangan (2026-09-30).** 50 film, hammasi katalogda. 23-o'rin
+dastlab *Home Alone* (1990) edi; u katalogda yo'q bo'lgani uchun foydalanuvchi uning
+o'rniga *Dumb and Dumber* (1994) ni tanladi.
 
 ## Nega aynan shu filmlar
 
@@ -19,8 +19,8 @@ Shu sababli o'n yillik va til taqsimoti avvalgi qoralamadagidek emas (u eng ko'p
 olgan filmlardan o'n yillik bo'yicha tanlangan edi). Hozirgi ro'yxat:
 
 - **Yillar:** asosan 1990–2023 (1985 dan bitta film). O'n yilliklar bo'yicha: 1980-lar 1,
-  1990-lar 10, 2000-lar 14, 2010-lar 20, 2020-lar 4.
-- **Til:** ingliz tili ustun — 47 ta; 2 ta yapon animatsiyasi (*Spirited Away*,
+  1990-lar 11, 2000-lar 14, 2010-lar 20, 2020-lar 4.
+- **Til:** ingliz tili ustun — 48 ta; 2 ta yapon animatsiyasi (*Spirited Away*,
   *Your Name.*).
 - **Janr:** 13 ta animatsiya; triller, sirli va psixologik filmlar ko'p.
 
@@ -28,17 +28,15 @@ olgan filmlardan o'n yillik bo'yicha tanlangan edi). Hozirgi ro'yxat:
 emas. Katalog kvotalari (TZ FR-2) katalogga tegishli, bu ro'yxatga emas. Keng doiradagi
 tekshiruv — 2-bosqichdagi 500 film.
 
-## Katalogda yo'q — almashtirish kerak
+## Almashtirilgan film
 
-- **23-o'rin, Home Alone (1990).** Katalogda yo'q: TMDB id 771 bo'yicha ham, nomi bo'yicha
-  ham. Faqat *Home Alone 2: Lost in New York* (772, 1992) va *Home Alone 3* (9714, 1997)
-  bor.
+- **23-o'rin.** Foydalanuvchi ro'yxatida *Home Alone* (1990) edi. U katalogda yo'q (TMDB id
+  771 bo'yicha ham, nomi bo'yicha ham; faqat davomlari bor), shuning uchun foydalanuvchi
+  uning o'rniga *Dumb and Dumber* (1994, id 8467) ni tanladi. Katalogda uning 2014-yilgi
+  davomi *Dumb and Dumber To* (100042) ham bor — ro'yxatdagisi 1994-yilgi asl film.
 
 Bu bo'lim ataylab jadval emas: `--ids` fayldagi har bir jadval qatorining birinchi
 ustunini TMDB id deb o'qiydi.
-
-Almashtiruvchini foydalanuvchi tanlaydi. Tanlangan film katalogda bo'lishi kerak (pastdagi
-tekshirish buyrug'i).
 
 ## Qanday tahrirlash
 
@@ -87,6 +85,7 @@ Tartib — foydalanuvchi ro'yxatidagi tartib. Id, yil, til va janrlar katalogdan
 | 438631 | Dune | 2021 | en | Adventure, Science Fiction | |
 | 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | |
 | 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
+| 8467 | Dumb and Dumber | 1994 | en | Comedy | |
 | 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | |
 | 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | |
 | 11036 | The Notebook | 2004 | en | Drama, Romance | |
