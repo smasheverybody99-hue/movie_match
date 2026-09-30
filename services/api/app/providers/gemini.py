@@ -23,9 +23,12 @@ from app.providers.base import (
     Generated,
     JobState,
     Pricing,
+    ProviderUnavailable,
+    RateLimited,
     TraitAnswer,
     TraitBatchResult,
     TraitRequest,
+    TransientError,
     UnsupportedDimension,
     Usage,
 )
@@ -39,6 +42,9 @@ EMBEDDING_MODEL = "gemini-embedding-2"
 _PRICES = "https://ai.google.dev/gemini-api/docs/pricing, paid tier, checked 2026-09-26"
 # Batch API: half of the $0.30 / $2.50 standard rate.
 TRAIT_PRICING = Pricing(0.15, 1.25, f"{TRAIT_MODEL} batch; {_PRICES}")
+# One film at a time on the standard API (TRAIT_MODE=sync): the full rate. On the free
+# tier these calls cost nothing, but the free tier is not what the price says (ADR 0006).
+TRAIT_SYNC_PRICING = Pricing(0.30, 2.50, f"{TRAIT_MODEL} standard; {_PRICES}")
 EXPLAIN_PRICING = Pricing(0.30, 2.50, f"{EXPLAIN_MODEL} standard; {_PRICES}")
 # Embeddings bill input only. Standard rate: the Batch API would halve ~$0.09 per 5,000
 # films, not worth a second polling loop (ADR 0004).
@@ -80,6 +86,17 @@ def _usage(metadata: Any) -> Usage:
 # --- traits -------------------------------------------------------------------------
 
 
+def trait_config(request: TraitRequest) -> dict[str, Any]:
+    """The generation config for one film; batch and sync send exactly the same."""
+    return {
+        "system_instruction": request.system,
+        "response_mime_type": "application/json",
+        "response_json_schema": request.schema,
+        "max_output_tokens": TRAIT_MAX_OUTPUT_TOKENS,
+        "thinking_config": {"thinking_level": THINKING_LEVEL},
+    }
+
+
 def build_request(request: TraitRequest) -> dict[str, Any]:
     """One film -> one inline batch request (a `types.InlinedRequest`).
 
@@ -88,13 +105,7 @@ def build_request(request: TraitRequest) -> dict[str, Any]:
     return {
         "metadata": {"key": request.key},
         "contents": [{"role": "user", "parts": [{"text": request.prompt}]}],
-        "config": {
-            "system_instruction": request.system,
-            "response_mime_type": "application/json",
-            "response_json_schema": request.schema,
-            "max_output_tokens": TRAIT_MAX_OUTPUT_TOKENS,
-            "thinking_config": {"thinking_level": THINKING_LEVEL},
-        },
+        "config": trait_config(request),
     }
 
 
@@ -112,7 +123,11 @@ def read_item(item: types.InlinedResponse) -> tuple[str | None, str | None]:
     """One batch result -> (text to parse, None) or (None, why there is nothing to parse)."""
     if item.error is not None:
         return None, f"batch result errored: {item.error.message or item.error.code}"
-    response = item.response
+    return read_candidates(item.response)
+
+
+def read_candidates(response: Any) -> tuple[str | None, str | None]:
+    """A generated response (batch item or sync call) -> (text, None) or (None, why not)."""
     candidates = (response.candidates if response else None) or []
     if not candidates:
         feedback = response.prompt_feedback if response else None
@@ -173,6 +188,65 @@ class GeminiTraitExtractor:
             detail=detail,
             answers=[read_answer(item) for item in job.dest.inlined_responses],
         )
+
+
+def retry_after(error: errors.APIError) -> float | None:
+    """Gemini's RetryInfo hint ("retryDelay": "37s") from a 429, in seconds, if present."""
+    details = error.details if isinstance(error.details, dict) else {}
+    for item in (details.get("error") or {}).get("details") or []:
+        delay = item.get("retryDelay") if isinstance(item, dict) else None
+        if isinstance(delay, str) and delay.endswith("s"):
+            try:
+                return float(delay[:-1])
+            except ValueError:
+                return None
+    return None
+
+
+# Errors that say "this account cannot do this", not "this film failed".
+_ACCOUNT_STATUSES = {"FAILED_PRECONDITION", "PERMISSION_DENIED", "UNAUTHENTICATED"}
+
+
+def read_response(key: str, response: Any) -> TraitAnswer:
+    """A generate_content response -> the same answer shape as a batch item."""
+    text, error = read_candidates(response)
+    usage = _usage(getattr(response, "usage_metadata", None))
+    return TraitAnswer(key=key, text=text, error=error, usage=usage)
+
+
+class GeminiTraitScorer:
+    """Trait scoring one film per request on the standard API (TRAIT_MODE=sync)."""
+
+    provider = NAME
+    model = TRAIT_MODEL
+    pricing = TRAIT_SYNC_PRICING
+
+    def __init__(self, settings: Settings, sdk: Any = None) -> None:
+        self._settings = settings
+        self._sdk = sdk  # tests pass a fake with `.models`
+
+    def _client(self) -> Any:
+        if self._sdk is None:
+            self._sdk = client(self._settings)
+        return self._sdk
+
+    async def score(self, request: TraitRequest) -> TraitAnswer:
+        try:
+            response = await self._client().models.generate_content(
+                model=self.model, contents=request.prompt, config=trait_config(request)
+            )
+        except errors.APIError as exc:
+            message = f"{exc.code} {exc.status}: {exc.message}"
+            if exc.code == 429:
+                raise RateLimited(message, retry_after(exc)) from exc
+            if exc.code is not None and exc.code >= 500:
+                raise TransientError(message) from exc
+            if exc.status in _ACCOUNT_STATUSES or exc.code in (401, 403):
+                raise ProviderUnavailable(message) from exc
+            return TraitAnswer(key=request.key, text=None, error=f"refused: {message}")
+        except TimeoutError as exc:
+            raise TransientError(f"timed out: {exc}") from exc
+        return read_response(request.key, response)
 
 
 # --- embeddings ----------------------------------------------------------------------
@@ -299,6 +373,9 @@ class GeminiProvider:
 
     def trait_extractor(self) -> GeminiTraitExtractor:
         return GeminiTraitExtractor(self._settings)
+
+    def trait_scorer(self) -> GeminiTraitScorer:
+        return GeminiTraitScorer(self._settings)
 
     def embedder(self, dim: int) -> GeminiEmbedder:
         return GeminiEmbedder(self._settings, dim)

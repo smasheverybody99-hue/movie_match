@@ -103,6 +103,39 @@ class TraitExtractor(Protocol):
     async def collect(self, job_id: str) -> TraitBatchResult: ...
 
 
+class RateLimited(Exception):
+    """The provider refused the request for its request rate or daily quota (HTTP 429).
+    `retry_after` is the provider's own hint in seconds, when it gave one."""
+
+    def __init__(self, message: str, retry_after: float | None = None) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+class TransientError(Exception):
+    """A server-side failure (5xx, timeout) worth one more try."""
+
+
+class ProviderUnavailable(Exception):
+    """The account cannot make this call at all (billing, permission, disabled API).
+    Retrying or moving to the next film cannot help: the run stops."""
+
+
+class TraitScorer(Protocol):
+    """One film at a time through the provider's standard (not batch) API.
+
+    For accounts where batch does not work (ADR 0006, amendment 2026-09-30). Raises
+    RateLimited, TransientError or ProviderUnavailable; any other refusal of one film comes
+    back as a TraitAnswer with `error`, like a failed item in a batch.
+    """
+
+    provider: str
+    model: str
+    pricing: Pricing  # the standard rate: sync requests are not discounted
+
+    async def score(self, request: TraitRequest) -> TraitAnswer: ...
+
+
 # --- embeddings ------------------------------------------------------------------------
 
 
@@ -148,6 +181,8 @@ class Provider(Protocol):
     name: str
 
     def trait_extractor(self) -> TraitExtractor: ...
+
+    def trait_scorer(self) -> TraitScorer: ...
 
     def embedder(self, dim: int) -> Embedder:
         """Raises UnsupportedDimension if the model cannot produce `dim` numbers."""

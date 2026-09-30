@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -68,6 +69,15 @@ class Settings(BaseSettings):
     # $0.20 a month.
     explanation_daily_calls_per_user: int = 20
     trait_batch_size: int = 200
+    # How trait extraction runs (ADR 0006, amendment 2026-09-30). "batch": the provider's
+    # batch API, half price, needs an account that allows it. "sync": one film per request
+    # on the standard API; slower, full price on a paid tier, works on Gemini's free tier.
+    trait_mode: Literal["batch", "sync"] = "batch"
+    # sync mode: requests per minute. Free-tier limits are per model and per project and
+    # change; 10 is deliberately below them. A 429 is waited out and retried
+    # `trait_sync_retries` times per film, then the run stops and can be resumed.
+    trait_sync_requests_per_minute: float = Field(default=10, gt=0)
+    trait_sync_retries: int = Field(default=5, ge=0)
 
     @property
     def cors_origin_list(self) -> list[str]:

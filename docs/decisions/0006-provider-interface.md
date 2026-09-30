@@ -2,7 +2,61 @@
 
 Date: 2026-09-30 · Status: accepted (the interface) · **Open: the provider** ·
 Amends: ADR 0004 (Gemini stays as the current implementation, no longer as a settled
-choice) and the AI bullet of CLAUDE.md "Stack decisions"
+choice) and the AI bullet of CLAUDE.md "Stack decisions" · Amended 2026-09-30 (below)
+
+## Amendment, 2026-09-30: traits can run one film per request (`TRAIT_MODE=sync`)
+
+**What happened.** With the user's new Gemini key:
+
+- `models.list` worked (61 models; `gemini-3.5-flash-lite` and `gemini-embedding-2`
+  present). That call works on any tier, so it proves the key, not billing.
+- The user-approved 50-film batch (`docs/review-films.md`) was sent twice. Both times
+  `batches.create` answered, in full:
+  `400 FAILED_PRECONDITION {'error': {'code': 400, 'message': 'Precondition check failed.', 'status': 'FAILED_PRECONDITION'}}`.
+  No job was created (`batches.list` empty), nothing was stored, nothing was charged.
+- One ordinary `generate_content` call for one film (*Fight Club*), with exactly the
+  batch request's prompt, JSON schema and settings, **worked**: 14 traits, valid JSON,
+  370 input and 195 output tokens. Nothing was stored.
+
+**Why not keep fighting batch.** The error carries no reason: no `details`, no project,
+no "paid plan". The documentation points both ways: the
+[API errors page](https://ai.google.dev/gemini-api/docs/api-errors) describes
+FAILED_PRECONDITION as "a prerequisite is not met (for example, disabled billing)", while
+the [pricing page](https://ai.google.dev/gemini-api/docs/pricing) lists Batch for
+Flash-Lite as "Free of charge" on the free tier (read through a summariser; worth a look
+by eye). Neither settles which prerequisite this account lacks, and finding out means
+more paid attempts or account support. A path that works exists today.
+
+**Decision.**
+
+1. A fourth protocol, `TraitScorer.score(request) -> TraitAnswer`: one film, standard
+   (not batch) API. Same prompt, same schema, same parsing, storage and attempt counting
+   as batch. Gemini implements it with `generate_content` (`GeminiTraitScorer`).
+2. `TRAIT_MODE` = `batch` (default, unchanged) | `sync`. **Batch is not removed:** if
+   billing opens, setting `TRAIT_MODE=batch` is the way back, at half the price.
+3. The provider translates its errors into three neutral ones: `RateLimited` (429, with
+   the provider's retry hint), `TransientError` (5xx, timeout), `ProviderUnavailable`
+   (billing, permission, authentication: the run stops, nothing more is sent). Any other
+   refusal is one failed film, like a failed batch item.
+4. Pacing and retries live in the pipeline, not the provider:
+   `TRAIT_SYNC_REQUESTS_PER_MINUTE` (default 10, deliberately below free-tier limits,
+   which differ per model and change) and `TRAIT_SYNC_RETRIES` (default 5; waits the
+   provider's hint, else doubling, at most 120 s).
+5. **Resumable.** Each film is committed as soon as it is answered. A run stopped by a
+   daily quota or a refusal leaves the rest pending; running the same command again
+   continues where it stopped (`select_pending` skips scored films). A film that was
+   rate-limited past its retries is not counted as a failed attempt.
+
+**Costs and trade-offs.**
+
+- On a paid tier, sync costs the full standard rate, twice the batch rate
+  (`TRAIT_SYNC_PRICING`, $0.30 / $2.50 per MTok); the dry run prints it. On the free
+  tier it is not charged. `docs/costs.md` has both.
+- Free-tier requests may be used by Google to improve its products (ADR 0004). Trait
+  prompts carry only public film metadata; user data (explanations) is a separate
+  decision and does not change here.
+- This departs from CLAUDE.md "Use the Batch API for anything that is not user-facing";
+  CLAUDE.md now names this exception.
 
 ## Context
 

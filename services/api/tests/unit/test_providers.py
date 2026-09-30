@@ -40,6 +40,15 @@ class FakeExtractor:
         return TraitBatchResult(state="running", detail="queued")
 
 
+class FakeScorer:
+    provider = "fake"
+    model = "fake-traits-sync-1"
+    pricing = RATES
+
+    async def score(self, request: TraitRequest) -> TraitAnswer:
+        return TraitAnswer(request.key, "{}", None, Usage(requests=1))
+
+
 class FakeEmbedder:
     provider = "fake"
     model = "fake-embed-1"
@@ -70,6 +79,9 @@ class FakeProvider:
     def trait_extractor(self) -> FakeExtractor:
         return FakeExtractor()
 
+    def trait_scorer(self) -> FakeScorer:
+        return FakeScorer()
+
     def embedder(self, dim: int) -> FakeEmbedder:
         return FakeEmbedder(dim)
 
@@ -97,11 +109,13 @@ def test_a_new_provider_is_one_registry_line(monkeypatch: pytest.MonkeyPatch) ->
     assert provider.name == "fake"
     assert provider.embedder(1024).dim == 1024
     assert provider.trait_extractor().model == "fake-traits-1"
+    assert provider.trait_scorer().model == "fake-traits-sync-1"
 
 
 def test_gemini_builds_every_worker_without_a_key() -> None:
     provider = GeminiProvider(Settings(_env_file=None))
     assert provider.trait_extractor().pricing.input_usd_per_mtok > 0
+    assert provider.trait_scorer().pricing.input_usd_per_mtok > 0
     assert provider.embedder(1536).dim == 1536
     assert provider.explainer() is None  # explanations stay null without a key
 

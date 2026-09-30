@@ -139,6 +139,9 @@ constraint, not an afterthought.
   provider's cheapest capable model (today `gemini-3.5-flash-lite`, ADR 0004/0006). Never
   a Pro-, Opus- or Sonnet-class model for a job measured in thousands of rows.
 - **Use the Batch API** for anything that is not user-facing: half the token price.
+  One exception: while the account cannot use batch, traits run with `TRAIT_MODE=sync`
+  (one film per request, paced, resumable; ADR 0006 amendment 2026-09-30). Switch back
+  to `batch` as soon as it works.
 - **Cache before you generate.** Check the `explanations` table before every call; a
   regenerated explanation is money spent twice for the same sentence.
 - **Estimate before running.** Print the projected cost with a `--dry-run` flag and show

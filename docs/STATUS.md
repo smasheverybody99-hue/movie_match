@@ -59,14 +59,12 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Provayderni tanlash** (foydalanuvchi qarori, `docs/costs.md`). Gemini bo'lmasa:
-   `app/providers/<nom>.py` + `PROVIDERS` ga bitta qator + kalit `config.py` da.
-2. Keyin F1 1-bosqichi: ro'yxat tayyor; `traits submit --dry-run`
-   bilan narx, **faqat tasdiqdan keyin** 50 film. F2 va F3 qo'lda tekshiruvlari shunga
-   bog'liq.
-
-Parallel (pulsiz): `apps/web/.env` ga Supabase URL va anon kalitni qo'yish, Supabase'da
-Google provayderini yoqish — shunda web'da haqiqiy kirish sinab ko'riladi.
+1. **F1 1-bosqichi, sync rejimida.** Gemini kaliti batch'ni `400 FAILED_PRECONDITION`
+   bilan rad etadi (2026-09-30, sababsiz), oddiy so'rov esa ishlaydi (1 film sinaldi,
+   saqlanmadi). Kod tayyor: `TRAIT_MODE=sync` (ADR 0006 qo'shimchasi). Keyingisi:
+   `.env` ga `TRAIT_MODE=sync`, `traits submit --ids ../../docs/review-films.md --dry-run`,
+   **faqat tasdiqdan keyin** 50 film. F2 va F3 qo'lda tekshiruvlari shunga bog'liq.
+2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## Muhit
 

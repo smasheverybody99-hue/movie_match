@@ -14,7 +14,8 @@ yoki taxmin, va u shunday deb belgilangan.
 | Kattalik | Qiymat | Qayerdan |
 |---|---|---|
 | Trait: kirish tokeni, film boshiga | ~410 | `traits submit --dry-run` (2026-09-26), prompt uzunligidan, 3.5 belgi/token; `docs/phase-1-status.md` |
-| Trait: chiqish tokeni, film boshiga | ~250 (thinking bilan 2× gacha) | Taxmin: 14 ta son + 2 jumla JSON. **O'lchanmagan** — 1-bosqich o'lchaydi |
+| Trait: chiqish tokeni, film boshiga | ~250 (thinking bilan 2× gacha) | Taxmin: 14 ta son + 2 jumla JSON. 50 filmlik o'lchov hali yo'q |
+| Trait: **bitta film o'lchangan** (2026-09-30) | 370 kirish, 195 chiqish (thinking bilan) | *Fight Club*, Gemini 3.5 Flash-Lite, oddiy `generate_content`; bitta film — o'rtacha emas, taxmin hali almashtirilmadi |
 | Embedding: token, film boshiga | ~208 | 5 000 filmning embedding matni, o'rtacha 729 belgi; `docs/phase-1-status.md` |
 | Izoh: token, bitta izoh | ~200 kirish, ~60 chiqish | Taxmin: tizim prompti + 3 sabab qatori; javob 1–2 jumla. **O'lchanmagan** |
 | Katalog | 500 film (`catalogue_target`) | TZ FR-2, v1.5 |
@@ -43,6 +44,21 @@ Ogohlantirishlar:
 - Arzonlik — sifat emas. Qaysi model traitlarni to'g'ri baholashini faqat 50 film qo'lda
   ko'rib chiqilgandan keyin bilamiz (`docs/review-films.md`).
 - Chiqish 2× uzun bo'lsa (thinking), Gemini 500 film ≈ $0.34.
+
+### Trait ekstraksiyasi (sync rejimi, `TRAIT_MODE=sync`)
+
+Bitta film — bitta oddiy so'rov (ADR 0006, 2026-09-30 qo'shimchasi). Batch hisob
+ochilmaganda ishlatiladi. Pullik tarifda standart narx — batch'ning ikki barobari.
+Bepul tarifda to'lov yo'q, lekin kunlik va minutlik limit bor, va Google so'rovlardan
+foydalanishi mumkin.
+
+| Provayder, model | Standart narx, $/MTok | 500 film (taxmin 410/250) | 500 film (o'lchangan 370/195 bilan) | 5 000 film | Manba |
+|---|---|---|---|---|---|
+| Gemini 3.5 Flash-Lite, pullik tarif | 0.30 / 2.50 | $0.37 | $0.30 | $3.74 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+| Gemini 3.5 Flash-Lite, bepul tarif | $0 | $0 | $0 | $0 (kunlik limit bir necha kunga bo'lishi mumkin) | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+
+Tezlik: standart `TRAIT_SYNC_REQUESTS_PER_MINUTE = 10` → 50 film ~5 daqiqa, 500 film
+~50 daqiqa (kunlik limit to'xtatsa, keyingi run davom ettiradi).
 
 ### Embeddinglar
 
@@ -140,3 +156,4 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | Sana | Nima o'zgardi |
 |---|---|
 | 2026-09-30 | Birinchi versiya. Provayder tanlanmagan; katalog 500 |
+| 2026-09-30 | Trait sync rejimi narxi (standart $0.30/$2.50 va bepul tarif); bitta filmning o'lchangan tokenlari |

@@ -13,13 +13,17 @@ only carries requests and answers (app/providers/). Runs are staged (CLAUDE.md):
 films, check by hand, then 500, then the rest - `--limit` has no default so every run
 states its size. `--ids` takes a hand-picked list instead (ids, or a file such as
 docs/review-films.md).
+
+With `TRAIT_MODE=sync` the same `submit` sends one film per request on the standard API
+instead (ADR 0006, amendment 2026-09-30): paced, retried on 429, each film committed as it
+arrives, so a stopped run resumes when run again. There is nothing to `collect`.
 """
 
 import argparse
 import asyncio
 import json
 import math
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -45,7 +49,16 @@ from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
 from app.providers import get_provider
 from app.providers import usage as cost_log
-from app.providers.base import Pricing, TraitExtractor, TraitRequest, Usage
+from app.providers.base import (
+    Pricing,
+    ProviderUnavailable,
+    RateLimited,
+    TraitExtractor,
+    TraitRequest,
+    TraitScorer,
+    TransientError,
+    Usage,
+)
 from app.traits import SPEC_VERSION, TRAIT_KEYS, to_vector
 
 MAX_ATTEMPTS = 2  # first try + one retry, then the film is recorded as failed
@@ -368,6 +381,99 @@ async def collect(session: AsyncSession, extractor: TraitExtractor, batch_id: st
     return outcome
 
 
+# --- sync mode: one film per request --------------------------------------------------
+
+MAX_BACKOFF_SECONDS = 120.0
+
+Sleep = Callable[[float], Awaitable[None]]
+
+
+async def call_with_retries[T](
+    call: Callable[[], Awaitable[T]], *, retries: int, base_delay: float, sleep: Sleep
+) -> T:
+    """`call()`, retried on RateLimited and TransientError up to `retries` more times.
+
+    Waits the provider's own retry hint when it gives one, else base_delay doubling each
+    time, never more than MAX_BACKOFF_SECONDS. The last failure is raised as it came.
+    """
+    attempt = 0
+    while True:
+        try:
+            return await call()
+        except (RateLimited, TransientError) as exc:
+            if attempt >= retries:
+                raise
+            hint = exc.retry_after if isinstance(exc, RateLimited) else None
+            await sleep(min(hint or base_delay * 2**attempt, MAX_BACKOFF_SECONDS))
+            attempt += 1
+
+
+@dataclass
+class SyncResult:
+    stored: int = 0
+    failed: int = 0
+    usage: Usage = field(default_factory=Usage)
+    stopped: str | None = None  # why the run ended before the last film; they stay pending
+
+
+async def score_sync(
+    session: AsyncSession,
+    scorer: TraitScorer,
+    films: Sequence[dict[str, Any]],
+    *,
+    requests_per_minute: float,
+    retries: int,
+    sleep: Sleep = asyncio.sleep,
+) -> SyncResult:
+    """Score films one request at a time, committing each result as it arrives.
+
+    Resumable by design: every film is stored (or its failed attempt recorded) and
+    committed before the next request, and `select_pending` leaves scored films out, so
+    a run stopped by a daily quota continues where it stopped when run again. A film the
+    provider rate-limits past its retries is not counted as an attempt: it was never
+    answered. An account-level refusal (billing, permission) stops the run at once.
+    """
+    outcome = SyncResult()
+    pace = 60.0 / requests_per_minute
+    for index, film in enumerate(films):
+        if index:
+            await sleep(pace)
+        request = build_request(film)
+
+        async def one(request: TraitRequest = request) -> Any:
+            return await scorer.score(request)
+
+        try:
+            answer = await call_with_retries(
+                one, retries=retries, base_delay=max(pace, 1.0), sleep=sleep
+            )
+        except (RateLimited, TransientError) as exc:
+            left = len(films) - index
+            outcome.stopped = (
+                f"{type(exc).__name__} after {retries} retries ({exc}); {left} films left "
+                "pending - run the same command again later to continue"
+            )
+            break
+        except ProviderUnavailable as exc:
+            outcome.stopped = f"the provider refused the account ({exc}); nothing more sent"
+            break
+
+        outcome.usage = outcome.usage + answer.usage
+        error = answer.error
+        if answer.text is not None:
+            try:
+                await store_traits(session, film["id"], parse_response(answer.text), scorer.model)
+                await session.commit()
+                outcome.stored += 1
+                continue
+            except ValueError as exc:
+                error = f"malformed: {exc}"
+        await record_failure(session, film["id"], error or "no result")
+        await session.commit()
+        outcome.failed += 1
+    return outcome
+
+
 # --- CLI ----------------------------------------------------------------------------
 
 
@@ -380,10 +486,12 @@ def full_catalogue(ingested: int, target: int) -> int:
     return min(ingested, target)
 
 
-def _print_estimate(extractor: TraitExtractor, estimate: CostEstimate, catalogue: int) -> None:
-    p = extractor.pricing
+def _print_estimate(
+    worker: TraitExtractor | TraitScorer, mode: str, estimate: CostEstimate, catalogue: int
+) -> None:
+    p = worker.pricing
     rates = f"${p.input_usd_per_mtok} in / ${p.output_usd_per_mtok} out per MTok"
-    print(f"{extractor.provider} {extractor.model}, batch ({rates}; {p.source})")
+    print(f"{worker.provider} {worker.model}, {mode} ({rates}; {p.source})")
     for label, e in (("this run", estimate), ("full catalogue", estimate.scaled_to(catalogue))):
         print(
             f"  {label:15} {e.films:>6} films  ~{e.input_tokens:>10,} in  "
@@ -408,7 +516,10 @@ async def main(argv: Sequence[str] | None = None) -> None:
     settings = get_settings()
     utf8_console()
     cost_log.configure()
-    extractor = get_provider(settings).trait_extractor()
+    provider = get_provider(settings)
+    extractor = provider.trait_extractor()
+    scorer = provider.trait_scorer()
+    sync = settings.trait_mode == "sync"
 
     async with job_session() as session:
         if args.command == "status":
@@ -436,7 +547,16 @@ async def main(argv: Sequence[str] | None = None) -> None:
             films = await load_films(session, ids)
             ingested = await session.scalar(select(func.count()).select_from(Movie)) or 0
             catalogue = full_catalogue(ingested, settings.catalogue_target)
-            _print_estimate(extractor, estimate_cost(films, extractor.pricing), catalogue)
+            worker: TraitExtractor | TraitScorer = scorer if sync else extractor
+            mode = "sync, one film per request" if sync else "batch"
+            _print_estimate(worker, mode, estimate_cost(films, worker.pricing), catalogue)
+            if sync:
+                rpm = settings.trait_sync_requests_per_minute
+                print(
+                    f"  pace {rpm:g} requests/minute: ~{len(films) / rpm:.0f} min for this run. "
+                    "On a free tier the price above is not charged; its daily quota may "
+                    "stop a long run, which then resumes where it stopped."
+                )
             if args.dry_run:
                 if films:
                     print("\n--- system prompt ---\n" + SYSTEM_PROMPT)
@@ -444,6 +564,23 @@ async def main(argv: Sequence[str] | None = None) -> None:
                 return
             if not args.yes:
                 raise SystemExit("paid run: re-run with --yes once the estimate is approved")
+            if sync:
+                run = await score_sync(
+                    session,
+                    scorer,
+                    films,
+                    requests_per_minute=settings.trait_sync_requests_per_minute,
+                    retries=settings.trait_sync_retries,
+                )
+                print(f"stored {run.stored}, failed {run.failed}")
+                print(
+                    cost_log.record(
+                        "traits-sync", scorer.provider, scorer.model, run.usage, scorer.pricing
+                    )
+                )
+                if run.stopped:
+                    raise SystemExit(f"stopped early: {run.stopped}")
+                return
             for start in range(0, len(films), settings.trait_batch_size):
                 chunk = films[start : start + settings.trait_batch_size]
                 job_id = await submit(session, extractor, chunk)
