@@ -40,7 +40,9 @@ secret yo'q (`.github/workflows/gate.yml`).
 2. **F1: traitlar va embeddinglar.** Hech bir filmda yo'q. Bosqichlar: 50 → 500, har
    biridan oldin tasdiq (CLAUDE.md). 500 filmni o'n yillik kvotasi bilan tanlash —
    backlog'da (TZ §2).
-3. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` hali qoralama.
+3. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` tasdiqlangan
+   (2026-09-30): foydalanuvchi ko'rgan filmlar, 49 tasi katalogda. *Home Alone* (1990)
+   katalogda yo'q — o'rniga film tanlanishi kerak.
 4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
    hisoblash; 5 ta izohni o'qish (bir necha sent ulushi, provayder tanlangach, tasdiq bilan).
 5. **F3: kirish sozlanmagan.** `apps/web/.env` da `VITE_SUPABASE_URL` va
@@ -58,7 +60,7 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 1. **Provayderni tanlash** (foydalanuvchi qarori, `docs/costs.md`). Gemini bo'lmasa:
    `app/providers/<nom>.py` + `PROVIDERS` ga bitta qator + kalit `config.py` da.
-2. Keyin F1 1-bosqichi: `docs/review-films.md` ni tuzatish, `traits submit --dry-run`
+2. Keyin F1 1-bosqichi: *Home Alone* o'rniga filmni qo'shish, `traits submit --dry-run`
    bilan narx, **faqat tasdiqdan keyin** 50 film. F2 va F3 qo'lda tekshiruvlari shunga
    bog'liq.
 

@@ -1,84 +1,118 @@
 # Trait review list — 50 films
 
-The films used for the Phase 1 hand review: stage 1 of the trait run scores these, then
-`report.py` prints their scores for a person to judge. Phase 1 rule: if more than 5 of
-the 50 are clearly wrong, the trait prompt needs work before stage 2.
+1-fazadagi qo'lda ko'rik uchun filmlar. Trait run'ining 1-bosqichi aynan shularni
+baholaydi, keyin `report.py` ularning raqamlarini chiqaradi va odam ularni tekshiradi.
+1-faza qoidasi: 50 tadan 5 tasidan ko'prog'i aniq noto'g'ri bo'lsa, 2-bosqichdan oldin
+trait prompti tuzatiladi.
 
-**Status: draft (2026-09-25).** Picked mechanically, not by a person: the most-voted
-films on TMDB in our catalogue (votes are the best available proxy for "widely known"),
-spread by decade, English capped at ~60% per decade, released before 2025 so the model
-is likely to know them. It leans towards sci-fi and action blockbusters and has no
-documentary. **Replace any film you don't know well** — the review only works on films
-the reviewer can judge.
+**Holat: tasdiqlangan (2026-09-30).** Jadvalda **49 film**: 23-o'rindagi *Home Alone*
+(1990) katalogda yo'q — pastda qarang. Uning o'rniga foydalanuvchi tanlagan film qo'shilgach,
+ro'yxat 50 ta bo'ladi.
 
-## How to edit
+## Nega aynan shu filmlar
 
-- Keep the table shape. Only the first column is read; the rest is for the reviewer.
-- A replacement must be in the catalogue. Check with
-  `python -m app.pipelines.report <id>` — it says "not in the catalogue" otherwise.
-- TMDB ids are in the film's URL: themoviedb.org/movie/**550**-fight-club.
+Bu ro'yxat mexanik tanlanmagan. Filmlarni foydalanuvchi o'zi tanlagan — hammasini ko'rgan.
+Sabab oddiy: ko'rilmagan filmning trait raqamini hech kim tekshira olmaydi. "Sirlilik 85"
+to'g'rimi yoki yo'qmi, buni faqat filmni eslaydigan odam aytadi.
 
-## How it is used (from `services/api`)
+Shu sababli o'n yillik va til taqsimoti avvalgi qoralamadagidek emas (u eng ko'p ovoz
+olgan filmlardan o'n yillik bo'yicha tanlangan edi). Hozirgi ro'yxat:
+
+- **Yillar:** asosan 1990–2023 (1985 dan bitta film). O'n yilliklar bo'yicha: 1980-lar 1,
+  1990-lar 10, 2000-lar 14, 2010-lar 20, 2020-lar 4.
+- **Til:** ingliz tili ustun — 47 ta; 2 ta yapon animatsiyasi (*Spirited Away*,
+  *Your Name.*).
+- **Janr:** 13 ta animatsiya; triller, sirli va psixologik filmlar ko'p.
+
+**Bu ataylab.** Ko'rik trait raqamlari to'g'riligini tekshiradi, katalogning xilma-xilligini
+emas. Katalog kvotalari (TZ FR-2) katalogga tegishli, bu ro'yxatga emas. Keng doiradagi
+tekshiruv — 2-bosqichdagi 500 film.
+
+## Katalogda yo'q — almashtirish kerak
+
+- **23-o'rin, Home Alone (1990).** Katalogda yo'q: TMDB id 771 bo'yicha ham, nomi bo'yicha
+  ham. Faqat *Home Alone 2: Lost in New York* (772, 1992) va *Home Alone 3* (9714, 1997)
+  bor.
+
+Bu bo'lim ataylab jadval emas: `--ids` fayldagi har bir jadval qatorining birinchi
+ustunini TMDB id deb o'qiydi.
+
+Almashtiruvchini foydalanuvchi tanlaydi. Tanlangan film katalogda bo'lishi kerak (pastdagi
+tekshirish buyrug'i).
+
+## Qanday tahrirlash
+
+- Jadval shaklini saqlang. Faqat birinchi ustun o'qiladi; qolganlari ko'ruvchi uchun.
+- Almashtiruvchi katalogda bo'lishi kerak. Tekshirish:
+  `python -m app.pipelines.report <id>` — katalogda bo'lmasa "not in the catalogue" deydi.
+- TMDB id film URL'ida bor: themoviedb.org/movie/**550**-fight-club.
+
+## Qanday ishlatiladi (`services/api` ichidan)
 
 ```
 python -m app.pipelines.traits submit --ids ../../docs/review-films.md --dry-run
-python -m app.pipelines.traits submit --ids ../../docs/review-films.md --yes   # paid
+python -m app.pipelines.traits submit --ids ../../docs/review-films.md --yes   # pullik
 python -m app.pipelines.report ../../docs/review-films.md
 ```
 
+`--yes` bilan ishga tushirish — pullik run. U faqat provayder tanlangandan va narx
+tasdiqlangandan keyin qilinadi (CLAUDE.md, ADR 0006).
+
 ## Films
+
+Tartib — foydalanuvchi ro'yxatidagi tartib. Id, yil, til va janrlar katalogdan
+(asosiy baza, 2026-09-30) o'qilgan.
 
 | TMDB id | Title | Year | Lang | Genres | Verdict |
 |---:|---|---:|---|---|---|
-| 19 | Metropolis | 1927 | de | Drama, Science Fiction | |
-| 408 | Snow White and the Seven Dwarfs | 1937 | en | Animation, Family, Fantasy | |
-| 832 | M | 1931 | de | Crime, Drama, Thriller | |
-| 10895 | Pinocchio | 1940 | en | Animation, Family, Fantasy | |
-| 15 | Citizen Kane | 1941 | en | Drama, Mystery | |
-| 5156 | Bicycle Thieves | 1948 | it | Drama | |
-| 389 | 12 Angry Men | 1957 | en | Drama | |
-| 567 | Rear Window | 1954 | en | Drama, Mystery, Thriller | |
-| 346 | Seven Samurai | 1954 | ja | Action, Drama | |
-| 62 | 2001: A Space Odyssey | 1968 | en | Adventure, Mystery, Science Fiction | |
-| 539 | Psycho | 1960 | en | Horror, Mystery, Thriller | |
-| 429 | The Good, the Bad and the Ugly | 1966 | it | Western | |
-| 335 | Once Upon a Time in the West | 1968 | it | Drama, Western | |
-| 238 | The Godfather | 1972 | en | Crime, Drama | |
-| 11 | Star Wars | 1977 | en | Action, Adventure, Science Fiction | |
-| 348 | Alien | 1979 | en | Horror, Science Fiction | |
-| 11906 | Suspiria | 1977 | it | Horror | |
-| 1398 | Stalker | 1979 | ru | Drama, Science Fiction | |
-| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | |
-| 694 | The Shining | 1980 | en | Horror, Thriller | |
-| 1891 | The Empire Strikes Back | 1980 | en | Action, Adventure, Science Fiction | |
-| 1892 | Return of the Jedi | 1983 | en | Action, Adventure, Science Fiction | |
-| 8392 | My Neighbor Totoro | 1988 | ja | Animation, Family, Fantasy | |
-| 149 | Akira | 1988 | ja | Action, Animation, Science Fiction | |
 | 550 | Fight Club | 1999 | en | Drama, Thriller | |
-| 278 | The Shawshank Redemption | 1994 | en | Crime, Drama | |
-| 680 | Pulp Fiction | 1994 | en | Comedy, Crime, Thriller | |
-| 13 | Forrest Gump | 1994 | en | Comedy, Drama, Romance | |
-| 101 | Léon: The Professional | 1994 | fr | Action, Crime, Drama | |
-| 637 | Life Is Beautiful | 1997 | it | Comedy, Drama | |
-| 18 | The Fifth Element | 1997 | fr | Action, Adventure, Science Fiction | |
-| 155 | The Dark Knight | 2008 | en | Action, Crime, Thriller | |
-| 19995 | Avatar | 2009 | en | Action, Adventure, Science Fiction | |
-| 671 | Harry Potter and the Philosopher's Stone | 2001 | en | Adventure, Fantasy | |
-| 1726 | Iron Man | 2008 | en | Action, Adventure, Science Fiction | |
-| 120 | The Lord of the Rings: The Fellowship of the Ring | 2001 | en | Action, Adventure, Fantasy | |
-| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | |
-| 194 | Amélie | 2001 | fr | Comedy, Romance | |
-| 1417 | Pan's Labyrinth | 2006 | es | Drama, Fantasy, War | |
-| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | |
+| 807 | Se7en | 1995 | en | Crime, Mystery, Thriller | |
+| 475557 | Joker | 2019 | en | Crime, Drama, Thriller | |
+| 11324 | Shutter Island | 2010 | en | Drama, Mystery, Thriller | |
+| 44214 | Black Swan | 2010 | en | Drama, Horror, Thriller | |
+| 146233 | Prisoners | 2013 | en | Crime, Drama, Thriller | |
+| 210577 | Gone Girl | 2014 | en | Drama, Mystery, Thriller | |
 | 27205 | Inception | 2010 | en | Action, Adventure, Science Fiction | |
-| 24428 | The Avengers | 2012 | en | Action, Adventure, Science Fiction | |
-| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
-| 299536 | Avengers: Infinity War | 2018 | en | Action, Adventure, Science Fiction | |
-| 496243 | Parasite | 2019 | ko | Comedy, Drama, Thriller | |
-| 77338 | The Intouchables | 2011 | fr | Comedy, Drama | |
-| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | |
-| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | |
+| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | |
+| 1124 | The Prestige | 2006 | en | Drama, Mystery, Science Fiction | |
+| 77 | Memento | 2000 | en | Mystery, Thriller | |
+| 329865 | Arrival | 2016 | en | Drama, Mystery, Science Fiction | |
+| 278 | The Shawshank Redemption | 1994 | en | Crime, Drama | |
+| 13 | Forrest Gump | 1994 | en | Comedy, Drama, Romance | |
+| 597 | Titanic | 1997 | en | Drama, Romance | |
+| 155 | The Dark Knight | 2008 | en | Action, Crime, Thriller | |
+| 98 | Gladiator | 2000 | en | Action, Adventure, Drama | |
+| 245891 | John Wick | 2014 | en | Action, Thriller | |
+| 299534 | Avengers: Endgame | 2019 | en | Action, Adventure, Science Fiction | |
 | 438631 | Dune | 2021 | en | Adventure, Science Fiction | |
-| 664413 | 365 Days | 2020 | pl | Crime, Drama, Romance | |
+| 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | |
+| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
+| 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | |
+| 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | |
+| 11036 | The Notebook | 2004 | en | Drama, Romance | |
+| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | |
+| 354912 | Coco | 2017 | en | Adventure, Animation, Family, Music | |
+| 150540 | Inside Out | 2015 | en | Adventure, Animation, Comedy, Drama, Family | |
+| 324857 | Spider-Man: Into the Spider-Verse | 2018 | en | Action, Adventure, Animation, Science Fiction | |
+| 10681 | WALL·E | 2008 | en | Animation, Family, Science Fiction | |
+| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | |
+| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | |
+| 280 | Terminator 2: Judgment Day | 1991 | en | Action, Science Fiction, Thriller | |
+| 329 | Jurassic Park | 1993 | en | Adventure, Science Fiction | |
+| 8587 | The Lion King | 1994 | en | Animation, Drama, Family | |
+| 872585 | Oppenheimer | 2023 | en | Drama, History | |
+| 530915 | 1917 | 2019 | en | Drama, History, War | |
+| 414906 | The Batman | 2022 | en | Crime, Mystery, Thriller | |
+| 640 | Catch Me If You Can | 2002 | en | Crime, Drama | |
+| 37165 | The Truman Show | 1998 | en | Comedy, Drama | |
+| 75656 | Now You See Me | 2013 | en | Crime, Thriller | |
+| 671 | Harry Potter and the Philosopher's Stone | 2001 | en | Adventure, Fantasy | |
+| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | |
+| 808 | Shrek | 2001 | en | Adventure, Animation, Comedy, Family, Fantasy | |
+| 862 | Toy Story | 1995 | en | Adventure, Animation, Comedy, Family | |
+| 14160 | Up | 2009 | en | Adventure, Animation, Comedy, Family | |
+| 2062 | Ratatouille | 2007 | en | Animation, Comedy, Family, Fantasy | |
+| 9502 | Kung Fu Panda | 2008 | en | Action, Animation, Comedy, Family | |
+| 109445 | Frozen | 2013 | en | Adventure, Animation, Family, Fantasy | |
 
-Verdict column: fill in `ok` or `wrong: <which trait, and why>` during the review.
+Verdict ustuni: ko'rik paytida `ok` yoki `wrong: <qaysi trait, va nega>` yoziladi.
