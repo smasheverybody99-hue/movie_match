@@ -73,12 +73,17 @@ JobState = Literal["running", "done", "failed", "cancelled", "expired"]
 
 @dataclass(frozen=True)
 class TraitAnswer:
-    """One film's result: text to parse, or why there is none. Never both."""
+    """One film's result: text to parse, or why there is none. Never both.
+
+    `final` marks a refusal that asking again cannot change (the provider's safety filter
+    blocked the prompt itself): the film is given up at once, not retried.
+    """
 
     key: str
     text: str | None
     error: str | None
     usage: Usage = field(default_factory=Usage)
+    final: bool = False
 
 
 @dataclass(frozen=True)

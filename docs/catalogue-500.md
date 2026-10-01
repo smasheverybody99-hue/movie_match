@@ -12,16 +12,36 @@ catalogue on 2026-10-01. Do not edit by hand: re-run the script.
 - **Language cap:** inside each decade one original language takes at most
   55% of the quota (`catalogue_max_language_share`), more popular films first;
   slots the cap leaves empty are filled by popularity.
-- **Pinned:** the 50 films that already have traits (the stage-1 review list,
+- **Pinned:** the 488 films that already have traits (the stage-1 review list,
   `docs/review-films.md`) are always included and count towards their decade and
   language. They are not scored again: `traits submit` skips scored films.
+- **Excluded:** films whose trait extraction was given up (listed below with the
+  reason). Deleting a film's `trait_failures` row makes it eligible again.
 - **Why not `ingest --plan-only`:** see the docstring of `scripts/select_catalogue.py`.
 
 ## Result
 
 - 500 films. By decade: 1920s 6, 1930s 13, 1940s 19, 1950s 25, 1960s 31, 1970s 38, 1980s 50, 1990s 69, 2000s 87, 2010s 100, 2020s 62.
-- By language: en 269, ja 52, fr 40, it 26, es 24, de 19, cn 15, zh 13, ko 11, sv 5 (26 languages). English 269 (54%).
-- Already scored: 50; to score: 450.
+- By language: en 269, ja 57, fr 40, it 26, es 21, de 20, cn 16, zh 13, ko 10, ru 4 (25 languages). English 269 (54%).
+- Already scored: 488; to score: 12.
+
+
+## Excluded: trait extraction given up (12)
+
+Still in the catalogue, left out of this list; their slots went to the next films by the same rules. Not a table on purpose: `--ids` reads the first column of every table row as a TMDB id.
+
+- All Things Fair (1995, sv), TMDB id 27098: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Diary of a Nymphomaniac (2008, es), TMDB id 19173: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Drawn Together (2026, es), TMDB id 1440098: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Eungyo (2012, ko), TMDB id 118451: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Exploits of a Young Don Juan (1986, fr), TMDB id 81774: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Midori (1992, ja), TMDB id 53064: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- My Fault (2023, es), TMDB id 1010581: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Oldboy (2003, ko), TMDB id 670: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Queen of Hearts (2019, da), TMDB id 519465: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- The Lover (1992, fr), TMDB id 10995: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- The Piano Teacher (2001, fr), TMDB id 1791: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Young Hearts (2024, nl), TMDB id 1232449: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 
 ## How it is used (from `services/api`)
 
@@ -166,9 +186,9 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 9462 | The Way of the Dragon | 1972 | cn | Action, Crime | |
 | 6404 | Nosferatu the Vampyre | 1979 | de | Drama, Horror | |
 | 5425 | Beyond the Darkness | 1979 | it | Horror | |
-| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | |
 | 218 | The Terminator | 1984 | en | Action, Science Fiction, Thriller | |
 | 26827 | Who's That Girl | 1987 | en | Comedy, Romance | |
+| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | |
 | 207 | Dead Poets Society | 1989 | en | Drama | |
 | 694 | The Shining | 1980 | en | Horror, Thriller | |
 | 165 | Back to the Future Part II | 1989 | en | Adventure, Comedy, Science Fiction | |
@@ -186,7 +206,6 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 106 | Predator | 1987 | en | Action, Adventure, Science Fiction, Thriller | |
 | 377 | A Nightmare on Elm Street | 1984 | en | Horror | |
 | 149 | Akira | 1988 | ja | Action, Animation, Science Fiction | |
-| 81774 | Exploits of a Young Don Juan | 1986 | fr | Comedy, Drama | |
 | 10144 | The Little Mermaid | 1989 | en | Animation, Family, Fantasy | |
 | 1091 | The Thing | 1982 | en | Horror, Mystery, Science Fiction | |
 | 941 | Lethal Weapon | 1987 | en | Action, Crime, Thriller | |
@@ -216,27 +235,26 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 40224 | Nuit d'ivresse | 1986 | fr | Comedy | |
 | 21519 | Project A | 1983 | cn | Action, Adventure, Comedy | |
 | 49964 | Where Is The Friend's House? | 1987 | fa | Adventure, Drama | |
+| 62204 | Quest for Fire | 1981 | fr | Adventure, Drama, Fantasy | |
 | 278 | The Shawshank Redemption | 1994 | en | Crime, Drama | |
+| 24858 | Eternity and a Day | 1998 | el | Drama | |
+| 6435 | Practical Magic | 1998 | en | Comedy, Fantasy, Romance | |
+| 603 | The Matrix | 1999 | en | Action, Science Fiction | |
 | 550 | Fight Club | 1999 | en | Drama, Thriller | |
+| 680 | Pulp Fiction | 1994 | en | Comedy, Crime, Thriller | |
+| 863 | Toy Story 2 | 1999 | en | Animation, Comedy, Family | |
 | 862 | Toy Story | 1995 | en | Adventure, Animation, Comedy, Family | |
 | 13 | Forrest Gump | 1994 | en | Comedy, Drama, Romance | |
 | 8587 | The Lion King | 1994 | en | Animation, Drama, Family | |
 | 597 | Titanic | 1997 | en | Drama, Romance | |
-| 280 | Terminator 2: Judgment Day | 1991 | en | Action, Science Fiction, Thriller | |
-| 807 | Se7en | 1995 | en | Crime, Mystery, Thriller | |
-| 37165 | The Truman Show | 1998 | en | Comedy, Drama | |
-| 8467 | Dumb and Dumber | 1994 | en | Comedy | |
-| 329 | Jurassic Park | 1993 | en | Adventure, Science Fiction | |
-| 24858 | Eternity and a Day | 1998 | el | Drama | |
-| 6435 | Practical Magic | 1998 | en | Comedy, Fantasy, Romance | |
-| 603 | The Matrix | 1999 | en | Action, Science Fiction | |
-| 680 | Pulp Fiction | 1994 | en | Comedy, Crime, Thriller | |
-| 863 | Toy Story 2 | 1999 | en | Animation, Comedy, Family | |
 | 497 | The Green Mile | 1999 | en | Crime, Drama, Fantasy | |
 | 242 | The Godfather Part III | 1990 | en | Crime, Drama, Thriller | |
+| 280 | Terminator 2: Judgment Day | 1991 | en | Action, Science Fiction, Thriller | |
+| 807 | Se7en | 1995 | en | Crime, Mystery, Thriller | |
 | 424 | Schindler's List | 1993 | en | Drama, History, War | |
 | 857 | Saving Private Ryan | 1998 | en | Drama, History, War | |
 | 18 | The Fifth Element | 1997 | fr | Action, Adventure, Science Fiction | |
+| 37165 | The Truman Show | 1998 | en | Comedy, Drama | |
 | 564 | The Mummy | 1999 | en | Action, Adventure, Fantasy | |
 | 769 | GoodFellas | 1990 | en | Crime, Drama | |
 | 9479 | The Nightmare Before Christmas | 1993 | en | Animation, Family, Fantasy | |
@@ -258,19 +276,19 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 162 | Edward Scissorhands | 1990 | en | Drama, Fantasy, Romance | |
 | 10674 | Mulan | 1998 | en | Adventure, Animation, Family | |
 | 128 | Princess Mononoke | 1997 | ja | Adventure, Animation, Fantasy | |
+| 8467 | Dumb and Dumber | 1994 | en | Comedy | |
 | 9323 | Ghost in the Shell | 1995 | ja | Action, Animation, Science Fiction | |
 | 10494 | Perfect Blue | 1998 | ja | Animation, Thriller | |
+| 329 | Jurassic Park | 1993 | en | Adventure, Science Fiction | |
 | 18491 | Neon Genesis Evangelion: The End of Evangelion | 1997 | ja | Action, Animation, Drama, Fantasy, Science Fiction | |
 | 19404 | Dilwale Dulhania Le Jayenge | 1995 | hi | Comedy, Drama, Romance | |
 | 37797 | Whisper of the Heart | 1995 | ja | Animation, Drama, Family | |
 | 11104 | Chungking Express | 1994 | cn | Comedy, Drama, Romance | |
 | 10997 | Farewell My Concubine | 1993 | zh | Drama | |
-| 10995 | The Lover | 1992 | fr | Drama, Romance | |
 | 406 | La Haine | 1995 | fr | Drama | |
 | 11220 | Fallen Angels | 1995 | cn | Action, Crime, Romance | |
 | 12207 | The Legend of Drunken Master | 1994 | cn | Action, Comedy | |
 | 61930 | Bagnomaria | 1999 | it | Comedy | |
-| 53064 | Midori | 1992 | ja | Animation, Drama, Horror | |
 | 99 | All About My Mother | 1999 | es | Comedy, Drama | |
 | 104 | Run Lola Run | 1998 | de | Action, Drama, Thriller | |
 | 11621 | Porco Rosso | 1992 | ja | Adventure, Animation, Fantasy | |
@@ -280,25 +298,15 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 19552 | The Scent of Green Papaya | 1993 | vi | Drama, Romance | |
 | 2671 | Ring | 1998 | ja | Horror, Thriller | |
 | 11687 | The Visitors | 1993 | fr | Comedy, Fantasy | |
-| 27098 | All Things Fair | 1995 | sv | Drama, History, Romance | |
 | 9404 | Police Story 4: First Strike | 1996 | cn | Action, Adventure, Comedy, Crime, Drama, Thriller | |
 | 36095 | Cure | 1997 | ja | Crime, Horror, Mystery, Thriller | |
 | 11782 | Hard Boiled | 1992 | cn | Action, Crime, Thriller | |
 | 11134 | Police Story 3: Super Cop | 1992 | cn | Action, Crime, Thriller | |
+| 12561 | Godzilla vs. Destoroyah | 1995 | ja | Action, Horror, Science Fiction | |
+| 10228 | Pokémon: The First Movie | 1998 | ja | Action, Adventure, Animation, Family, Fantasy | |
+| 110 | Three Colors: Red | 1994 | fr | Drama, Mystery, Romance | |
 | 155 | The Dark Knight | 2008 | en | Action, Crime, Thriller | |
 | 671 | Harry Potter and the Philosopher's Stone | 2001 | en | Adventure, Fantasy | |
-| 98 | Gladiator | 2000 | en | Action, Adventure, Drama | |
-| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | |
-| 808 | Shrek | 2001 | en | Adventure, Animation, Comedy, Family, Fantasy | |
-| 10681 | WALL·E | 2008 | en | Animation, Family, Science Fiction | |
-| 640 | Catch Me If You Can | 2002 | en | Crime, Drama | |
-| 14160 | Up | 2009 | en | Adventure, Animation, Comedy, Family | |
-| 11036 | The Notebook | 2004 | en | Drama, Romance | |
-| 2062 | Ratatouille | 2007 | en | Animation, Comedy, Family, Fantasy | |
-| 1124 | The Prestige | 2006 | en | Drama, Mystery, Science Fiction | |
-| 9502 | Kung Fu Panda | 2008 | en | Action, Animation, Comedy, Family | |
-| 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | |
-| 77 | Memento | 2000 | en | Mystery, Thriller | |
 | 122 | The Lord of the Rings: The Return of the King | 2003 | en | Action, Adventure, Fantasy | |
 | 19995 | Avatar | 2009 | en | Action, Adventure, Science Fiction | |
 | 120 | The Lord of the Rings: The Fellowship of the Ring | 2001 | en | Action, Adventure, Fantasy | |
@@ -309,14 +317,18 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 673 | Harry Potter and the Prisoner of Azkaban | 2004 | en | Adventure, Fantasy | |
 | 121 | The Lord of the Rings: The Two Towers | 2002 | en | Action, Adventure, Fantasy | |
 | 58 | Pirates of the Caribbean: Dead Man's Chest | 2006 | en | Action, Adventure, Fantasy | |
+| 98 | Gladiator | 2000 | en | Action, Adventure, Drama | |
+| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | |
 | 1495 | Kingdom of Heaven | 2005 | en | Action, Adventure, Drama, History, War | |
 | 767 | Harry Potter and the Half-Blood Prince | 2009 | en | Adventure, Fantasy | |
 | 161 | Ocean's Eleven | 2001 | en | Crime, Thriller | |
 | 12 | Finding Nemo | 2003 | en | Adventure, Animation, Family | |
 | 585 | Monsters, Inc. | 2001 | en | Animation, Comedy, Family, Fantasy | |
 | 14836 | Coraline | 2009 | en | Animation, Family, Fantasy, Horror | |
+| 808 | Shrek | 2001 | en | Adventure, Animation, Comedy, Family, Fantasy | |
 | 10588 | The Cat in the Hat | 2003 | en | Adventure, Comedy, Family, Fantasy | |
 | 1726 | Iron Man | 2008 | en | Action, Adventure, Science Fiction | |
+| 10681 | WALL·E | 2008 | en | Animation, Family, Science Fiction | |
 | 675 | Harry Potter and the Order of the Phoenix | 2007 | en | Adventure, Fantasy | |
 | 9806 | The Incredibles | 2004 | en | Action, Adventure, Animation, Family | |
 | 22 | Pirates of the Caribbean: The Curse of the Black Pearl | 2003 | en | Action, Adventure, Fantasy | |
@@ -324,6 +336,9 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 1265 | Bridge to Terabithia | 2007 | en | Adventure, Drama, Family | |
 | 285 | Pirates of the Caribbean: At World's End | 2007 | en | Action, Adventure, Fantasy | |
 | 350 | The Devil Wears Prada | 2006 | en | Comedy, Drama | |
+| 640 | Catch Me If You Can | 2002 | en | Crime, Drama | |
+| 14160 | Up | 2009 | en | Adventure, Animation, Comedy, Family | |
+| 11036 | The Notebook | 2004 | en | Drama, Romance | |
 | 920 | Cars | 2006 | en | Adventure, Animation, Comedy, Family | |
 | 3933 | Corpse Bride | 2005 | en | Animation, Fantasy, Romance | |
 | 16869 | Inglourious Basterds | 2009 | en | Drama, Thriller, War | |
@@ -331,13 +346,17 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 272 | Batman Begins | 2005 | en | Action, Crime, Drama | |
 | 1422 | The Departed | 2006 | en | Crime, Drama, Thriller | |
 | 24 | Kill Bill: Vol. 1 | 2003 | en | Action, Crime | |
+| 2062 | Ratatouille | 2007 | en | Animation, Comedy, Family, Fantasy | |
 | 10625 | Mean Girls | 2004 | en | Comedy, Drama | |
 | 18785 | The Hangover | 2009 | en | Comedy | |
 | 1724 | The Incredible Hulk | 2008 | en | Action, Adventure, Science Fiction | |
+| 1124 | The Prestige | 2006 | en | Drama, Mystery, Science Fiction | |
+| 9502 | Kung Fu Panda | 2008 | en | Action, Animation, Comedy, Family | |
+| 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | |
 | 1417 | Pan's Labyrinth | 2006 | es | Drama, Fantasy, War | |
 | 598 | City of God | 2002 | pt | Crime, Drama | |
 | 194 | Amélie | 2001 | fr | Comedy, Romance | |
-| 670 | Oldboy | 2003 | ko | Mystery, Thriller | |
+| 77 | Memento | 2000 | en | Mystery, Thriller | |
 | 11770 | Shaolin Soccer | 2001 | cn | Action, Comedy | |
 | 11423 | Memories of Murder | 2003 | ko | Crime, Drama, Thriller | |
 | 10867 | Malena | 2000 | it | Drama | |
@@ -346,13 +365,11 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 9470 | Kung Fu Hustle | 2004 | cn | Action, Comedy, Crime, Fantasy | |
 | 20453 | 3 Idiots | 2009 | hi | Comedy, Drama | |
 | 4588 | Lust, Caution | 2007 | zh | Action, Drama, Romance, Thriller | |
-| 1791 | The Piano Teacher | 2001 | fr | Drama, Romance | |
 | 55 | Amores Perros | 2000 | es | Drama, Thriller | |
 | 146 | Crouching Tiger, Hidden Dragon | 2000 | zh | Action, Adventure, Drama, Fantasy, Romance | |
 | 613 | Downfall | 2004 | de | Drama, History, War | |
 | 979 | Irreversible | 2002 | fr | Crime, Drama, Thriller | |
 | 12429 | Ponyo | 2008 | ja | Animation, Family, Fantasy | |
-| 19173 | Diary of a Nymphomaniac | 2008 | es | Drama, Romance | |
 | 582 | The Lives of Others | 2006 | de | Drama, Thriller | |
 | 9539 | Martyrs | 2008 | fr | Drama, Horror, Thriller | |
 | 9992 | Arthur and the Invisibles | 2006 | fr | Adventure, Animation, Family, Fantasy | |
@@ -372,29 +389,16 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 14139 | Timecrimes | 2007 | es | Science Fiction, Thriller | |
 | 17422 | Summer Palace | 2006 | zh | Drama, Romance | |
 | 7735 | The Wave | 2008 | de | Drama, Thriller | |
+| 3176 | Battle Royale | 2000 | ja | Action, Drama, Thriller | |
+| 10775 | Infernal Affairs | 2002 | cn | Crime, Drama, Thriller | |
+| 30416 | Stanley Kubrick - Ein Leben für den Film | 2001 | de | Documentary | |
 | 299534 | Avengers: Endgame | 2019 | en | Action, Adventure, Science Fiction | |
-| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | |
-| 27205 | Inception | 2010 | en | Action, Adventure, Science Fiction | |
-| 150540 | Inside Out | 2015 | en | Adventure, Animation, Comedy, Drama, Family | |
-| 324857 | Spider-Man: Into the Spider-Verse | 2018 | en | Action, Adventure, Animation, Science Fiction | |
-| 354912 | Coco | 2017 | en | Adventure, Animation, Family, Music | |
-| 210577 | Gone Girl | 2014 | en | Drama, Mystery, Thriller | |
-| 475557 | Joker | 2019 | en | Crime, Drama, Thriller | |
-| 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | |
-| 11324 | Shutter Island | 2010 | en | Drama, Mystery, Thriller | |
-| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
-| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | |
-| 109445 | Frozen | 2013 | en | Adventure, Animation, Family, Fantasy | |
-| 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | |
-| 75656 | Now You See Me | 2013 | en | Crime, Thriller | |
-| 329865 | Arrival | 2016 | en | Drama, Mystery, Science Fiction | |
-| 146233 | Prisoners | 2013 | en | Crime, Drama, Thriller | |
-| 44214 | Black Swan | 2010 | en | Drama, Horror, Thriller | |
-| 245891 | John Wick | 2014 | en | Action, Thriller | |
-| 530915 | 1917 | 2019 | en | Drama, History, War | |
 | 299536 | Avengers: Infinity War | 2018 | en | Action, Adventure, Science Fiction | |
+| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | |
 | 24428 | The Avengers | 2012 | en | Action, Adventure, Science Fiction | |
 | 276488 | Let Us Prey | 2014 | en | Horror, Thriller | |
+| 27205 | Inception | 2010 | en | Action, Adventure, Science Fiction | |
+| 150540 | Inside Out | 2015 | en | Adventure, Animation, Comedy, Drama, Family | |
 | 335984 | Blade Runner 2049 | 2017 | en | Drama, Science Fiction | |
 | 205596 | The Imitation Game | 2014 | en | Drama, History, Thriller, War | |
 | 20352 | Despicable Me | 2010 | en | Animation, Comedy, Crime, Family, Science Fiction | |
@@ -403,6 +407,8 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 10138 | Iron Man 2 | 2010 | en | Action, Adventure, Science Fiction | |
 | 131631 | The Hunger Games: Mockingjay - Part 1 | 2014 | en | Adventure, Science Fiction, Thriller | |
 | 68718 | Django Unchained | 2012 | en | Drama, Western | |
+| 324857 | Spider-Man: Into the Spider-Verse | 2018 | en | Action, Adventure, Animation, Science Fiction | |
+| 354912 | Coco | 2017 | en | Adventure, Animation, Family, Music | |
 | 99861 | Avengers: Age of Ultron | 2015 | en | Action, Adventure, Science Fiction | |
 | 138843 | The Conjuring | 2013 | en | Horror, Thriller | |
 | 315635 | Spider-Man: Homecoming | 2017 | en | Action, Adventure, Science Fiction | |
@@ -412,6 +418,7 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 177572 | Big Hero 6 | 2014 | en | Action, Adventure, Animation, Comedy, Family | |
 | 198663 | The Maze Runner | 2014 | en | Action, Mystery, Science Fiction, Thriller | |
 | 496243 | Parasite | 2019 | ko | Comedy, Drama, Thriller | |
+| 210577 | Gone Girl | 2014 | en | Drama, Mystery, Thriller | |
 | 228150 | Fury | 2014 | en | Action, Drama, War | |
 | 271110 | Captain America: Civil War | 2016 | en | Action, Adventure, Science Fiction | |
 | 122917 | The Hobbit: The Battle of the Five Armies | 2014 | en | Action, Adventure, Fantasy | |
@@ -419,23 +426,35 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 466272 | Once Upon a Time... in Hollywood | 2019 | en | Comedy, Drama, Thriller | |
 | 10193 | Toy Story 3 | 2010 | en | Animation, Comedy, Family | |
 | 1930 | The Amazing Spider-Man | 2012 | en | Action, Adventure, Science Fiction | |
+| 475557 | Joker | 2019 | en | Crime, Drama, Thriller | |
 | 49013 | Cars 2 | 2011 | en | Adventure, Animation, Comedy, Family | |
 | 39254 | Real Steel | 2011 | en | Action, Drama, Science Fiction | |
 | 12444 | Harry Potter and the Deathly Hallows: Part 1 | 2010 | en | Adventure, Fantasy | |
 | 429617 | Spider-Man: Far From Home | 2019 | en | Action, Adventure, Science Fiction | |
+| 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | |
 | 301528 | Toy Story 4 | 2019 | en | Adventure, Animation, Comedy, Family | |
 | 127585 | X-Men: Days of Future Past | 2014 | en | Action, Adventure, Science Fiction | |
 | 324786 | Hacksaw Ridge | 2016 | en | Drama, History, War | |
 | 284053 | Thor: Ragnarok | 2017 | en | Action, Adventure, Comedy, Science Fiction | |
 | 330457 | Frozen II | 2019 | en | Adventure, Animation, Comedy, Family, Fantasy | |
 | 68721 | Iron Man 3 | 2013 | en | Action, Adventure, Science Fiction | |
+| 11324 | Shutter Island | 2010 | en | Drama, Mystery, Thriller | |
+| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
+| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | |
+| 109445 | Frozen | 2013 | en | Adventure, Animation, Family, Fantasy | |
+| 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | |
 | 77338 | The Intouchables | 2011 | fr | Comedy, Drama | |
+| 75656 | Now You See Me | 2013 | en | Crime, Thriller | |
+| 329865 | Arrival | 2016 | en | Drama, Mystery, Science Fiction | |
 | 396535 | Train to Busan | 2016 | ko | Action, Adventure, Horror, Thriller | |
+| 146233 | Prisoners | 2013 | en | Crime, Drama, Thriller | |
 | 73861 | A Serbian Film | 2010 | sr | Crime, Horror, Thriller | |
 | 290098 | The Handmaiden | 2016 | ko | Drama, Romance, Thriller | |
+| 44214 | Black Swan | 2010 | en | Drama, Horror, Thriller | |
+| 245891 | John Wick | 2014 | en | Action, Thriller | |
+| 530915 | 1917 | 2019 | en | Drama, History, War | |
 | 615453 | Ne Zha | 2019 | zh | Adventure, Animation, Fantasy | |
 | 48650 | Room in Rome | 2010 | es | Drama, Romance | |
-| 118451 | Eungyo | 2012 | ko | Drama, Romance | |
 | 531428 | Portrait of a Lady on Fire | 2019 | fr | Drama, Romance | |
 | 378064 | A Silent Voice: The Movie | 2016 | ja | Animation, Drama, Romance | |
 | 581528 | The Gangster, the Cop, the Devil | 2019 | ko | Action, Crime, Thriller | |
@@ -446,7 +465,6 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 46738 | Incendies | 2010 | fr | Drama, Mystery, War | |
 | 103663 | The Hunt | 2012 | da | Drama | |
 | 61979 | Three Steps Above Heaven | 2010 | es | Drama, Romance | |
-| 519465 | Queen of Hearts | 2019 | da | Drama | |
 | 133121 | Resident Evil: Damnation | 2012 | ja | Action, Animation, Horror, Science Fiction | |
 | 619264 | The Platform | 2019 | es | Drama, Science Fiction, Thriller | |
 | 375794 | No manches, Frida | 2016 | es | Comedy | |
@@ -472,10 +490,8 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 303857 | Dragon Ball Z: Resurrection 'F' | 2015 | ja | Action, Animation, Science Fiction | |
 | 242828 | When Marnie Was There | 2014 | ja | Animation, Drama, Family | |
 | 166666 | 3096 Days | 2013 | de | Drama | |
-| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | |
-| 872585 | Oppenheimer | 2023 | en | Drama, History | |
-| 414906 | The Batman | 2022 | en | Crime, Mystery, Thriller | |
-| 438631 | Dune | 2021 | en | Adventure, Science Fiction | |
+| 255709 | Hope | 2013 | ko | Drama | |
+| 527729 | Asterix: The Secret of the Magic Potion | 2018 | fr | Adventure, Animation, Comedy, Family | |
 | 969681 | Spider-Man: Brand New Day | 2026 | en | Action, Adventure, Science Fiction | |
 | 1423191 | Resident Evil | 2026 | en | Adventure, Horror, Science Fiction | |
 | 1101383 | The End of Oak Street | 2026 | en | Mystery, Science Fiction, Thriller | |
@@ -487,7 +503,6 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 1084244 | Toy Story 5 | 2026 | en | Adventure, Animation, Comedy, Family | |
 | 1108427 | Moana | 2026 | en | Adventure, Comedy, Family, Fantasy | |
 | 1339713 | Obsession | 2026 | en | Horror, Thriller | |
-| 1440098 | Drawn Together | 2026 | es | Romance, Thriller | |
 | 1232569 | Pinocchio: Unstrung | 2026 | en | Fantasy, Horror, Mystery | |
 | 1240889 | Teenage Sex and Death at Camp Miasma | 2026 | en | Comedy, Horror, Romance | |
 | 1386315 | The Runner | 2026 | en | Action, Thriller | |
@@ -510,12 +525,15 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 1127384 | Deep Water | 2026 | en | Adventure, Horror, Thriller | |
 | 1560520 | Batman: Knightfall Part 1: Knightfall | 2026 | en | Action, Adventure, Animation, Drama | |
 | 1081003 | Supergirl | 2026 | en | Action, Adventure, Science Fiction | |
+| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | |
 | 1311031 | Demon Slayer: Kimetsu no Yaiba Infinity Castle | 2025 | ja | Action, Animation, Fantasy | |
 | 1280738 | The Furious | 2026 | zh | Action, Crime, Thriller | |
+| 872585 | Oppenheimer | 2023 | en | Drama, History | |
+| 414906 | The Batman | 2022 | en | Crime, Mystery, Thriller | |
 | 1110034 | Kraken | 2026 | no | Action, Horror, Thriller | |
 | 1523145 | Your Heart Will Be Broken | 2026 | ru | Romance | |
-| 1010581 | My Fault | 2023 | es | Drama, Romance, Thriller | |
 | 976893 | Perfect Days | 2023 | ja | Drama | |
+| 438631 | Dune | 2021 | en | Adventure, Science Fiction | |
 | 1218925 | Chainsaw Man - The Movie: Reze Arc | 2025 | ja | Action, Animation, Fantasy, Romance | |
 | 980477 | Ne Zha 2 | 2025 | zh | Action, Adventure, Animation, Fantasy | |
 | 1244492 | Look Back | 2024 | ja | Animation, Drama | |
@@ -532,5 +550,7 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 940721 | Godzilla Minus One | 2023 | ja | Action, Horror, Science Fiction | |
 | 915935 | Anatomy of a Fall | 2023 | fr | Crime, Mystery, Thriller | |
 | 49046 | All Quiet on the Western Front | 2022 | de | Drama, War | |
-| 1232449 | Young Hearts | 2024 | nl | Drama, Romance | |
 | 823219 | Flow | 2024 | lv | Adventure, Animation, Family, Fantasy | |
+| 1408208 | Exit 8 | 2025 | ja | Horror, Mystery, Thriller | |
+| 1083862 | Resident Evil: Death Island | 2023 | ja | Action, Animation, Horror, Science Fiction | |
+| 508883 | The Boy and the Heron | 2023 | ja | Animation, Drama, Fantasy | |

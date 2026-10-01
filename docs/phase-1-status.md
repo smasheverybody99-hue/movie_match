@@ -79,8 +79,62 @@ standard rate, $0 on the free tier. Both gaps are fixed: the sync run now reconn
 (`ingest.with_reconnect`) and writes its cost line in `finally` with a `status`.
 **253 films are still pending**; the same command continues with them.
 
-**Not yet:** the rest of stage 2 needs the user's go; embeddings, nearest neighbours and
-the "missing count must be 0" check follow it.
+## Stage 2 — continuation (2026-10-01, 12:42–13:29): complete
+
+Same command, the 253 pending films. **241 stored, 19 failed attempts**; the connection
+dropped twice (`ReadError`, then a DNS `gaierror`) and the run reconnected by itself both
+times. No 429, no quota, no FAILED_PRECONDITION. The cost line, written this time:
+
+```
+run=traits-sync provider=gemini model=gemini-3.5-flash-lite requests=260 input_tokens=94800
+output_tokens=47199 usd=0.1464 tokens=reported status=complete
+```
+
+- **$0.1464 at the standard rate; $0 on the free tier.** Per request 365 in / 182 out,
+  against stage 1's 380 / 195 per film (blocked prompts use input tokens and return none,
+  which pulls the average down).
+- **Stage 2 in total ≈ $0.27 at the standard rate** ($0.1464 measured + ≈ $0.12
+  estimated for the first attempt, whose cost line was lost), $0 on the free tier.
+- The 19 failed attempts are **12 films**, every one blocked by Google's safety filter
+  (`PROHIBITED_CONTENT`: the prompt itself was refused, no answer). Seven of them were
+  asked twice because a reconnect re-read them as pending — wasted requests, now fixed:
+  a blocked prompt is final at once.
+
+### 12 films excluded from the trait list (Google safety filter)
+
+All twelve stay in the 5,000-film catalogue; they are only out of the 500 to score.
+Their slots went to the next films by the same quota rules (`scripts/select_catalogue.py`
+skips given-up films; `docs/catalogue-500.md` lists both). Reason for each:
+`no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)` — Gemini refused the
+prompt, most likely for sexual themes in the TMDB keywords or overview.
+
+| TMDB id | Film | Year | Lang |
+|---:|---|---:|---|
+| 27098 | All Things Fair | 1995 | sv |
+| 19173 | Diary of a Nymphomaniac | 2008 | es |
+| 1440098 | Drawn Together | 2026 | es |
+| 118451 | Eungyo | 2012 | ko |
+| 81774 | Exploits of a Young Don Juan | 1986 | fr |
+| 53064 | Midori | 1992 | ja |
+| 1010581 | My Fault | 2023 | es |
+| 670 | Oldboy | 2003 | ko |
+| 519465 | Queen of Hearts | 2019 | da |
+| 10995 | The Lover | 1992 | fr |
+| 1791 | The Piano Teacher | 2001 | fr |
+| 1232449 | Young Hearts | 2024 | nl |
+
+(This table is in a status page, not an `--ids` list; do not pass this file to `--ids`.)
+
+**Bringing them back later** is possible: delete a film's row from `trait_failures` and
+it is pending again, and `select_catalogue` will consider it again. It only makes sense
+with something that changes the outcome — a different provider (ADR 0006), or a prompt
+that leaves out the keywords that trip the filter. Four of the twelve had one attempt
+recorded before the rule changed; they were set to given-up by hand (4 rows,
+`attempts` 1 -> 2, guarded by id and error text) so all twelve are treated alike.
+
+**Now:** 488 of the 500 have traits; the 12 replacements (`docs/catalogue-500.md`,
+"added" in the 2026-10-01 diff) have none yet and need the user's go. Embeddings, nearest
+neighbours and the "missing count must be 0" check follow.
 
 ## Where things stand
 

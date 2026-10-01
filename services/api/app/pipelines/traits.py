@@ -292,13 +292,20 @@ async def store_traits(
     await session.execute(delete(TraitFailure).where(TraitFailure.movie_id == movie_id))
 
 
-async def record_failure(session: AsyncSession, movie_id: int, error: str) -> None:
-    stmt = insert(TraitFailure).values(movie_id=movie_id, attempts=1, last_error=error[:2000])
+async def record_failure(
+    session: AsyncSession, movie_id: int, error: str, final: bool = False
+) -> None:
+    """Count one failed attempt; a `final` failure uses up all of them at once, so the
+    film is given up (select_pending leaves it out) instead of being asked again."""
+    attempts = MAX_ATTEMPTS if final else 1
+    stmt = insert(TraitFailure).values(
+        movie_id=movie_id, attempts=attempts, last_error=error[:2000]
+    )
     await session.execute(
         stmt.on_conflict_do_update(
             index_elements=[TraitFailure.movie_id],
             set_={
-                "attempts": TraitFailure.attempts + 1,
+                "attempts": MAX_ATTEMPTS if final else TraitFailure.attempts + 1,
                 "last_error": stmt.excluded.last_error,
                 "updated_at": func.now(),
             },
@@ -373,7 +380,7 @@ async def collect(session: AsyncSession, extractor: TraitExtractor, batch_id: st
                 continue
             except ValueError as exc:
                 error = f"malformed: {exc}"
-        await record_failure(session, movie_id, error or "no result")
+        await record_failure(session, movie_id, error or "no result", final=answer.final)
         outcome.failed += 1
 
     if batch is not None:
@@ -474,7 +481,7 @@ async def score_sync(
                 continue
             except ValueError as exc:
                 error = f"malformed: {exc}"
-        await record_failure(session, film["id"], error or "no result")
+        await record_failure(session, film["id"], error or "no result", final=answer.final)
         await session.commit()
         outcome.failed += 1
     return outcome

@@ -57,6 +57,18 @@ foydalanishi mumkin.
 | Gemini 3.5 Flash-Lite, pullik tarif | 0.30 / 2.50 | **$0.0301** (18 976 kirish, 9 746 chiqish) | $0.30 | $3.01 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
 | Gemini 3.5 Flash-Lite, bepul tarif | $0 | **$0** | $0 | $0 (kunlik limit bir necha kunga bo'lishi mumkin) | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
 
+**2-bosqich, haqiqiy** (2026-10-01, Gemini 3.5 Flash-Lite, sync):
+
+| Run | So'rovlar | Kirish | Chiqish | Standart tarif | Bepul tarif |
+|---|--:|--:|--:|--:|--:|
+| Davomi (o'lchangan, `status=complete`) | 260 | 94 800 | 47 199 | **$0.1464** | $0 |
+| Birinchi urinish (narx qatori yo'qolgan; 1-bosqich o'lchovi bilan **taxmin**) | ~199 | ~75 600 | ~38 800 | ≈ $0.12 | $0 |
+| **2-bosqich jami** | | | | **≈ $0.27** | **$0** |
+
+So'rov boshiga 365 kirish / 182 chiqish (1-bosqichda film boshiga 380 / 195):
+bloklangan promptlar kirish tokeni oladi, chiqish bermaydi. 12 film Google xavfsizlik
+filtri bilan bloklandi (`PROHIBITED_CONTENT`) — `docs/phase-1-status.md`.
+
 50 filmlik run qaysi tarifda o'tgani kalitdan aniqlanmaydi: batch `FAILED_PRECONDITION`
 bilan rad etilib, oddiy so'rov o'tgani bepul tarifga ishora qiladi. Bepul tarifda
 50 film uchun 429 yoki kvota xatosi chiqmadi (minutiga 10 so'rov bilan).
@@ -162,3 +174,4 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-09-30 | Birinchi versiya. Provayder tanlanmagan; katalog 500 |
 | 2026-09-30 | Trait sync rejimi narxi (standart $0.30/$2.50 va bepul tarif); bitta filmning o'lchangan tokenlari |
 | 2026-10-01 | Trait tokenlari o'lchov bilan almashtirildi: 50 film, 380/195 film boshiga; haqiqiy run $0.0301 standart tarifda, bepul tarifda $0. Gemini 500/5 000 film qayta hisoblandi |
+| 2026-10-01 | 2-bosqich: davomi 260 so'rov, 94 800 / 47 199 token, $0.1464 standart tarifda (o'lchangan); birinchi urinish ≈ $0.12 (taxmin); jami ≈ $0.27, bepul tarifda $0 |

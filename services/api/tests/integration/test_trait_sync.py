@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import MovieTraits, TraitFailure
 from app.pipelines.ingest import SqlIngestStore
 from app.pipelines.tmdb import to_film_record
-from app.pipelines.traits import load_films, run_sync, score_sync, select_pending
+from app.pipelines.traits import MAX_ATTEMPTS, load_films, run_sync, score_sync, select_pending
 from app.providers.base import (
     Pricing,
     ProviderUnavailable,
@@ -53,6 +53,9 @@ class FakeScorer:
             outcome = outcome.pop(0) if outcome else "ok"
         if isinstance(outcome, BaseException):
             raise outcome
+        if outcome == "blocked":
+            why = "no candidates (prompt blocked: PROHIBITED_CONTENT)"
+            return TraitAnswer(request.key, None, why, Usage(1, 400, 0), final=True)
         text = valid_json(movie_id) if outcome == "ok" else '{"humor": 5}'
         return TraitAnswer(request.key, text, None, Usage(1, 400, 200))
 
@@ -224,3 +227,19 @@ async def test_an_account_refusal_is_reported_as_stopped(films: AsyncSession) ->
 
     assert error is None and result is not None and result.stopped
     assert "status=stopped" in _cost_line(lines)
+
+
+async def test_a_blocked_prompt_is_given_up_at_once_and_not_asked_again(
+    films: AsyncSession,
+) -> None:
+    scorer = FakeScorer({IDS[1]: "blocked", IDS[2]: "malformed"})
+    result = await _run(films, scorer, IDS)
+    assert (result.stored, result.failed) == (2, 2)
+
+    blocked = await films.get(TraitFailure, IDS[1])
+    assert blocked is not None and blocked.attempts == MAX_ATTEMPTS  # all attempts used
+    malformed = await films.get(TraitFailure, IDS[2])
+    assert malformed is not None and malformed.attempts == 1  # an ordinary failure
+
+    # the next run asks only the film that may still work
+    assert await select_pending(films, 100, IDS) == [IDS[2]]

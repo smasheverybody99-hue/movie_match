@@ -143,11 +143,24 @@ def read_candidates(response: Any) -> tuple[str | None, str | None]:
     return "".join(p.text for p in parts if p.text and not p.thought), None
 
 
+def prompt_blocked(response: Any) -> bool:
+    """The safety filter refused the prompt itself (no candidates, a block_reason): the
+    same prompt is refused every time, so it is a final answer for that film."""
+    if response is None or response.candidates:
+        return False
+    feedback = response.prompt_feedback
+    return bool(feedback and feedback.block_reason)
+
+
 def read_answer(item: types.InlinedResponse) -> TraitAnswer:
     text, error = read_item(item)
     usage = _usage(item.response.usage_metadata if item.response else None)
     return TraitAnswer(
-        key=(item.metadata or {}).get("key", ""), text=text, error=error, usage=usage
+        key=(item.metadata or {}).get("key", ""),
+        text=text,
+        error=error,
+        usage=usage,
+        final=item.error is None and prompt_blocked(item.response),
     )
 
 
@@ -211,7 +224,7 @@ def read_response(key: str, response: Any) -> TraitAnswer:
     """A generate_content response -> the same answer shape as a batch item."""
     text, error = read_candidates(response)
     usage = _usage(getattr(response, "usage_metadata", None))
-    return TraitAnswer(key=key, text=text, error=error, usage=usage)
+    return TraitAnswer(key=key, text=text, error=error, usage=usage, final=prompt_blocked(response))
 
 
 class GeminiTraitScorer:

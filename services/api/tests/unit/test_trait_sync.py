@@ -206,3 +206,43 @@ def test_the_sync_estimate_uses_the_standard_rate() -> None:
         [FILM], traits.get_provider(Settings(_env_file=None)).trait_extractor().pricing
     )
     assert estimate.usd == pytest.approx(batch.usd * 2)
+
+
+def _blocked() -> types.GenerateContentResponse:
+    return types.GenerateContentResponse.model_validate(
+        {
+            "promptFeedback": {"blockReason": "PROHIBITED_CONTENT"},
+            "usageMetadata": {"promptTokenCount": 360},
+        }
+    )
+
+
+async def test_a_blocked_prompt_is_a_final_answer() -> None:
+    """The safety filter refuses the same prompt every time: no point asking again."""
+    scorer, _ = _scorer(_blocked())
+    answer = await scorer.score(build_request(FILM))
+    assert answer.text is None and answer.final is True
+    assert answer.error is not None and "PROHIBITED_CONTENT" in answer.error
+    assert answer.usage.input_tokens == 360
+
+
+async def test_other_failed_answers_are_not_final() -> None:
+    for outcome in (_response('{"psy', finish="MAX_TOKENS"), _api_error(400, "INVALID_ARGUMENT")):
+        scorer, _ = _scorer(outcome)
+        assert (await scorer.score(build_request(FILM))).final is False
+
+
+def test_a_blocked_batch_item_is_final_too() -> None:
+    from app.providers.gemini import read_answer
+
+    blocked = types.InlinedResponse.model_validate(
+        {
+            "metadata": {"key": "movie-1"},
+            "response": {"promptFeedback": {"blockReason": "PROHIBITED_CONTENT"}},
+        }
+    )
+    errored = types.InlinedResponse.model_validate(
+        {"metadata": {"key": "movie-2"}, "error": {"code": 500, "message": "overloaded"}}
+    )
+    assert read_answer(blocked).final is True
+    assert read_answer(errored).final is False
