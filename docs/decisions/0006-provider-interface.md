@@ -45,7 +45,13 @@ more paid attempts or account support. A path that works exists today.
 5. **Resumable.** Each film is committed as soon as it is answered. A run stopped by a
    daily quota or a refusal leaves the rest pending; running the same command again
    continues where it stopped (`select_pending` skips scored films). A film that was
-   rate-limited past its retries is not counted as a failed attempt.
+   rate-limited past its retries is not counted as a failed attempt. A lost database
+   connection is retried by `ingest.with_reconnect` (the ingestion's own reconnect, not a
+   second one): a fresh session, the films still pending, the same run (added
+   2026-10-01, after a 450-film run stopped at film 198 on `ConnectionDoesNotExistError`).
+6. The run's cost line is written in `finally`, with `status=complete`, `stopped` or
+   `interrupted` and the tokens used so far: the 2026-10-01 run that broke off wrote
+   none, and its tokens are lost.
 
 **Costs and trade-offs.**
 

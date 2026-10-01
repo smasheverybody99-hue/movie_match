@@ -11,7 +11,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | Faza | Holat |
 |---|---|
 | F0 — Poydevor | **Tugagan** (`b2a4d35`, gate o'tgan) |
-| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich (500) tasdiq kutmoqda; embeddinglar hali yo'q |
+| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich: 247 / 500 traitli, birinchi urinish bazaga ulanish uzilishi bilan to'xtagan, qolgan 253 tasdiq kutmoqda; embeddinglar hali yo'q |
 | F2 — Tavsiya dvigateli | **Kod tugagan va `main` da, qo'lda tekshiruv chala.** Gate yashil. Qo'lda tekshiruv F1 ma'lumotini talab qiladi |
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | F4 va keyingilari | Boshlanmagan |
@@ -57,13 +57,13 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **F1 2-bosqichi: 500 film, sync rejimida — foydalanuvchi tasdig'i bilan.** 1-bosqich
-   o'tdi (50 film, $0.0301 standart tarifda, bepul tarifda $0; o'lchangan 380/195 token
-   film boshiga). Ro'yxat tayyor: `docs/catalogue-500.md` — o'n yillik/til kvotasi bilan
-   (`scripts/select_catalogue.py`, 54% ingliz, 26 til), traitli 50 film ichida, 450 tasi
-   baholanadi: ≈ $0.27 standart tarifda, bepul tarifda $0, ~45 daqiqa; kunlik limit
-   to'xtatsa, davom ettiriladi. Avval `--dry-run`. F2 va F3 qo'lda
-   tekshiruvlari traitli filmlarga bog'liq.
+1. **F1 2-bosqichini davom ettirish — 253 film, foydalanuvchi tasdig'i bilan.** Ro'yxat:
+   `docs/catalogue-500.md` (o'n yillik/til kvotasi, `scripts/select_catalogue.py`, 54%
+   ingliz, 26 til). Birinchi urinish (2026-10-01) 197 ta saqlab, bazaga ulanish uzilishi
+   bilan to'xtadi; 1 film Google tomonidan bloklandi. Hozir 247 / 500 traitli. Qayta
+   ulanish va `finally` dagi narx qatori qo'shildi. Qolgan 253 film ≈ $0.15 standart
+   tarifda, bepul tarifda $0, ~45 daqiqa; o'sha buyruq faqat qolganlarini oladi. Avval
+   `--dry-run`. F2 va F3 qo'lda tekshiruvlari traitli filmlarga bog'liq.
 2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## Muhit

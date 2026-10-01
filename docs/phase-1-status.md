@@ -64,7 +64,22 @@ Pattern worth watching at 500: two of the three are a dimension read too literal
 twist). No change to the prompt now — 3 of 50 is within the rule — but the trait
 definitions are where to look if stage 2 shows more of the same.
 
-**Not yet:** stage 2 (500 films) needs the user's go; embeddings, nearest neighbours and
+## Stage 2 — 500 films, first attempt (2026-10-01): stopped at 247 of 500
+
+The 500 are `docs/catalogue-500.md` (decade and language quotas over our catalogue,
+`scripts/select_catalogue.py`; the 50 reviewed films pinned). The user approved 450 new
+films in sync mode. The run stopped at 12:19 after **197 stored and 1 failed**, on a
+dropped database connection (`ConnectionDoesNotExistError` while saving *Beauty and the
+Beast*), not on a quota: no 429, no FAILED_PRECONDITION. The failed film is *Exploits of a
+Young Don Juan* (1986): Google blocked the prompt (`PROHIBITED_CONTENT`).
+
+Its cost line was never written (it came at the end), so the run's real tokens are
+lost; estimated from stage 1, ~199 requests ≈ 75,600 in / 38,800 out ≈ $0.12 at the
+standard rate, $0 on the free tier. Both gaps are fixed: the sync run now reconnects
+(`ingest.with_reconnect`) and writes its cost line in `finally` with a `status`.
+**253 films are still pending**; the same command continues with them.
+
+**Not yet:** the rest of stage 2 needs the user's go; embeddings, nearest neighbours and
 the "missing count must be 0" check follow it.
 
 ## Where things stand

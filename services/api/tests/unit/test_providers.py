@@ -141,7 +141,7 @@ def test_the_cost_line_is_the_same_shape_for_every_provider(
         line = cost_log.record("traits", "fake", "fake-traits-1", Usage(50, 21_000, 12_500), RATES)
     assert line == (
         "run=traits provider=fake model=fake-traits-1 requests=50 input_tokens=21000 "
-        'output_tokens=12500 usd=0.1670 tokens=reported pricing="test rates"'
+        'output_tokens=12500 usd=0.1670 tokens=reported status=complete pricing="test rates"'
     )
     assert any(r.getMessage() == line for r in caplog.records)
 

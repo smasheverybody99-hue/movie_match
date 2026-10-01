@@ -24,6 +24,7 @@ import asyncio
 import json
 import math
 from collections.abc import Awaitable, Callable, Sequence
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -47,6 +48,7 @@ from app.models import (
 )
 from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
+from app.pipelines.ingest import RECONNECT_DELAYS, with_reconnect
 from app.providers import get_provider
 from app.providers import usage as cost_log
 from app.providers.base import (
@@ -424,8 +426,12 @@ async def score_sync(
     requests_per_minute: float,
     retries: int,
     sleep: Sleep = asyncio.sleep,
+    outcome: SyncResult | None = None,
 ) -> SyncResult:
     """Score films one request at a time, committing each result as it arrives.
+
+    Counts go into `outcome` as they happen (a new one if none is given), so a caller
+    holding it still knows what was stored and what was spent when an error ends the run.
 
     Resumable by design: every film is stored (or its failed attempt recorded) and
     committed before the next request, and `select_pending` leaves scored films out, so
@@ -433,7 +439,7 @@ async def score_sync(
     provider rate-limits past its retries is not counted as an attempt: it was never
     answered. An account-level refusal (billing, permission) stops the run at once.
     """
-    outcome = SyncResult()
+    outcome = outcome if outcome is not None else SyncResult()
     pace = 60.0 / requests_per_minute
     for index, film in enumerate(films):
         if index:
@@ -472,6 +478,62 @@ async def score_sync(
         await session.commit()
         outcome.failed += 1
     return outcome
+
+
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
+
+
+async def run_sync(
+    ids: Sequence[int],
+    scorer: TraitScorer,
+    *,
+    requests_per_minute: float,
+    retries: int,
+    open_session: SessionFactory = job_session,
+    reconnect_delays: Sequence[float] = RECONNECT_DELAYS,
+    sleep: Sleep = asyncio.sleep,
+    report: Callable[[str], None] = print,
+) -> SyncResult:
+    """A whole sync run over `ids`: resumes after a lost database connection, and always
+    reports what it spent.
+
+    Each attempt opens a fresh session and scores the films of `ids` still pending, so
+    after a dropped connection (ingest.with_reconnect, the ingestion's own retry) the run
+    continues where it stopped instead of starting over. Counts and tokens accumulate in
+    one SyncResult across attempts.
+
+    The cost line is written in `finally`: `status=complete`, `stopped` (a quota or an
+    account refusal ended it early) or `interrupted` (an error, including a connection
+    that did not come back), always with the tokens used so far.
+    """
+    total = SyncResult()
+
+    async def attempt() -> None:
+        async with open_session() as session:
+            pending = await select_pending(session, len(ids), ids)
+            films = await load_films(session, pending)
+            await score_sync(
+                session,
+                scorer,
+                films,
+                requests_per_minute=requests_per_minute,
+                retries=retries,
+                sleep=sleep,
+                outcome=total,
+            )
+
+    status = "interrupted"
+    try:
+        await with_reconnect(attempt, delays=reconnect_delays, sleep=sleep, log=report)
+        status = "stopped" if total.stopped else "complete"
+        return total
+    finally:
+        report(f"stored {total.stored}, failed {total.failed}")
+        report(
+            cost_log.record(
+                "traits-sync", scorer.provider, scorer.model, total.usage, scorer.pricing, status
+            )
+        )
 
 
 # --- CLI ----------------------------------------------------------------------------
@@ -565,18 +627,14 @@ async def main(argv: Sequence[str] | None = None) -> None:
             if not args.yes:
                 raise SystemExit("paid run: re-run with --yes once the estimate is approved")
             if sync:
-                run = await score_sync(
-                    session,
+                # The run opens its own sessions (one per reconnect); end this one's read
+                # transaction so the server's idle-in-transaction timeout cannot reap it.
+                await session.rollback()
+                run = await run_sync(
+                    ids,
                     scorer,
-                    films,
                     requests_per_minute=settings.trait_sync_requests_per_minute,
                     retries=settings.trait_sync_retries,
-                )
-                print(f"stored {run.stored}, failed {run.failed}")
-                print(
-                    cost_log.record(
-                        "traits-sync", scorer.provider, scorer.model, run.usage, scorer.pricing
-                    )
                 )
                 if run.stopped:
                     raise SystemExit(f"stopped early: {run.stopped}")
