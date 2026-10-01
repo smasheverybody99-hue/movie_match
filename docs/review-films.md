@@ -5,7 +5,7 @@ baholaydi, keyin `report.py` ularning raqamlarini chiqaradi va odam ularni teksh
 1-faza qoidasi: 50 tadan 5 tasidan ko'prog'i aniq noto'g'ri bo'lsa, 2-bosqichdan oldin
 trait prompti tuzatiladi.
 
-**Holat: tasdiqlangan (2026-09-30).** 50 film, hammasi katalogda. 23-o'rin
+**Holat: tasdiqlangan (2026-09-30), ko'rib chiqilgan (2026-10-01): 47 ok, 3 bahsli — chegara 5, o'tdi.** 50 film, hammasi katalogda. 23-o'rin
 dastlab *Home Alone* (1990) edi; u katalogda yo'q bo'lgani uchun foydalanuvchi uning
 o'rniga *Dumb and Dumber* (1994) ni tanladi.
 
@@ -63,55 +63,55 @@ Tartib — foydalanuvchi ro'yxatidagi tartib. Id, yil, til va janrlar katalogdan
 
 | TMDB id | Title | Year | Lang | Genres | Verdict |
 |---:|---|---:|---|---|---|
-| 550 | Fight Club | 1999 | en | Drama, Thriller | |
-| 807 | Se7en | 1995 | en | Crime, Mystery, Thriller | |
-| 475557 | Joker | 2019 | en | Crime, Drama, Thriller | |
-| 11324 | Shutter Island | 2010 | en | Drama, Mystery, Thriller | |
-| 44214 | Black Swan | 2010 | en | Drama, Horror, Thriller | |
-| 146233 | Prisoners | 2013 | en | Crime, Drama, Thriller | |
-| 210577 | Gone Girl | 2014 | en | Drama, Mystery, Thriller | |
-| 27205 | Inception | 2010 | en | Action, Adventure, Science Fiction | |
-| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | |
-| 1124 | The Prestige | 2006 | en | Drama, Mystery, Science Fiction | |
-| 77 | Memento | 2000 | en | Mystery, Thriller | |
-| 329865 | Arrival | 2016 | en | Drama, Mystery, Science Fiction | |
-| 278 | The Shawshank Redemption | 1994 | en | Crime, Drama | |
-| 13 | Forrest Gump | 1994 | en | Comedy, Drama, Romance | |
-| 597 | Titanic | 1997 | en | Drama, Romance | |
-| 155 | The Dark Knight | 2008 | en | Action, Crime, Thriller | |
-| 98 | Gladiator | 2000 | en | Action, Adventure, Drama | |
-| 245891 | John Wick | 2014 | en | Action, Thriller | |
-| 299534 | Avengers: Endgame | 2019 | en | Action, Adventure, Science Fiction | |
-| 438631 | Dune | 2021 | en | Adventure, Science Fiction | |
-| 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | |
-| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | |
-| 8467 | Dumb and Dumber | 1994 | en | Comedy | |
-| 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | |
-| 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | |
-| 11036 | The Notebook | 2004 | en | Drama, Romance | |
-| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | |
-| 354912 | Coco | 2017 | en | Adventure, Animation, Family, Music | |
-| 150540 | Inside Out | 2015 | en | Adventure, Animation, Comedy, Drama, Family | |
-| 324857 | Spider-Man: Into the Spider-Verse | 2018 | en | Action, Adventure, Animation, Science Fiction | |
-| 10681 | WALL·E | 2008 | en | Animation, Family, Science Fiction | |
-| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | |
-| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | |
-| 280 | Terminator 2: Judgment Day | 1991 | en | Action, Science Fiction, Thriller | |
-| 329 | Jurassic Park | 1993 | en | Adventure, Science Fiction | |
-| 8587 | The Lion King | 1994 | en | Animation, Drama, Family | |
-| 872585 | Oppenheimer | 2023 | en | Drama, History | |
-| 530915 | 1917 | 2019 | en | Drama, History, War | |
-| 414906 | The Batman | 2022 | en | Crime, Mystery, Thriller | |
-| 640 | Catch Me If You Can | 2002 | en | Crime, Drama | |
-| 37165 | The Truman Show | 1998 | en | Comedy, Drama | |
-| 75656 | Now You See Me | 2013 | en | Crime, Thriller | |
-| 671 | Harry Potter and the Philosopher's Stone | 2001 | en | Adventure, Fantasy | |
-| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | |
-| 808 | Shrek | 2001 | en | Adventure, Animation, Comedy, Family, Fantasy | |
-| 862 | Toy Story | 1995 | en | Adventure, Animation, Comedy, Family | |
-| 14160 | Up | 2009 | en | Adventure, Animation, Comedy, Family | |
-| 2062 | Ratatouille | 2007 | en | Animation, Comedy, Family, Fantasy | |
-| 9502 | Kung Fu Panda | 2008 | en | Action, Animation, Comedy, Family | |
-| 109445 | Frozen | 2013 | en | Adventure, Animation, Family, Fantasy | |
+| 550 | Fight Club | 1999 | en | Drama, Thriller | ok |
+| 807 | Se7en | 1995 | en | Crime, Mystery, Thriller | ok |
+| 475557 | Joker | 2019 | en | Crime, Drama, Thriller | ok |
+| 11324 | Shutter Island | 2010 | en | Drama, Mystery, Thriller | ok |
+| 44214 | Black Swan | 2010 | en | Drama, Horror, Thriller | ok |
+| 146233 | Prisoners | 2013 | en | Crime, Drama, Thriller | ok |
+| 210577 | Gone Girl | 2014 | en | Drama, Mystery, Thriller | ok |
+| 27205 | Inception | 2010 | en | Action, Adventure, Science Fiction | ok |
+| 157336 | Interstellar | 2014 | en | Adventure, Drama, Science Fiction | ok |
+| 1124 | The Prestige | 2006 | en | Drama, Mystery, Science Fiction | ok |
+| 77 | Memento | 2000 | en | Mystery, Thriller | ok |
+| 329865 | Arrival | 2016 | en | Drama, Mystery, Science Fiction | ok |
+| 278 | The Shawshank Redemption | 1994 | en | Crime, Drama | wrong: plot_twist 35 past, qochish ochilishi jiddiy burilish |
+| 13 | Forrest Gump | 1994 | en | Comedy, Drama, Romance | ok |
+| 597 | Titanic | 1997 | en | Drama, Romance | wrong: action 70 juda yuqori, cho'kish falokat, jangari emas |
+| 155 | The Dark Knight | 2008 | en | Action, Crime, Thriller | ok |
+| 98 | Gladiator | 2000 | en | Action, Adventure, Drama | ok |
+| 245891 | John Wick | 2014 | en | Action, Thriller | ok |
+| 299534 | Avengers: Endgame | 2019 | en | Action, Adventure, Science Fiction | ok |
+| 438631 | Dune | 2021 | en | Adventure, Science Fiction | ok |
+| 106646 | The Wolf of Wall Street | 2013 | en | Comedy, Crime, Drama | ok |
+| 293660 | Deadpool | 2016 | en | Action, Adventure, Comedy | ok |
+| 8467 | Dumb and Dumber | 1994 | en | Comedy | ok |
+| 313369 | La La Land | 2016 | en | Comedy, Drama, Romance | ok |
+| 38 | Eternal Sunshine of the Spotless Mind | 2004 | en | Drama, Romance, Science Fiction | ok |
+| 11036 | The Notebook | 2004 | en | Drama, Romance | ok |
+| 129 | Spirited Away | 2001 | ja | Animation, Family, Fantasy | ok |
+| 354912 | Coco | 2017 | en | Adventure, Animation, Family, Music | ok |
+| 150540 | Inside Out | 2015 | en | Adventure, Animation, Comedy, Drama, Family | ok |
+| 324857 | Spider-Man: Into the Spider-Verse | 2018 | en | Action, Adventure, Animation, Science Fiction | ok |
+| 10681 | WALL·E | 2008 | en | Animation, Family, Science Fiction | ok |
+| 372058 | Your Name. | 2016 | ja | Animation, Drama, Romance | ok |
+| 105 | Back to the Future | 1985 | en | Adventure, Comedy, Science Fiction | ok |
+| 280 | Terminator 2: Judgment Day | 1991 | en | Action, Science Fiction, Thriller | ok |
+| 329 | Jurassic Park | 1993 | en | Adventure, Science Fiction | ok |
+| 8587 | The Lion King | 1994 | en | Animation, Drama, Family | ok |
+| 872585 | Oppenheimer | 2023 | en | Drama, History | ok |
+| 530915 | 1917 | 2019 | en | Drama, History, War | ok |
+| 414906 | The Batman | 2022 | en | Crime, Mystery, Thriller | ok |
+| 640 | Catch Me If You Can | 2002 | en | Crime, Drama | ok |
+| 37165 | The Truman Show | 1998 | en | Comedy, Drama | ok |
+| 75656 | Now You See Me | 2013 | en | Crime, Thriller | ok |
+| 671 | Harry Potter and the Philosopher's Stone | 2001 | en | Adventure, Fantasy | ok |
+| 634649 | Spider-Man: No Way Home | 2021 | en | Action, Adventure, Science Fiction | ok |
+| 808 | Shrek | 2001 | en | Adventure, Animation, Comedy, Family, Fantasy | ok |
+| 862 | Toy Story | 1995 | en | Adventure, Animation, Comedy, Family | ok |
+| 14160 | Up | 2009 | en | Adventure, Animation, Comedy, Family | ok |
+| 2062 | Ratatouille | 2007 | en | Animation, Comedy, Family, Fantasy | ok |
+| 9502 | Kung Fu Panda | 2008 | en | Action, Animation, Comedy, Family | ok |
+| 109445 | Frozen | 2013 | en | Adventure, Animation, Family, Fantasy | wrong: romance 30 past |
 
 Verdict ustuni: ko'rik paytida `ok` yoki `wrong: <qaysi trait, va nega>` yoziladi.

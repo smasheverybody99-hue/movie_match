@@ -1,7 +1,7 @@
 # Phase 1 — status
 
-Last updated: 2026-09-26 · Phase: **1 (data foundation), not finished — paused before the
-first successful paid call**
+Last updated: 2026-10-01 · Phase: **1 (data foundation), not finished — stage 1 (50 films)
+done and reviewed: passed; stage 2 (500) not started**
 
 Phase prompt: `docs/prompts/phase-01-data.md`. Adjustments for this run (from the user):
 catalogue of 5,000 not 20,000 (TZ v1.2 now says the same); TMDB ingestion run for real;
@@ -15,11 +15,11 @@ prompt makes the manual checklist part of the phase:
 
 | Checklist item | State |
 |---|---|
-| Every film has a trait vector and an embedding (missing count must be 0) | **5,000 of 5,000 missing both** |
-| Run the pipeline on real films; report cost and time | Not run. No paid call has succeeded |
-| 50-film hand review; no more than 5 clearly wrong | Not started. Needs stage 1; `docs/review-films.md` is still a draft |
+| Every film has a trait vector and an embedding (missing count must be 0) | **50 films have traits** (the review list); none has an embedding. Target is now 500 (TZ 1.5) |
+| Run the pipeline on real films; report cost and time | **Stage 1 done** (2026-10-01): 50 films, 50 stored, 0 failed. Below |
+| 50-film hand review; no more than 5 clearly wrong | **Passed** (2026-10-01): 3 of 50 disputed, limit 5. Below |
 | Nearest neighbours of 5 films, checked by eye | Needs real embeddings |
-| Measured cost per 1,000 films | Estimates only |
+| Measured cost per 1,000 films | **Measured** for traits: 380 in / 195 out tokens per film. Below |
 
 The phase report's items 2–4 (review table and verdict, measured cost, trait definitions
 that did not work in practice) cannot be written until those are done.
@@ -27,6 +27,45 @@ that did not work in practice) cannot be written until those are done.
 The phase prompt says "run the pipeline on 200 films"; that step is **dropped** (user,
 2026-09-27): the 500-film stage covers it. The 200 predates the agreed 50 → 500 → 5,000
 staging (CLAUDE.md).
+
+## Stage 1 — 50 films, run and hand review (2026-10-01)
+
+**Run.** `traits submit --ids ../../docs/review-films.md --yes` with `TRAIT_MODE=sync`
+(one film per request; the account's batch submits are refused, ADR 0006 amendment),
+`gemini-3.5-flash-lite`, 10 requests per minute. Result: **50 stored, 0 failed**, no 429,
+no quota stop. The `app.cost` line:
+
+```
+run=traits-sync provider=gemini model=gemini-3.5-flash-lite requests=50 input_tokens=18976
+output_tokens=9746 usd=0.0301 tokens=reported
+```
+
+- Cost: **$0.0301 at the paid standard rate; $0 on the free tier**, which this key
+  appears to be on (batch refused, sync accepted; not provable from the key).
+- Tokens per film: **380 in, 195 out** (thinking included), against the 410 / 250
+  estimate: input 14% lower, output 22% lower. `docs/costs.md` now uses the measured
+  numbers.
+- Per 1,000 films, measured: ~$0.60 sync at the standard rate, ~$0.30 batch.
+- Time: at least ~4.9 minutes by the pacing (49 pauses of 6 s); the wall-clock time was
+  not recorded.
+
+**Review.** The user, who has seen all 50 films, judged every row of `report.py`
+(verdicts in `docs/review-films.md`): **47 ok, 3 disputed** — under the limit of 5, so
+the prompt stands and stage 2 may go ahead once approved.
+
+| Film | Verdict |
+|---|---|
+| Titanic (597) | action 70 too high: a sinking disaster, not an action film |
+| The Shawshank Redemption (278) | plot_twist 35 too low: the escape reveal is a major twist |
+| Frozen (109445) | romance 30 too low |
+
+Pattern worth watching at 500: two of the three are a dimension read too literally
+(*action* for spectacle and peril, *plot_twist* for a reveal that is not a mystery
+twist). No change to the prompt now — 3 of 50 is within the rule — but the trait
+definitions are where to look if stage 2 shows more of the same.
+
+**Not yet:** stage 2 (500 films) needs the user's go; embeddings, nearest neighbours and
+the "missing count must be 0" check follow it.
 
 ## Where things stand
 

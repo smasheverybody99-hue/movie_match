@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-09-30**. Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-10-01**. Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -13,9 +13,9 @@ yoki taxmin, va u shunday deb belgilangan.
 
 | Kattalik | Qiymat | Qayerdan |
 |---|---|---|
-| Trait: kirish tokeni, film boshiga | ~410 | `traits submit --dry-run` (2026-09-26), prompt uzunligidan, 3.5 belgi/token; `docs/phase-1-status.md` |
-| Trait: chiqish tokeni, film boshiga | ~250 (thinking bilan 2× gacha) | Taxmin: 14 ta son + 2 jumla JSON. 50 filmlik o'lchov hali yo'q |
-| Trait: **bitta film o'lchangan** (2026-09-30) | 370 kirish, 195 chiqish (thinking bilan) | *Fight Club*, Gemini 3.5 Flash-Lite, oddiy `generate_content`; bitta film — o'rtacha emas, taxmin hali almashtirilmadi |
+| Trait: **kirish tokeni, film boshiga — o'lchangan** | **380** (18 976 / 50) | 50 filmlik run, 2026-10-01, Gemini 3.5 Flash-Lite, `TRAIT_MODE=sync`; `app.cost` qatori, `docs/phase-1-status.md` |
+| Trait: **chiqish tokeni, film boshiga — o'lchangan** | **195** (9 746 / 50, thinking bilan) | o'sha run |
+| Trait: eski taxmin (almashtirildi) | 410 kirish / 250 chiqish | `--dry-run` taxmini, 2026-09-26. Haqiqiy kirish 14% kam, chiqish 22% kam chiqdi. Boshqa provayderlar jadvallari hali shu taxminda |
 | Embedding: token, film boshiga | ~208 | 5 000 filmning embedding matni, o'rtacha 729 belgi; `docs/phase-1-status.md` |
 | Izoh: token, bitta izoh | ~200 kirish, ~60 chiqish | Taxmin: tizim prompti + 3 sabab qatori; javob 1–2 jumla. **O'lchanmagan** |
 | Katalog | 500 film (`catalogue_target`) | TZ FR-2, v1.5 |
@@ -30,7 +30,7 @@ Formulasi: `narx = kirish_token × kirish_narxi + chiqish_token × chiqish_narxi
 
 | Provayder, model | Batch narxi, $/MTok (kirish / chiqish) | 500 film | 5 000 film | Manba |
 |---|---|---|---|---|
-| Gemini 3.5 Flash-Lite (hozirgi kod) | 0.15 / 1.25 | **$0.19** | $1.87 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+| Gemini 3.5 Flash-Lite (hozirgi kod) | 0.15 / 1.25 | **$0.15** (o'lchangan 380/195; taxmin bilan $0.19) | $1.50 (taxmin bilan $1.87) | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
 | OpenAI gpt-5-nano | 0.025 / 0.20 | **$0.03** | $0.30 | [developers.openai.com/api/docs/pricing](https://developers.openai.com/api/docs/pricing) |
 | OpenAI gpt-4.1-nano | 0.05 / 0.20 | **$0.04** | $0.35 | [developers.openai.com/api/docs/pricing](https://developers.openai.com/api/docs/pricing) |
 | OpenAI gpt-4o-mini | 0.075 / 0.30 | **$0.05** | $0.53 | [developers.openai.com/api/docs/pricing](https://developers.openai.com/api/docs/pricing) |
@@ -52,10 +52,14 @@ ochilmaganda ishlatiladi. Pullik tarifda standart narx — batch'ning ikki barob
 Bepul tarifda to'lov yo'q, lekin kunlik va minutlik limit bor, va Google so'rovlardan
 foydalanishi mumkin.
 
-| Provayder, model | Standart narx, $/MTok | 500 film (taxmin 410/250) | 500 film (o'lchangan 370/195 bilan) | 5 000 film | Manba |
+| Provayder, model | Standart narx, $/MTok | 50 film — **haqiqiy run** (2026-10-01) | 500 film (o'lchangan 380/195) | 5 000 film | Manba |
 |---|---|---|---|---|---|
-| Gemini 3.5 Flash-Lite, pullik tarif | 0.30 / 2.50 | $0.37 | $0.30 | $3.74 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
-| Gemini 3.5 Flash-Lite, bepul tarif | $0 | $0 | $0 | $0 (kunlik limit bir necha kunga bo'lishi mumkin) | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+| Gemini 3.5 Flash-Lite, pullik tarif | 0.30 / 2.50 | **$0.0301** (18 976 kirish, 9 746 chiqish) | $0.30 | $3.01 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+| Gemini 3.5 Flash-Lite, bepul tarif | $0 | **$0** | $0 | $0 (kunlik limit bir necha kunga bo'lishi mumkin) | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+
+50 filmlik run qaysi tarifda o'tgani kalitdan aniqlanmaydi: batch `FAILED_PRECONDITION`
+bilan rad etilib, oddiy so'rov o'tgani bepul tarifga ishora qiladi. Bepul tarifda
+50 film uchun 429 yoki kvota xatosi chiqmadi (minutiga 10 so'rov bilan).
 
 Tezlik: standart `TRAIT_SYNC_REQUESTS_PER_MINUTE = 10` → 50 film ~5 daqiqa, 500 film
 ~50 daqiqa (kunlik limit to'xtatsa, keyingi run davom ettiradi).
@@ -157,3 +161,4 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 |---|---|
 | 2026-09-30 | Birinchi versiya. Provayder tanlanmagan; katalog 500 |
 | 2026-09-30 | Trait sync rejimi narxi (standart $0.30/$2.50 va bepul tarif); bitta filmning o'lchangan tokenlari |
+| 2026-10-01 | Trait tokenlari o'lchov bilan almashtirildi: 50 film, 380/195 film boshiga; haqiqiy run $0.0301 standart tarifda, bepul tarifda $0. Gemini 500/5 000 film qayta hisoblandi |

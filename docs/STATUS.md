@@ -11,7 +11,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | Faza | Holat |
 |---|---|
 | F0 — Poydevor | **Tugagan** (`b2a4d35`, gate o'tgan) |
-| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 5 000 film TMDB'dan yuklangan; katalog maqsadi endi 500 (TZ 1.5). Traitlar va embeddinglar hali yo'q: birinchi pullik qadam (50 film) provayder tanlovini va tasdiqni kutmoqda |
+| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich (500) tasdiq kutmoqda; embeddinglar hali yo'q |
 | F2 — Tavsiya dvigateli | **Kod tugagan va `main` da, qo'lda tekshiruv chala.** Gate yashil. Qo'lda tekshiruv F1 ma'lumotini talab qiladi |
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | F4 va keyingilari | Boshlanmagan |
@@ -37,12 +37,11 @@ secret yo'q (`.github/workflows/gate.yml`).
    qator. Variantlar narxi bilan: `docs/costs.md`. Agar tanlangan provayderning
    embeddingi 1 536 o'lchamli bo'lmasa — migratsiya va qayta embed kerak (API bu holatda
    ishga tushmaydi, xato matni yo'lni aytadi).
-2. **F1: traitlar va embeddinglar.** Hech bir filmda yo'q. Bosqichlar: 50 → 500, har
-   biridan oldin tasdiq (CLAUDE.md). 500 filmni o'n yillik kvotasi bilan tanlash —
+2. **F1: traitlar va embeddinglar.** 50 filmda trait bor, embedding hech birida yo'q.
+   2-bosqich (500 film) — tasdiqdan keyin. 500 filmni o'n yillik kvotasi bilan tanlash —
    backlog'da (TZ §2).
-3. **F1: 50 filmni qo'lda ko'rib chiqish.** `docs/review-films.md` tasdiqlangan
-   (2026-09-30): foydalanuvchi ko'rgan 50 film, hammasi katalogda (*Home Alone* katalogda
-   yo'q edi, o'rniga *Dumb and Dumber*).
+3. **F1: 50 filmlik ko'rik — o'tdi** (2026-10-01): 47 ok, 3 bahsli (Titanic action,
+   Shawshank plot_twist, Frozen romance), chegara 5. Tafsilot: `docs/phase-1-status.md`.
 4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
    hisoblash; 5 ta izohni o'qish (bir necha sent ulushi, provayder tanlangach, tasdiq bilan).
 5. **F3: haqiqiy kirish hali sinalmagan.** Web kalitlari (`VITE_SUPABASE_URL`,
@@ -59,11 +58,11 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **F1 1-bosqichi, sync rejimida.** Gemini kaliti batch'ni `400 FAILED_PRECONDITION`
-   bilan rad etadi (2026-09-30, sababsiz), oddiy so'rov esa ishlaydi (1 film sinaldi,
-   saqlanmadi). Kod tayyor: `TRAIT_MODE=sync` (ADR 0006 qo'shimchasi). Keyingisi:
-   `.env` ga `TRAIT_MODE=sync`, `traits submit --ids ../../docs/review-films.md --dry-run`,
-   **faqat tasdiqdan keyin** 50 film. F2 va F3 qo'lda tekshiruvlari shunga bog'liq.
+1. **F1 2-bosqichi: 500 film, sync rejimida — foydalanuvchi tasdig'i bilan.** 1-bosqich
+   o'tdi (50 film, $0.0301 standart tarifda, bepul tarifda $0; o'lchangan 380/195 token
+   film boshiga). 500 film ≈ $0.30 standart tarifda, minutiga 10 so'rov bilan ~50 daqiqa;
+   kunlik limit to'xtatsa, davom ettiriladi. Avval `--dry-run`. F2 va F3 qo'lda
+   tekshiruvlari traitli filmlarga bog'liq.
 2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## Muhit
