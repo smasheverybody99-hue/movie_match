@@ -12,7 +12,7 @@ catalogue on 2026-10-01. Do not edit by hand: re-run the script.
 - **Language cap:** inside each decade one original language takes at most
   55% of the quota (`catalogue_max_language_share`), more popular films first;
   slots the cap leaves empty are filled by popularity.
-- **Pinned:** the 488 films that already have traits (the stage-1 review list,
+- **Pinned:** the 499 films that already have traits (the stage-1 review list,
   `docs/review-films.md`) are always included and count towards their decade and
   language. They are not scored again: `traits submit` skips scored films.
 - **Excluded:** films whose trait extraction was given up (listed below with the
@@ -22,11 +22,11 @@ catalogue on 2026-10-01. Do not edit by hand: re-run the script.
 ## Result
 
 - 500 films. By decade: 1920s 6, 1930s 13, 1940s 19, 1950s 25, 1960s 31, 1970s 38, 1980s 50, 1990s 69, 2000s 87, 2010s 100, 2020s 62.
-- By language: en 269, ja 57, fr 40, it 26, es 21, de 20, cn 16, zh 13, ko 10, ru 4 (25 languages). English 269 (54%).
-- Already scored: 488; to score: 12.
+- By language: en 269, ja 57, fr 40, it 26, es 22, de 20, cn 16, zh 13, ko 9, ru 4 (25 languages). English 269 (54%).
+- Already scored: 499; to score: 1.
 
 
-## Excluded: trait extraction given up (12)
+## Excluded: trait extraction given up (13)
 
 Still in the catalogue, left out of this list; their slots went to the next films by the same rules. Not a table on purpose: `--ids` reads the first column of every table row as a TMDB id.
 
@@ -35,6 +35,7 @@ Still in the catalogue, left out of this list; their slots went to the next film
 - Drawn Together (2026, es), TMDB id 1440098: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 - Eungyo (2012, ko), TMDB id 118451: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 - Exploits of a Young Don Juan (1986, fr), TMDB id 81774: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
+- Hope (2013, ko), TMDB id 255709: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 - Midori (1992, ja), TMDB id 53064: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 - My Fault (2023, es), TMDB id 1010581: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
 - Oldboy (2003, ko), TMDB id 670: no candidates (prompt blocked: BlockedReason.PROHIBITED_CONTENT)
@@ -490,8 +491,8 @@ python -m app.pipelines.traits submit --ids ../../docs/catalogue-500.md --yes   
 | 303857 | Dragon Ball Z: Resurrection 'F' | 2015 | ja | Action, Animation, Science Fiction | |
 | 242828 | When Marnie Was There | 2014 | ja | Animation, Drama, Family | |
 | 166666 | 3096 Days | 2013 | de | Drama | |
-| 255709 | Hope | 2013 | ko | Drama | |
 | 527729 | Asterix: The Secret of the Magic Potion | 2018 | fr | Adventure, Animation, Comedy, Family | |
+| 261776 | The Third One | 2014 | es | Drama, Romance | |
 | 969681 | Spider-Man: Brand New Day | 2026 | en | Action, Adventure, Science Fiction | |
 | 1423191 | Resident Evil | 2026 | en | Adventure, Horror, Science Fiction | |
 | 1101383 | The End of Oak Street | 2026 | en | Mystery, Science Fiction, Thriller | |

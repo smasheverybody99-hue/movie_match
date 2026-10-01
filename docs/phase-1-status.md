@@ -132,9 +132,43 @@ that leaves out the keywords that trip the filter. Four of the twelve had one at
 recorded before the rule changed; they were set to given-up by hand (4 rows,
 `attempts` 1 -> 2, guarded by id and error text) so all twelve are treated alike.
 
-**Now:** 488 of the 500 have traits; the 12 replacements (`docs/catalogue-500.md`,
-"added" in the 2026-10-01 diff) have none yet and need the user's go. Embeddings, nearest
-neighbours and the "missing count must be 0" check follow.
+### Replacements scored, and a 13th exclusion (2026-10-01, evening)
+
+- The 12 replacements: **11 stored, 1 blocked**, cost line `requests=12 input_tokens=4372
+  output_tokens=2157 usd=0.0067 tokens=reported status=complete` ($0 on the free tier).
+  The blocked one, *Hope* (2013, ko, TMDB 255709), was given up at once by the new rule
+  (one request, `PROHIBITED_CONTENT`).
+- *Hope* was excluded the same way as the twelve (user's limit: replace once more, and
+  stop at 499 if that one is blocked too). Its replacement, *The Third One* (2014, es,
+  TMDB 261776), stored: `requests=1 input_tokens=358 output_tokens=188 usd=0.0006
+  status=complete`. **Traits: 500 of 500.** Excluded films: 13 (the twelve above and
+  *Hope*, all `PROHIBITED_CONTENT`), listed in `docs/catalogue-500.md`.
+
+## Embeddings — first run (2026-10-01, 22:27–22:57): stopped at 258 of 500
+
+`embeddings --ids ../../docs/catalogue-500.md --yes`, Gemini Embedding 2 at 1,536-d, one
+film per request. **258 stored**, then interrupted: Google's server dropped the
+connection on an `embed_content` call (`httpx.RemoteProtocolError: Server disconnected
+without sending a response`) after the SDK's own short retry. Not a quota, not the
+database. The cost line, written in `finally`:
+
+```
+run=embeddings provider=gemini model=gemini-embedding-2 requests=258 input_tokens=47554
+output_tokens=0 usd=0.0095 tokens=reported status=interrupted
+```
+
+$0.0095 at the standard rate, $0 on the free tier; 184 tokens per film, counted by
+`count_tokens` (the one-film test measured 187). Throughput was ~8.6 films a minute, not
+the 20 the pacing allows: each film is an embedding call, a count call and a commit to
+the database in Singapore.
+
+**Gap found:** network-level errors from the provider (`httpx.TransportError`) are not
+translated to `TransientError`, so neither the retry nor the reconnect caught this one;
+the same gap exists on the sync trait path and in `count_tokens`. To fix before the
+remaining **242** films are embedded (the same command continues with them).
+
+**Now:** traits 500/500, embeddings 258/500. Nearest neighbours and the "missing count
+must be 0" check follow the embeddings.
 
 ## Where things stand
 
