@@ -8,13 +8,11 @@ The SDK client is built on the first network call, not in the constructor, so pr
 dry runs work without GEMINI_API_KEY.
 """
 
-import asyncio
 from collections.abc import Sequence
 from typing import Any
 
 from google import genai
 from google.genai import errors, types
-from tenacity import AsyncRetrying, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.config import Settings
 from app.providers.base import (
@@ -59,11 +57,9 @@ THINKING_LEVEL = "MINIMAL"  # scoring or explaining from given facts needs no re
 # Embedding 2 returns 3,072 dimensions by default and accepts any output_dimensionality
 # up to that; the API normalises truncated vectors.
 EMBEDDING_MAX_DIM = 3072
-EMBED_CONCURRENCY = 8
-EMBED_ATTEMPTS = 5
-CHARS_PER_TOKEN = 3.5  # the embeddings API reports no token count
-_BACKOFF = wait_exponential(multiplier=1, max=30)
-_TRANSIENT_CODES = {429, 500, 502, 503, 504}
+# The fallback when count_tokens cannot count. Measured 2026-10-01: a 856-character
+# embedding text was 187 tokens (4.6 characters per token), so 3.5 over-counts.
+CHARS_PER_TOKEN = 3.5
 
 
 def client(settings: Settings) -> Any:
@@ -227,6 +223,19 @@ def read_response(key: str, response: Any) -> TraitAnswer:
     return TraitAnswer(key=key, text=text, error=error, usage=usage, final=prompt_blocked(response))
 
 
+def neutral_error(exc: errors.APIError) -> Exception | None:
+    """A Gemini API error as the provider-neutral error the pipelines act on, or None when
+    it is about this one request (the caller records it against the film)."""
+    message = f"{exc.code} {exc.status}: {exc.message}"
+    if exc.code == 429:
+        return RateLimited(message, retry_after(exc))
+    if exc.code is not None and exc.code >= 500:
+        return TransientError(message)
+    if exc.status in _ACCOUNT_STATUSES or exc.code in (401, 403):
+        return ProviderUnavailable(message)
+    return None
+
+
 class GeminiTraitScorer:
     """Trait scoring one film per request on the standard API (TRAIT_MODE=sync)."""
 
@@ -249,13 +258,10 @@ class GeminiTraitScorer:
                 model=self.model, contents=request.prompt, config=trait_config(request)
             )
         except errors.APIError as exc:
+            neutral = neutral_error(exc)
+            if neutral is not None:
+                raise neutral from exc
             message = f"{exc.code} {exc.status}: {exc.message}"
-            if exc.code == 429:
-                raise RateLimited(message, retry_after(exc)) from exc
-            if exc.code is not None and exc.code >= 500:
-                raise TransientError(message) from exc
-            if exc.status in _ACCOUNT_STATUSES or exc.code in (401, 403):
-                raise ProviderUnavailable(message) from exc
             return TraitAnswer(key=request.key, text=None, error=f"refused: {message}")
         except TimeoutError as exc:
             raise TransientError(f"timed out: {exc}") from exc
@@ -265,31 +271,24 @@ class GeminiTraitScorer:
 # --- embeddings ----------------------------------------------------------------------
 
 
-def _is_transient(exc: BaseException) -> bool:
-    return isinstance(exc, errors.APIError) and exc.code in _TRANSIENT_CODES
-
-
 class GeminiEmbedder:
-    """Film text -> `dim`-d vectors through Gemini Embedding 2.
+    """Film text -> `dim`-d vectors through Gemini Embedding 2, one request per text.
 
     The model returns ONE aggregated embedding for a request with several inputs, so each
-    text is its own request. Requests run a few at a time; rate limits and server errors
-    are retried with backoff, anything else stops the run.
+    text is its own request, sent in order. Pacing and retries are the pipeline's
+    (app/pipelines/embeddings.py), as for sync traits: a 429 comes out as RateLimited, a
+    5xx as TransientError, a billing or permission refusal as ProviderUnavailable.
+
+    The embeddings API reports no token count, so each text is also counted with the free
+    `count_tokens` call; the usage is then `reported`. If counting fails, the count falls
+    back to characters / CHARS_PER_TOKEN and the usage says `estimated`.
     """
 
     provider = NAME
     model = EMBEDDING_MODEL
     pricing = EMBEDDING_PRICING
 
-    def __init__(
-        self,
-        settings: Settings,
-        dim: int,
-        *,
-        sdk: Any = None,
-        concurrency: int = EMBED_CONCURRENCY,
-        wait: Any = _BACKOFF,
-    ) -> None:
+    def __init__(self, settings: Settings, dim: int, *, sdk: Any = None) -> None:
         if not 1 <= dim <= EMBEDDING_MAX_DIM:
             raise UnsupportedDimension(
                 f"{EMBEDDING_MODEL} produces 1..{EMBEDDING_MAX_DIM} dimensions, not {dim}"
@@ -297,54 +296,56 @@ class GeminiEmbedder:
         self.dim = dim
         self._settings = settings
         self._sdk = sdk
-        self._concurrency = concurrency
-        self._wait = wait
 
     def _client(self) -> Any:
         if self._sdk is None:
             self._sdk = client(self._settings)
         return self._sdk
 
-    async def embed(self, texts: Sequence[str]) -> Embedded:
-        if texts:
-            self._client()  # no key: stop here, before any task starts
-        gate = asyncio.Semaphore(self._concurrency)
-
-        async def one(text: str) -> list[float]:
-            async with gate:
-                return await self._embed_one(text)
-
-        async with asyncio.TaskGroup() as group:  # a failure cancels the rest
-            tasks = [group.create_task(one(t)) for t in texts]
-        contents = [self._content(t) for t in texts]
-        usage = Usage(
-            requests=len(texts),
-            input_tokens=round(sum(len(c) for c in contents) / CHARS_PER_TOKEN),
-            estimated=True,
-        )
-        return Embedded(vectors=[t.result() for t in tasks], usage=usage)
-
     @staticmethod
-    def _content(text: str) -> str:
+    def content(text: str) -> str:
         # Embedding 2 takes no task_type; the documented document format is "title | text".
         return f"title: none | text: {text}"
 
-    async def _embed_one(self, text: str) -> list[float]:
+    async def embed(self, texts: Sequence[str]) -> Embedded:
+        vectors: list[list[float]] = []
+        tokens = 0
+        estimated = False
+        for text in texts:
+            content = self.content(text)
+            vectors.append(await self._embed_one(content))
+            counted = await self._count(content)
+            if counted is None:
+                estimated = True
+                counted = round(len(content) / CHARS_PER_TOKEN)
+            tokens += counted
+        return Embedded(
+            vectors=vectors,
+            usage=Usage(requests=len(texts), input_tokens=tokens, estimated=estimated),
+        )
+
+    async def _embed_one(self, content: str) -> list[float]:
         config = types.EmbedContentConfig(output_dimensionality=self.dim)
-        async for attempt in AsyncRetrying(
-            retry=retry_if_exception(_is_transient),
-            wait=self._wait,
-            stop=stop_after_attempt(EMBED_ATTEMPTS),
-            reraise=True,
-        ):
-            with attempt:
-                response = await self._client().models.embed_content(
-                    model=self.model, contents=self._content(text), config=config
-                )
+        try:
+            response = await self._client().models.embed_content(
+                model=self.model, contents=content, config=config
+            )
+        except errors.APIError as exc:
+            raise (neutral_error(exc) or exc) from exc
+        except TimeoutError as exc:
+            raise TransientError(f"timed out: {exc}") from exc
         embeddings = response.embeddings or []
         if len(embeddings) != 1 or not embeddings[0].values:
             raise ValueError(f"expected one embedding, got {len(embeddings)}")
         return list(embeddings[0].values)
+
+    async def _count(self, content: str) -> int | None:
+        """Tokens in `content` by the free count_tokens call; None if it cannot say."""
+        try:
+            counted = await self._client().models.count_tokens(model=self.model, contents=content)
+        except (errors.APIError, TimeoutError):
+            return None
+        return counted.total_tokens
 
 
 # --- explanations --------------------------------------------------------------------

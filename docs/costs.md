@@ -16,7 +16,8 @@ yoki taxmin, va u shunday deb belgilangan.
 | Trait: **kirish tokeni, film boshiga — o'lchangan** | **380** (18 976 / 50) | 50 filmlik run, 2026-10-01, Gemini 3.5 Flash-Lite, `TRAIT_MODE=sync`; `app.cost` qatori, `docs/phase-1-status.md` |
 | Trait: **chiqish tokeni, film boshiga — o'lchangan** | **195** (9 746 / 50, thinking bilan) | o'sha run |
 | Trait: eski taxmin (almashtirildi) | 410 kirish / 250 chiqish | `--dry-run` taxmini, 2026-09-26. Haqiqiy kirish 14% kam, chiqish 22% kam chiqdi. Boshqa provayderlar jadvallari hali shu taxminda |
-| Embedding: token, film boshiga | ~208 | 5 000 filmning embedding matni, o'rtacha 729 belgi; `docs/phase-1-status.md` |
+| Embedding: token, film boshiga | ~208 (taxmin) | 5 000 filmning embedding matni, o'rtacha 729 belgi ÷ 3.5; `docs/phase-1-status.md` |
+| Embedding: **bitta film o'lchangan** (2026-10-01) | 187 token (`count_tokens`) | *Fight Club*, 856 belgi (4.6 belgi/token), Gemini Embedding 2, 1 536-o'lcham; $0.000037 standart tarifda, bepul tarifda $0. Belgi ÷ 3.5 taxmini bu filmda 250 berdi (34% ortiq) |
 | Izoh: token, bitta izoh | ~200 kirish, ~60 chiqish | Taxmin: tizim prompti + 3 sabab qatori; javob 1–2 jumla. **O'lchanmagan** |
 | Katalog | 500 film (`catalogue_target`) | TZ FR-2, v1.5 |
 

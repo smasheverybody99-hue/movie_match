@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     # `trait_sync_retries` times per film, then the run stops and can be resumed.
     trait_sync_requests_per_minute: float = Field(default=10, gt=0)
     trait_sync_retries: int = Field(default=5, ge=0)
+    # Embedding runs: one film per request, paced like sync traits (ADR 0006). The free
+    # tier's embedding limits are per model and change; 20 a minute is below them.
+    embedding_requests_per_minute: float = Field(default=20, gt=0)
+    embedding_retries: int = Field(default=5, ge=0)
 
     @property
     def cors_origin_list(self) -> list[str]:

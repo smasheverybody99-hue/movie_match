@@ -52,6 +52,13 @@ more paid attempts or account support. A path that works exists today.
 6. The run's cost line is written in `finally`, with `status=complete`, `stopped` or
    `interrupted` and the tokens used so far: the 2026-10-01 run that broke off wrote
    none, and its tokens are lost.
+7. **Embeddings run the same way** (2026-10-01): one film per request paced at
+   `EMBEDDING_REQUESTS_PER_MINUTE` (default 20) instead of 8 in parallel, the same
+   retries and neutral errors, `ingest.with_reconnect`, the cost line in `finally`. The
+   embeddings API returns no token count, so each text is also counted with the free
+   `count_tokens` call and the line says `tokens=reported`; only if counting fails does
+   it fall back to characters / 3.5 and say `estimated` (that estimate ran 34% high on
+   the one film measured: 187 counted vs 250).
 
 **Costs and trade-offs.**
 

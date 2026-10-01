@@ -73,4 +73,4 @@ class _WrongSize:
 
 async def test_embedder_of_wrong_dimension_is_rejected() -> None:
     with pytest.raises(ValueError, match="-d"):
-        await embed_films(None, _WrongSize(), [(1, None)])  # type: ignore[arg-type]
+        await embed_films(None, _WrongSize(), [(1, None)], requests_per_minute=10, retries=0)  # type: ignore[arg-type]
