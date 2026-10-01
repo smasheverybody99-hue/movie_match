@@ -38,8 +38,7 @@ secret yo'q (`.github/workflows/gate.yml`).
    embeddingi 1 536 o'lchamli bo'lmasa — migratsiya va qayta embed kerak (API bu holatda
    ishga tushmaydi, xato matni yo'lni aytadi).
 2. **F1: traitlar va embeddinglar.** 50 filmda trait bor, embedding hech birida yo'q.
-   2-bosqich (500 film) — tasdiqdan keyin. 500 filmni o'n yillik kvotasi bilan tanlash —
-   backlog'da (TZ §2).
+   2-bosqich (500 film, `docs/catalogue-500.md`) — tasdiqdan keyin.
 3. **F1: 50 filmlik ko'rik — o'tdi** (2026-10-01): 47 ok, 3 bahsli (Titanic action,
    Shawshank plot_twist, Frozen romance), chegara 5. Tafsilot: `docs/phase-1-status.md`.
 4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
@@ -60,8 +59,10 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 1. **F1 2-bosqichi: 500 film, sync rejimida — foydalanuvchi tasdig'i bilan.** 1-bosqich
    o'tdi (50 film, $0.0301 standart tarifda, bepul tarifda $0; o'lchangan 380/195 token
-   film boshiga). 500 film ≈ $0.30 standart tarifda, minutiga 10 so'rov bilan ~50 daqiqa;
-   kunlik limit to'xtatsa, davom ettiriladi. Avval `--dry-run`. F2 va F3 qo'lda
+   film boshiga). Ro'yxat tayyor: `docs/catalogue-500.md` — o'n yillik/til kvotasi bilan
+   (`scripts/select_catalogue.py`, 54% ingliz, 26 til), traitli 50 film ichida, 450 tasi
+   baholanadi: ≈ $0.27 standart tarifda, bepul tarifda $0, ~45 daqiqa; kunlik limit
+   to'xtatsa, davom ettiriladi. Avval `--dry-run`. F2 va F3 qo'lda
    tekshiruvlari traitli filmlarga bog'liq.
 2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 

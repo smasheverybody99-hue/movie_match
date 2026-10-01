@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.5 · 2026-09-30 · Holat: tasdiqlangan
+Versiya 1.6 · 2026-10-01 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -63,11 +63,12 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | Band | Qachongacha | Qo'shilgan |
 |---|---|---|
 | `services/api/scripts/migrate_db.py` ga testlar (himoyalar: `lock_timeout`, COMMIT'dan keyin yangi ulanishda tekshiruv, `movies` soni). Hozircha faqat qo'lda sinalgan | Keyingi migratsiyadan oldin | 2026-09-29 |
+| `services/api/scripts/select_catalogue.py` ga testlar (`select`: o'n yillik kvotasi, til chegarasi, ikkinchi o'tish, traitli filmlarning majburan kirishi va kvotaga hisoblanishi, sanasiz filmlar). Hozircha faqat qo'lda sinalgan (2026-10-01) | 2-bosqichdan keyin, ro'yxat qayta tuzilishidan oldin | 2026-10-01 |
 | Movie DNA AI xulosasi (FR-7). Hozir web uchta eng kuchli traitdan shablon jumla quradi; `/me/dna` `summary: null` qaytaradi. AI versiyasi uchun kesh jadvali (migratsiya) va narx qarori kerak | F5 dan oldin | 2026-09-29 |
 | DNA ulashish uchun server tomonda rasm (FR-7). Hozir web matnni ulashadi/nusxalaydi. Ommaviy havola (token, maxfiylik) dizayni kerak | F5 dan oldin | 2026-09-29 |
 | Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
 | Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
-| 500 filmni o'n yillik/til kvotasi bilan tanlash (FR-2). Bazadagi 5 000 film 5 000 uchun rejalashtirilgan; `traits submit --limit 500` eng mashhurlarini oladi va o'n yillik taqsimoti buzilishi mumkin. Yechim: `ingest --plan-only --target 500` (TMDB, bepul) ro'yxatini `traits submit --ids` ga berish | 1-bosqichdan keyin, 500 ga o'tishdan oldin | 2026-09-30 |
+| ~~500 filmni o'n yillik/til kvotasi bilan tanlash (FR-2). Bazadagi 5 000 film 5 000 uchun rejalashtirilgan; `traits submit --limit 500` eng mashhurlarini oladi va o'n yillik taqsimoti buzilishi mumkin. Yechim: `ingest --plan-only --target 500` (TMDB, bepul) ro'yxatini `traits submit --ids` ga berish~~ **Bajarildi (2026-10-01):** `services/api/scripts/select_catalogue.py` kvota siyosatini bizning 5 000 lik katalogimizga qo'llaydi, traitli 50 film majburan kiradi; ro'yxat `docs/catalogue-500.md` (54% ingliz, 26 til). `ingest --plan-only` (TMDB) varianti rad etildi: kunlik o'zgaradi, 75% ingliz chiqdi | 1-bosqichdan keyin, 500 ga o'tishdan oldin | 2026-09-30 |
 
 ---
 
@@ -342,3 +343,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.3 | 2026-09-29 | 2-bo'limga "Backlog" kichik bo'limi; birinchi band: migrate skriptiga testlar |
 | 1.4 | 2026-09-29 | §6 API jadvali F2–F3 endpointlari bilan to'ldirildi; backlog'ga F3 dan qolgan to'rt band (DNA AI xulosasi, ulashish rasmi, provayder filtri, filmga xos chiplar) |
 | 1.5 | 2026-09-30 | FR-2: katalog 5 000 dan 500 ga (xarajat); `catalogue_target = 500` |
+| 1.6 | 2026-10-01 | Backlog: 500 filmni kvota bilan tanlash bajarildi (`scripts/select_catalogue.py`, `docs/catalogue-500.md`); yangi band — shu skriptga testlar |
