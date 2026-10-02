@@ -71,14 +71,25 @@ watch almost all of them — the product's core claim holds. The other sections
 ("Because you loved X", "Under 90 minutes", "Outside your usual taste"): "not bad".
 **F2 manual check: passed.**
 
-The match checked by hand and the 5 explanations were not reported item by item; the
-user's verdict covers the check as a whole. The match formula is also covered by
-`test_match_is_recomputable_from_stored_numbers`.
+The other two checklist items, exactly:
+
+- **Match computed by hand: not done.** The formula is covered by a test,
+  `test_match_is_recomputable_from_stored_numbers`, which recomputes an API match from the
+  stored vectors and weights; it runs on every commit (CI).
+- **5 explanations read against their reasons: not done.** About 20 explanations were
+  generated and shown during the check, but none was checked item by item. Tests cover
+  the input only: `test_the_prompt_carries_the_real_reasons` checks that the prompt
+  carries the real shared traits. Whether the generated sentence describes them is not
+  tested (that needs a person or an evaluation set).
+
+Explanation cost, measured: 187 input / 29.6 output tokens on average over 19 runs, about
+$0.00013 each at the standard rate; `docs/costs.md`.
 
 Gate at closing: CI run https://github.com/smasheverybody99-hue/movie_match/actions/runs/36989348804
 (`b28b9da`, green). `app/services/` coverage: the CI step
-`coverage report --include="app/services/*" --fail-under=85` passed, so ≥ 85%; the exact
-figure is in that run's log (needs a GitHub login to read, not read here).
+`coverage report --include="app/services/*" --fail-under=85` passed, so ≥ 85%. **The exact
+figure was not read:** the run's log needs a GitHub login. It goes here after the next
+full local run.
 
 Findings from the API log (the user's analysis):
 

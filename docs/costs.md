@@ -20,7 +20,7 @@ yoki taxmin, va u shunday deb belgilangan.
 | Embedding: **500 film o'lchangan** (2026-10-02) | **182** token film boshiga (91 076 / 500, `count_tokens`) | Ikki run: 258 film ($0.0095, `status=interrupted`) + 242 film ($0.0087, `status=complete`) = **$0.0182** standart tarifda, bepul tarifda $0; `docs/phase-1-status.md` |
 | Embedding: **258 film o'lchangan** (2026-10-01) | 184 token film boshiga (47 554 / 258, `count_tokens`) | Birinchi embedding run'i: $0.0095 standart tarifda, bepul tarifda $0; `status=interrupted` (Google serveri ulanishni uzdi), `docs/phase-1-status.md` |
 | Embedding: **bitta film o'lchangan** (2026-10-01) | 187 token (`count_tokens`) | *Fight Club*, 856 belgi (4.6 belgi/token), Gemini Embedding 2, 1 536-o'lcham; $0.000037 standart tarifda, bepul tarifda $0. Belgi ÷ 3.5 taxmini bu filmda 250 berdi (34% ortiq) |
-| Izoh: token, bitta izoh | ~200 kirish, ~60 chiqish | Taxmin: tizim prompti + 3 sabab qatori; javob 1–2 jumla. **O'lchanmagan** |
+| Izoh: **token, bitta izoh — o'lchangan** | **187 kirish, 30 chiqish** (29.6) | 19 ta `run=explanation` cost qatorining o'rtachasi, 2026-10-02 (F2 qo'lda tekshiruvi, Gemini 3.5 Flash-Lite, foydalanuvchi log'i). Avvalgi taxmin 200 / 60 edi |
 | Katalog | 500 film (`catalogue_target`) | TZ FR-2, v1.5 |
 
 Formulasi: `narx = kirish_token × kirish_narxi + chiqish_token × chiqish_narxi`, narxlar
@@ -102,12 +102,16 @@ Haqiqiy bir martalik to'siq — narx emas, hisob ochish sharti (masalan, Google 
 Keshlanadi: bir (foydalanuvchi, film, til) uchun bir marta. Limit:
 `explanation_daily_calls_per_user = 20` → foydalanuvchiga oyiga ko'pi bilan ~600 ta.
 
-| Model (standart narx, $/MTok) | Bitta izoh (taxmin) | Eng og'ir foydalanuvchi, oyiga (600 ta) | Manba |
+Hisob o'lchangan tokenlar bilan (187 kirish / 29.6 chiqish, Gemini hisobi, 2026-10-02).
+Izoh foydalanuvchi so'rovida sinxron yaratiladi, shuning uchun **standart** narx (Batch
+emas). Boshqa provayderlarning tokenizatori boshqacha — ularning qatori taxmin.
+
+| Model (standart narx, $/MTok) | Bitta izoh | Eng og'ir foydalanuvchi, oyiga (600 ta) | Manba |
 |---|---|---|---|
-| Gemini 3.5 Flash-Lite (0.30 / 2.50) | $0.00021 | $0.13 | [narx](https://ai.google.dev/gemini-api/docs/pricing) |
-| gpt-5-nano (0.05 / 0.40) | $0.00003 | $0.02 | [narx](https://developers.openai.com/api/docs/pricing) |
-| gpt-4o-mini (0.15 / 0.60) | $0.00007 | $0.04 | [narx](https://developers.openai.com/api/docs/pricing) |
-| Claude Haiku 4.5 (1 / 5) | $0.00050 | **$0.30** — TZ'dagi $0.20 dan oshadi | [narx](https://platform.claude.com/docs/en/about-claude/pricing) |
+| Gemini 3.5 Flash-Lite (0.30 / 2.50) | **$0.00013** (o'lchangan tokenlar) | **$0.08** | [narx](https://ai.google.dev/gemini-api/docs/pricing) |
+| gpt-5-nano (0.05 / 0.40) | $0.00002 | $0.01 | [narx](https://developers.openai.com/api/docs/pricing) |
+| gpt-4o-mini (0.15 / 0.60) | $0.00005 | $0.03 | [narx](https://developers.openai.com/api/docs/pricing) |
+| Claude Haiku 4.5 (1 / 5) | $0.00034 | **$0.20** — TZ chegarasida | [narx](https://platform.claude.com/docs/en/about-claude/pricing) |
 
 TZ §5: LLM xarajati foydalanuvchiga oyiga < $0.20. Oddiy foydalanuvchi limitga yetmaydi.
 
@@ -165,7 +169,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | | 500 film, alfa (30–50 tester) | Izoh |
 |---|---|---|
 | Bir martalik (trait + embedding) | $0.03 – $0.45 | Provayderga bog'liq, yuqoridagi jadvallar |
-| Oylik: LLM izohlar | < $1 | Hamma tester har kuni limitga yetsa ham, Haiku'dan tashqari |
+| Oylik: LLM izohlar | ≤ $4 (Gemini) | Eng yomon holat: 50 tester har kuni limitga yetadi, 50 × $0.08. Avval "< $1" yozilgan edi — limit hisobiga noto'g'ri edi (2026-10-02 tuzatildi). Oddiy foydalanishda ancha kam |
 | Oylik: assistant | ~$0.20 × faol tester | 4-fazadan; faraz o'lchanmagan |
 | Oylik: baza + hosting | $0 | Free tariflar; cheklovlari yuqorida |
 | TMDB | $0 | Monetizatsiyagacha |
@@ -177,4 +181,5 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-09-30 | Birinchi versiya. Provayder tanlanmagan; katalog 500 |
 | 2026-09-30 | Trait sync rejimi narxi (standart $0.30/$2.50 va bepul tarif); bitta filmning o'lchangan tokenlari |
 | 2026-10-01 | Trait tokenlari o'lchov bilan almashtirildi: 50 film, 380/195 film boshiga; haqiqiy run $0.0301 standart tarifda, bepul tarifda $0. Gemini 500/5 000 film qayta hisoblandi |
+| 2026-10-02 | Izoh tokenlari o'lchov bilan almashtirildi: 187 / 30 (19 ta run, F2 qo'lda tekshiruvi); Gemini standart tarifda $0.00013 bitta izoh, oyiga ≤ $0.08. Boshqa provayderlar qatori shu tokenlar bilan qayta hisoblandi |
 | 2026-10-01 | 2-bosqich: davomi 260 so'rov, 94 800 / 47 199 token, $0.1464 standart tarifda (o'lchangan); birinchi urinish ≈ $0.12 (taxmin); jami ≈ $0.27, bepul tarifda $0 |
