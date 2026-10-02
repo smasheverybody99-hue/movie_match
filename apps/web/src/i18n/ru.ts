@@ -115,6 +115,7 @@ export const ru: Record<MessageKey, Message> = {
 
   "movie.whyYou": "Почему вам?",
   "movie.whyYouFallback": "Что у вас общего: {traits}.",
+  "movie.whyYouGeneral": "Подходит вашему вкусу в целом, а не одной яркой чертой.",
   "movie.noMatch": "Сначала оцените 10 фильмов, чтобы увидеть, насколько вам подходит этот.",
   "movie.compareTitle": "Ваш вкус и этот фильм",
   "movie.compareYou": "вы",

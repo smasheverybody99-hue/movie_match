@@ -93,6 +93,16 @@ describe("MoviePage", () => {
     ).toBeInTheDocument();
   });
 
+  it("says it suits overall when the match has no standout reason", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(
+      await screen.findByText("It suits your taste overall rather than through one standout quality."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/What you share with it/)).not.toBeInTheDocument();
+  });
+
   it("does not ask for an explanation without a match", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { match: null, reasons: [] }));
     renderWithProviders(<MoviePage />, ROUTE);

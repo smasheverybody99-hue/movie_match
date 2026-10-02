@@ -115,6 +115,7 @@ export const en = {
 
   "movie.whyYou": "Why you?",
   "movie.whyYouFallback": "What you share with it: {traits}.",
+  "movie.whyYouGeneral": "It suits your taste overall rather than through one standout quality.",
   "movie.noMatch": "Rate 10 films first to see how well this one matches you.",
   "movie.compareTitle": "Your taste vs this film",
   "movie.compareYou": "you",

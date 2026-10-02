@@ -102,6 +102,7 @@ export const uz: Record<MessageKey, Message> = {
   // Film page
   "movie.whyYou": "Nega sizga?",
   "movie.whyYouFallback": "Siz bilan umumiy jihatlari: {traits}.",
+  "movie.whyYouGeneral": "Ta'mingizga umuman mos — bitta yaqqol jihati bilan emas.",
   "movie.noMatch": "Mosligini hisoblash uchun avval 10 ta film baholang.",
   "movie.compareTitle": "Sizning ta'mingiz va shu film",
   "movie.compareYou": "siz",

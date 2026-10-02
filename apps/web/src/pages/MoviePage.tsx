@@ -43,12 +43,12 @@ function Why({ detail }: { detail: MovieDetail }) {
   if (detail.match === null) {
     return <p className="why-text muted">{t("movie.noMatch")}</p>;
   }
-  const fallback = t("movie.whyYouFallback", {
-    traits: detail.reasons
-      .filter(isTraitKey)
-      .map((key) => t(traitLabelKey(key)))
-      .join(", "),
-  });
+  // Without an explanation: the reasons in words. A film can have none (it matches
+  // overall, standing out on no trait); then a sentence that says so.
+  const reasons = detail.reasons.filter(isTraitKey);
+  const fallback = reasons.length
+    ? t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") })
+    : t("movie.whyYouGeneral");
   return (
     <div className="why">
       <MatchRing value={detail.match} />
