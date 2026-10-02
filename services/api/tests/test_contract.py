@@ -44,7 +44,7 @@ def test_keys_are_unique(spec: dict) -> None:
 
 def test_every_dimension_is_fully_described(spec: dict) -> None:
     for dimension in spec["dimensions"]:
-        for field in ("key", "label_en", "label_uz", "description"):
+        for field in ("key", "label_en", "label_uz", "label_ru", "description"):
             assert dimension.get(field), f"{dimension.get('key')} is missing {field}"
 
 
