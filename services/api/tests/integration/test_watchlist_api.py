@@ -3,8 +3,10 @@
 import uuid
 
 import pytest
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models import WatchlistItem
 from tests.integration.api import api_client, auth, seed_films
 
 A, B = 9_200_001, 9_200_002
@@ -60,6 +62,66 @@ async def test_marking_watched_again_keeps_the_first_date(seeded: AsyncSession) 
         first = await client.post(f"/watchlist/{A}/watched", headers=me)
         again = await client.post(f"/watchlist/{A}/watched", headers=me)
     assert again.json()["watched_at"] == first.json()["watched_at"]
+
+
+# --- a removal racing an add or a mark (2026-10-02: POST /watchlist answered 500) ------
+
+
+def _removed_by_another_request(session: AsyncSession, movie_id: int) -> None:
+    """Right after the commit that stores the row, the row is deleted as if by a second
+    request (the user pressed Save and then unsaved at once). The old add() committed and
+    then read the row back with a separate SELECT, found nothing and answered 500.
+
+    Earlier commits in the same request (the user row, from `current_user`) find no row
+    to delete, so the hook waits for the one that does."""
+    original = session.commit
+
+    async def commit_then_delete() -> None:
+        await original()
+        result = await session.execute(
+            delete(WatchlistItem).where(WatchlistItem.movie_id == movie_id)
+        )
+        await original()
+        if result.rowcount:  # type: ignore[attr-defined]
+            session.commit = original  # type: ignore[method-assign]
+
+    session.commit = commit_then_delete  # type: ignore[method-assign]
+
+
+async def test_an_add_racing_a_removal_answers_with_the_entry_not_500(
+    seeded: AsyncSession,
+) -> None:
+    me = auth(uuid.uuid4())
+    async with api_client(seeded) as client:
+        _removed_by_another_request(seeded, A)
+        added = await client.post("/watchlist", json={"movie_id": A}, headers=me)
+        listed = (await client.get("/watchlist", headers=me)).json()
+    assert added.status_code == 200, added.text
+    assert added.json()["movie"]["id"] == A and added.json()["watched_at"] is None
+    assert listed == []  # the removal came last, and it stands
+
+
+async def test_adding_again_returns_the_existing_entry_unchanged(seeded: AsyncSession) -> None:
+    me = auth(uuid.uuid4())
+    async with api_client(seeded) as client:
+        first = await client.post("/watchlist", json={"movie_id": A}, headers=me)
+        watched = await client.post(f"/watchlist/{A}/watched", headers=me)
+        again = await client.post("/watchlist", json={"movie_id": A}, headers=me)
+    assert again.status_code == 200
+    assert again.json()["added_at"] == first.json()["added_at"]
+    assert again.json()["watched_at"] == watched.json()["watched_at"]  # not reset by re-adding
+    rows = (await seeded.scalars(select(WatchlistItem).where(WatchlistItem.movie_id == A))).all()
+    assert len(rows) == 1
+
+
+async def test_marking_a_removed_film_watched_is_404_not_500(seeded: AsyncSession) -> None:
+    me = auth(uuid.uuid4())
+    async with api_client(seeded) as client:
+        await client.post("/watchlist", json={"movie_id": A}, headers=me)
+        await client.delete(f"/watchlist/{A}", headers=me)
+        marked = await client.post(f"/watchlist/{A}/watched", headers=me)
+    assert marked.status_code == 404
+    assert marked.json()["detail"] == "Not on the watchlist"
 
 
 # --- not found ----------------------------------------------------------------------
