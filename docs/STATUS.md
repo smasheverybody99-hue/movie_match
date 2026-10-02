@@ -63,8 +63,14 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Dizayn v2, 0-bosqich (poydevor) bajarildi** (`docs/ui.md`): skrinshotlar
-   foydalanuvchi ko'rigida. Tasdiqlansa — 1-bosqich: film sahifasi (backdrop hero).
+1. **Dizayn v2, 1-bosqich: film sahifasi (backdrop hero) + "Why you" skeleton** (joy oldindan
+   band, matn silliq paydo bo'ladi). 0-bosqich bajarilgan (`docs/ui.md`).
+   Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
+   foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
+   izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan
+   yoziladi. Mahalliy API qayta ishga tushirilishi kerak. Match foizi taqsimoti o'lchandi
+   (`docs/phase-2-status.md`): yoqmagan va yoqqan filmlar bir xil (~85%), 60% chegarasi
+   deyarli hech narsani filtrlamaydi — FR-5 formulasi bo'yicha alohida qaror kutilmoqda.
 2. **Rus tilini ko'rib chiqish (foydalanuvchi).** `apps/web/src/i18n/ru.ts` (166 kalit)
    va `packages/shared/traits.json` dagi `label_ru` — agent yozgan, **ko'rilmagan
    qoralama**. Belgi (shu band va `ru.ts` sarlavhasi) foydalanuvchi ko'rib chiqmaguncha
