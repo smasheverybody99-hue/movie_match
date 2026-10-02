@@ -43,8 +43,9 @@ from app.models import (
     User,
     WatchlistItem,
 )
-from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.matching import ReasonRule, match_percentage, top_reasons, weights_vector
 from app.services.mmr import mmr
+from app.services.reasons import load_rule
 from app.services.taste import HIGH_RATING, RatedFilm, rating_weight
 
 MIN_RATINGS = 10  # FR-3: no recommendations before 10 ratings
@@ -100,14 +101,18 @@ class Recommendations:
 
 
 def score(
-    candidates: Sequence[Candidate], taste: Sequence[float], weights: Sequence[float]
+    candidates: Sequence[Candidate],
+    taste: Sequence[float],
+    weights: Sequence[float],
+    rule: ReasonRule | None,
 ) -> list[Scored]:
-    """Match every candidate; keep those at MIN_MATCH or above, best first."""
+    """Match every candidate; keep those at MIN_MATCH or above, best first. Without a
+    reason rule (no catalogue statistics yet) the reasons are empty."""
     scored = []
     for candidate in candidates:
         match = match_percentage(taste, weights, candidate.vector)
         if match >= MIN_MATCH:
-            reasons = top_reasons(taste, candidate.vector, weights=weights)
+            reasons = top_reasons(taste, candidate.vector, rule, weights=weights) if rule else []
             scored.append(Scored(candidate, match, reasons))
     return sorted(scored, key=lambda s: (-s.match, s.movie_id))
 
@@ -304,13 +309,14 @@ async def recommend(
         return Recommendations(rating_count=count)
 
     exclude = await seen_ids(session, user_id)
+    rule = await load_rule(session)
     await tune_index_search(session)
     shown: set[int] = set()
     sections: list[Section] = []
 
     async def add(key: SectionKey, candidates: list[Candidate], seed: Movie | None = None) -> None:
         k = SECTION_SIZE[key]
-        pool = shortlist(score(candidates, taste, weights), k, exclude=shown)
+        pool = shortlist(score(candidates, taste, weights, rule), k, exclude=shown)
         sims = await embedding_similarities(session, [s.movie_id for s in pool])
         items = pick(pool, k, lambda x, y: sims.get(frozenset((x.movie_id, y.movie_id)), 0.0))
         if items:

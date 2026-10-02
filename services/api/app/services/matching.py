@@ -17,12 +17,9 @@ movie_traits.vector), so any match the API returns can be recomputed by hand (CL
 
 import math
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
 from app.traits import TRAIT_KEYS
-
-# A dimension is only a reason when the user's taste and the film both reach this level:
-# sharing a low score ("neither of you cares for romance") is not why someone likes a film.
-REASON_FLOOR = 50.0
 
 
 def weights_vector(weights: Mapping[str, float]) -> list[float]:
@@ -60,29 +57,61 @@ def match_percentage(
     return min(100, max(0, math.floor(raw + 0.5)))
 
 
+@dataclass(frozen=True)
+class TraitStats:
+    """The catalogue's mean and population standard deviation per trait, TRAIT_KEYS order."""
+
+    mean: tuple[float, ...]
+    sd: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class ReasonRule:
+    """What makes a trait a reason. Thresholds are in catalogue standard deviations."""
+
+    stats: TraitStats
+    min_film_z: float = 0.5
+    min_taste_z: float = 0.0
+
+
+def z_score(value: float, mean: float, sd: float) -> float | None:
+    """How far `value` sits from the catalogue mean in standard deviations; None when the
+    catalogue does not vary on the trait (nothing can stand out on it)."""
+    return None if sd < 1e-9 else (value - mean) / sd
+
+
 def top_reasons(
     taste: Sequence[float],
     movie_vector: Sequence[float],
+    rule: ReasonRule,
     n: int = 3,
     weights: Sequence[float] | None = None,
 ) -> list[str]:
-    """The trait keys that the user's taste and the film share most, strongest first.
+    """The traits on which this film stands out from typical films in the direction the
+    user leans, strongest first. Only which traits are named changes here: the match
+    percentage (FR-5) does not use this.
 
-    A dimension's strength is w·min(t, m): the level both reach on it, scaled by how much
-    the user cares about it. A film far below the user's taste on a dimension shares
-    little of it; a film far above it shares no more than the user wants. Dimensions
-    where either side is below REASON_FLOOR are never returned, so the list can be shorter
-    than `n`. Ties keep TRAIT_KEYS order.
+    A trait is a reason when the film is notably above the catalogue mean on it
+    (z_film >= rule.min_film_z) and the user's taste is at least on the same side
+    (z_taste >= rule.min_taste_z). Its strength is w·z_film. A trait nearly every film
+    scores high on (2026-10-02: visual_style and emotional_intensity, mean ~74, sd 14)
+    therefore no longer comes up for every film; with the old rule, w·min(taste, film),
+    they were among the reasons for over 90% of one user's recommendations. Any reason can
+    be checked by hand: z = (value - mean) / sd from the stored vectors and the catalogue.
+    The list can be shorter than `n`, or empty. Ties keep TRAIT_KEYS order.
     """
     if weights is None:
         weights = [1.0] * len(taste)
     _check(taste, weights, movie_vector)
-    if len(taste) != len(TRAIT_KEYS):
+    if len(taste) != len(TRAIT_KEYS) or len(rule.stats.mean) != len(TRAIT_KEYS):
         raise ValueError(f"expected {len(TRAIT_KEYS)} dimensions, got {len(taste)}")
-    strengths = [
-        (w * min(t, m), index)
-        for index, (w, t, m) in enumerate(zip(weights, taste, movie_vector, strict=True))
-        if min(t, m) >= REASON_FLOOR and w > 0
-    ]
+    strengths = []
+    for index, (w, t, m) in enumerate(zip(weights, taste, movie_vector, strict=True)):
+        mean, sd = rule.stats.mean[index], rule.stats.sd[index]
+        z_film, z_taste = z_score(m, mean, sd), z_score(t, mean, sd)
+        if z_film is None or z_taste is None or w <= 0:
+            continue
+        if z_film >= rule.min_film_z and z_taste >= rule.min_taste_z:
+            strengths.append((w * z_film, index))
     ranked = sorted(strengths, key=lambda s: (-s[0], s[1]))
     return [TRAIT_KEYS[index] for _, index in ranked[: max(n, 0)]]

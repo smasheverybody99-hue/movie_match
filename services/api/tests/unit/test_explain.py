@@ -24,14 +24,24 @@ def _scores(**values: float) -> dict[str, float]:
     return {key: values.get(key, 10.0) for key in TRAIT_KEYS}
 
 
+# The catalogue mean per trait, which the prompt shows as "a typical film".
+TYPICAL = {key: 40.0 for key in TRAIT_KEYS} | {"plot_twist": 31.0}
+
+
 def test_prompt_names_the_film_the_reasons_and_the_language() -> None:
     movie = Movie(id=1, title="Memento", release_date=date(2000, 9, 5))
     taste = _scores(plot_twist=88.4, mystery=70)
     film = _scores(plot_twist=95, mystery=81.6)
-    prompt = build_prompt(movie, ["plot_twist", "mystery"], taste, film, "uz")
+    prompt = build_prompt(movie, ["plot_twist", "mystery"], taste, film, "uz", TYPICAL)
     assert prompt.startswith("Film: Memento (2000)\n")
-    assert "- Plot twists: the viewer's taste 88/100, this film 95/100" in prompt
-    assert "- Mystery: the viewer's taste 70/100, this film 82/100" in prompt
+    # with the typical film's value, so the model can say how this one differs
+    assert (
+        "- Plot twists: the viewer's taste 88/100, this film 95/100, a typical film 31/100\n"
+        in prompt
+    )
+    assert (
+        "- Mystery: the viewer's taste 70/100, this film 82/100, a typical film 40/100\n" in prompt
+    )
     assert prompt.index("Plot twists") < prompt.index("Mystery")  # strongest first
     assert "Uzbek" in prompt
     assert "Romance" not in prompt  # only the real reasons
@@ -41,7 +51,9 @@ def test_prompt_names_the_film_the_reasons_and_the_language() -> None:
     ("lang", "name"), [("en", "English"), ("uz", "Uzbek (Latin script)"), ("ru", "Russian")]
 )
 def test_prompt_asks_for_each_language(lang: Lang, name: str) -> None:
-    prompt = build_prompt(Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang)
+    prompt = build_prompt(
+        Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang, TYPICAL
+    )
     assert prompt.endswith(f"Write the sentences in {name}.")
     assert "- Action:" in prompt  # the brief itself stays in English
 
@@ -60,7 +72,9 @@ def test_every_language_has_a_label_for_every_trait(lang: str) -> None:
 
 def test_prompt_without_a_release_date() -> None:
     movie = Movie(id=1, title="Untitled")
-    assert build_prompt(movie, ["humor"], _scores(), _scores(), "en").startswith("Film: Untitled\n")
+    assert build_prompt(movie, ["humor"], _scores(), _scores(), "en", TYPICAL).startswith(
+        "Film: Untitled\n"
+    )
 
 
 def test_clean() -> None:

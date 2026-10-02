@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Movie
 from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.reasons import load_rule
 from app.traits import TRAIT_KEYS
 from tests.integration.api import api_client, auth, seed_catalogue
 
@@ -148,7 +149,9 @@ async def test_detail_match_is_recomputable_from_stored_numbers(seeded: AsyncSes
     weights = weights_vector(user.taste_weights)
     expected = match_percentage(taste, weights, vector(90.0))
     assert body["match"] == expected
-    assert body["reasons"] == top_reasons(taste, vector(90.0), weights=weights)
+    rule = await load_rule(seeded)
+    assert rule is not None
+    assert body["reasons"] == top_reasons(taste, vector(90.0), rule, weights=weights)
     # By hand: taste is LIGHT's vector (one liked film), weights all equal, so the gap is
     # sqrt(70² / 14) = 18.7 points on the one dimension that differs -> 81%.
     assert expected == 81

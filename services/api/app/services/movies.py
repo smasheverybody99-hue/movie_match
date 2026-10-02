@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Credit, Genre, Movie, MovieGenre, MovieTraits, Person, Rating, User
 from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.reasons import load_rule
 from app.traits import TRAIT_KEYS
 
 CAST_SHOWN = 5
@@ -135,6 +136,7 @@ async def personal_matches(
         return {}
     taste = [float(v) for v in user.taste_vector]
     weights = weights_vector(user.taste_weights)
+    rule = await load_rule(session)
     rows = await session.execute(
         select(MovieTraits.movie_id, MovieTraits.vector).where(MovieTraits.movie_id.in_(movie_ids))
     )
@@ -143,7 +145,7 @@ async def personal_matches(
         movie_vector = [float(v) for v in vector]
         matches[movie_id] = PersonalMatch(
             match=match_percentage(taste, weights, movie_vector),
-            reasons=top_reasons(taste, movie_vector, weights=weights),
+            reasons=top_reasons(taste, movie_vector, rule, weights=weights) if rule else [],
         )
     return matches
 

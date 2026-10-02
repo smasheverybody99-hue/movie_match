@@ -26,7 +26,10 @@ HALF = TRAIT_COUNT // 2
 LIKED = [80.0] * HALF + [20.0] * HALF
 RATED = [9_600_000 + i for i in range(1, 11)]
 TARGETS = [9_610_000 + i for i in range(1, 6)]
-NOTHING_SHARED = 9_620_001  # every dimension under 50 for the film: no reason to give
+NOTHING_SHARED = 9_620_001  # below typical on every dimension: no reason to give
+# Ordinary films give the catalogue a spread, so the targets stand out from it on the
+# dimensions the user likes (z ~ 0.85) and have reasons (the rule of 2026-10-02).
+ORDINARY = [9_630_000 + i for i in range(1, 11)]
 
 
 class FakeExplainer:
@@ -65,6 +68,7 @@ async def catalogue(migrated_test_db: None) -> AsyncIterator[AsyncSession]:
                 *({"id": m, "vector": LIKED} for m in RATED),
                 *({"id": m, "vector": LIKED} for m in TARGETS),
                 {"id": NOTHING_SHARED, "vector": [40.0] * TRAIT_COUNT},
+                *({"id": m, "vector": [50.0] * TRAIT_COUNT} for m in ORDINARY),
             ],
         )
         yield session

@@ -14,7 +14,8 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Dismissal, MovieTraits, Rating, User, WatchlistItem
-from app.services.matching import match_percentage, weights_vector
+from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.reasons import load_rule
 from app.services.recommend import MAX_PER_DIRECTOR, MIN_MATCH
 from app.services.taste import recompute_taste
 from app.services.users import ensure_user
@@ -113,8 +114,24 @@ async def test_sections_are_returned(world) -> None:
     assert keys[0] == "for_you"
     assert "because_you_loved" in keys
     assert "under_90" in keys
+
+
+async def test_reasons_are_recomputable_from_stored_numbers(world) -> None:
+    """Every item's reasons are the rule applied to stored vectors and the catalogue's
+    statistics. In this catalogue every film sits near the taste, so few or none stand
+    out: an empty list is a correct answer (2026-10-02), not a missing one."""
+    session, me, body = world
+    user = await session.get(User, me, populate_existing=True)
+    assert user is not None and user.taste_vector is not None and user.taste_weights
+    rule = await load_rule(session)
+    assert rule is not None
+    taste = [float(v) for v in user.taste_vector]
+    weights = weights_vector(user.taste_weights)
     for item in _items(body):
-        assert item["reasons"], item  # every recommendation says why
+        film = await session.get(MovieTraits, item["movie"]["id"])
+        assert film is not None
+        expected = top_reasons(taste, [float(v) for v in film.vector], rule, weights=weights)
+        assert item["reasons"] == expected, item["movie"]["id"]
 
 
 async def test_nothing_below_the_cut(world) -> None:

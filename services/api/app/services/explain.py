@@ -29,7 +29,8 @@ from app.models import Explanation, Movie, MovieTraits, User
 from app.providers import usage as cost_log
 from app.providers.base import Explainer
 from app.services.matching import top_reasons, weights_vector
-from app.traits import to_dict, trait_labels
+from app.services.reasons import load_rule
+from app.traits import TRAIT_KEYS, to_dict, trait_labels
 
 log = logging.getLogger(__name__)
 
@@ -42,9 +43,11 @@ Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test ch
 LANGUAGE_NAMES = {"en": "English", "uz": "Uzbek (Latin script)", "ru": "Russian"}
 
 SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a film suits
-their taste. Use only the shared qualities you are given, in plain everyday words, and
-name what the film does on them. No generic praise ("a must-see", "you'll love it"), no
-plot spoilers, no rating numbers, no percentages, no quotation marks, no markdown."""
+their taste. Use only the qualities you are given: each is one where this film stands out
+from a typical film, in the direction the viewer leans. Say it in plain everyday words and
+name what the film does on them, more than most films do. No generic praise ("a must-see",
+"you'll love it"), no plot spoilers, no rating numbers, no percentages, no quotation marks,
+no markdown."""
 
 
 def build_prompt(
@@ -53,11 +56,13 @@ def build_prompt(
     taste: dict[str, float],
     film: dict[str, float],
     lang: Lang,
+    typical: dict[str, float],
 ) -> str:
+    """`typical`: the catalogue mean per trait, so the model can say how the film differs."""
     labels = trait_labels("en")
     lines = [
         f"- {labels[key]}: the viewer's taste {round(taste[key])}/100, "
-        f"this film {round(film[key])}/100"
+        f"this film {round(film[key])}/100, a typical film {round(typical[key])}/100"
         for key in reasons
     ]
     year = f" ({movie.release_date.year})" if movie.release_date else ""
@@ -131,11 +136,15 @@ async def explain(
     taste = [float(v) for v in user.taste_vector]
     film = [float(v) for v in film_vector]
     weights = weights_vector(user.taste_weights)
-    reasons = top_reasons(taste, film, weights=weights)
+    rule = await load_rule(session)
+    if rule is None:
+        return None
+    reasons = top_reasons(taste, film, rule, weights=weights)
     if not reasons:
         return None
 
-    prompt = build_prompt(movie, reasons, to_dict(taste), to_dict(film), lang)
+    typical = dict(zip(TRAIT_KEYS, rule.stats.mean, strict=True))
+    prompt = build_prompt(movie, reasons, to_dict(taste), to_dict(film), lang, typical)
     try:
         generated = await asyncio.wait_for(
             explainer.generate(SYSTEM_PROMPT, prompt), TIMEOUT_SECONDS

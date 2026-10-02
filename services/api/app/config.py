@@ -65,9 +65,14 @@ class Settings(BaseSettings):
     # Cost guards. Raise deliberately, never silently.
     assistant_daily_calls_per_user: int = 30
     # "Why you'll like this" generations per user per day. Cached ones are free and
-    # unlimited. 20 a day at ~$0.0003 each keeps even a daily heavy user near TZ's
-    # $0.20 a month.
+    # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
+    # ~$0.08 a month for the heaviest user, inside TZ's $0.20 (docs/costs.md).
     explanation_daily_calls_per_user: int = 20
+    # Which traits are named as the reasons for a match (matching.top_reasons). In
+    # catalogue standard deviations: the film must stand out by at least this much...
+    reason_min_film_z: float = 0.5
+    # ...and the user's taste must sit at least this far on the same side of the mean.
+    reason_min_taste_z: float = 0.0
     trait_batch_size: int = 200
     # How trait extraction runs (ADR 0006, amendment 2026-09-30). "batch": the provider's
     # batch API, half price, needs an account that allows it. "sync": one film per request

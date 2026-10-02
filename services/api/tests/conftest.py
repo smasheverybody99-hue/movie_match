@@ -103,3 +103,13 @@ async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, Non
         pytest.skip("TEST_DATABASE_URL is not set")
     async with rolled_back_session() as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+def _fresh_reason_stats() -> Iterator[None]:
+    """Each test seeds its own catalogue: never reuse another test's trait statistics."""
+    from app.services import reasons
+
+    reasons.clear_cache()
+    yield
+    reasons.clear_cache()
