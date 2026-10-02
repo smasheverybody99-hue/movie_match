@@ -1,12 +1,12 @@
+import type { Message, MessageKey } from "./en";
+
 /**
- * Uzbek strings: the source dictionary. `en.ts` must have exactly the same keys
- * (TypeScript checks it at build time, `i18n.test.ts` at test time).
+ * Uzbek strings: the second language (TZ 1.8). Exactly the keys of `en.ts`.
  *
- * `{name}` placeholders are filled by `t(key, { name })`.
- * Trait labels (`trait.*`) are copied from packages/shared/traits.json; the test
- * fails if they drift.
+ * Uzbek does not inflect a noun after a number ("1 ta film", "5 ta film"), so plain
+ * strings serve where English needs a `Plural`.
  */
-export const uz = {
+export const uz: Record<MessageKey, Message> = {
   "app.name": "Movie Match",
   "app.loadingPage": "Sahifa yuklanmoqda",
 
@@ -181,8 +181,9 @@ export const uz = {
     "Barcha baholaringiz, watchlist va Movie DNA o'chiriladi. Buni qaytarib bo'lmaydi.",
   "profile.deleteYes": "Ha, o'chirish",
   "profile.deleteError": "Akkauntni o'chirib bo'lmadi. Qayta urining.",
-  "lang.uz": "O'zbekcha",
   "lang.en": "English",
+  "lang.uz": "O'zbek",
+  "lang.ru": "Русский",
   "profile.about": "Loyiha haqida",
   "profile.tmdb": "Bu mahsulot TMDB API'dan foydalanadi, lekin TMDB tomonidan tasdiqlanmagan.",
   "profile.tmdbLink": "The Movie Database (TMDB)",
@@ -205,6 +206,4 @@ export const uz = {
   "trait.realism": "Realizm",
   "trait.darkness": "Qorong'ulik",
   "trait.ending_ambiguity": "Ochiq tugash",
-} as const;
-
-export type MessageKey = keyof typeof uz;
+};

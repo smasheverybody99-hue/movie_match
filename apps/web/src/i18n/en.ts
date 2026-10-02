@@ -1,7 +1,25 @@
-import type { MessageKey } from "./uz";
+/**
+ * English strings: the default language and the source dictionary (TZ 1.8). `uz.ts` and
+ * `ru.ts` must have exactly these keys (TypeScript checks it at build time,
+ * `i18n.test.ts` at test time).
+ *
+ * `{name}` placeholders are filled by `t(key, { name })`. A message that depends on a
+ * count is a `Plural`: one form per CLDR plural category of the language, chosen by
+ * `Intl.PluralRules` from `{n}` (English: one, other; Russian: one, few, many, other).
+ * Trait labels (`trait.*`) are copied from packages/shared/traits.json; the test fails
+ * if they drift.
+ */
+export interface Plural {
+  zero?: string;
+  one?: string;
+  two?: string;
+  few?: string;
+  many?: string;
+  other: string;
+}
+export type Message = string | Plural;
 
-/** English strings. Same keys as `uz.ts`; the type makes a missing one a build error. */
-export const en: Record<MessageKey, string> = {
+export const en = {
   "app.name": "Movie Match",
   "app.loadingPage": "Loading the page",
 
@@ -69,18 +87,27 @@ export const en: Record<MessageKey, string> = {
   "onboarding.rate.next": "Next",
   "onboarding.rate.previous": "Previous",
   "onboarding.rate.saveError": "Couldn't save the score. Try again.",
-  "onboarding.rate.needMore": "Recommendations need {n} more ratings. Pick a few more films.",
+  "onboarding.rate.needMore": {
+    one: "Recommendations need {n} more rating. Pick a few more films.",
+    other: "Recommendations need {n} more ratings. Pick a few more films.",
+  },
   "onboarding.rate.pickMore": "Pick more films",
 
   "onboarding.done.title": "All set!",
-  "onboarding.done.body": "You rated {n} films. Your recommendations are ready.",
+  "onboarding.done.body": {
+    one: "You rated {n} film. Your recommendations are ready.",
+    other: "You rated {n} films. Your recommendations are ready.",
+  },
   "onboarding.done.cta": "See my recommendations",
 
   "feed.section.for_you": "For you",
   "feed.section.because_you_loved": "Because you loved {title}",
   "feed.section.under_90": "Under 90 minutes",
   "feed.section.outside_usual": "Outside your usual taste",
-  "feed.notEnough": "Rate {n} more films to get recommendations.",
+  "feed.notEnough": {
+    one: "Rate {n} more film to get recommendations.",
+    other: "Rate {n} more films to get recommendations.",
+  },
   "feed.notEnoughCta": "Keep rating",
   "feed.empty": "No film matches you above 60% yet. Rate a few more films.",
   "feed.emptyCta": "Search films",
@@ -140,7 +167,10 @@ export const en: Record<MessageKey, string> = {
   "watchlist.actionError": "That change wasn't saved. Try again.",
 
   "dna.title": "Movie DNA",
-  "dna.rateMore": "Rate {n} more films to unlock your Movie DNA.",
+  "dna.rateMore": {
+    one: "Rate {n} more film to unlock your Movie DNA.",
+    other: "Rate {n} more films to unlock your Movie DNA.",
+  },
   "dna.rateMoreCta": "Rate films",
   "dna.noTaste":
     "No liked films yet: your DNA is built from films you rate above 5. Rate some films you enjoyed.",
@@ -163,8 +193,10 @@ export const en: Record<MessageKey, string> = {
     "All your ratings, your watchlist and your Movie DNA will be deleted. This can't be undone.",
   "profile.deleteYes": "Yes, delete",
   "profile.deleteError": "Couldn't delete the account. Try again.",
-  "lang.uz": "O'zbekcha",
+  // Each language is named in itself, the same in every dictionary; menu order: en, uz, ru.
   "lang.en": "English",
+  "lang.uz": "O'zbek",
+  "lang.ru": "Русский",
   "profile.about": "About",
   "profile.tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
   "profile.tmdbLink": "The Movie Database (TMDB)",
@@ -187,4 +219,6 @@ export const en: Record<MessageKey, string> = {
   "trait.realism": "Realism",
   "trait.darkness": "Tone darkness",
   "trait.ending_ambiguity": "Open ending",
-};
+} satisfies Record<string, Message>;
+
+export type MessageKey = keyof typeof en;

@@ -7,7 +7,13 @@ import { isTraitKey, TRAIT_COUNT, TRAIT_KEYS, traitBand } from "./traits";
 interface TraitSpec {
   version: number;
   scale: { min: number; max: number };
-  dimensions: { key: string; label_en: string; label_uz: string; description: string }[];
+  dimensions: {
+    key: string;
+    label_en: string;
+    label_uz: string;
+    label_ru: string;
+    description: string;
+  }[];
 }
 
 /**

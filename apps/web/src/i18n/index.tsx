@@ -2,13 +2,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 
 import type { Lang } from "../lib/types";
-import { en } from "./en";
-import { uz, type MessageKey } from "./uz";
+import { en, type Message, type MessageKey } from "./en";
+import { ru } from "./ru";
+import { uz } from "./uz";
 
-export type { MessageKey };
+export type { Message, MessageKey };
 
-export const DICTIONARIES: Record<Lang, Record<MessageKey, string>> = { uz, en };
-export const LANGS: readonly Lang[] = ["uz", "en"];
+export const DICTIONARIES: Record<Lang, Record<MessageKey, Message>> = { en, uz, ru };
+/** Menu order (TZ 1.8). English is the default; the others are chosen by the user. */
+export const LANGS: readonly Lang[] = ["en", "uz", "ru"];
+export const DEFAULT_LANG: Lang = "en";
 
 const STORAGE_KEY = "mm.lang";
 
@@ -22,18 +25,31 @@ export function format(template: string, vars: Vars = {}): string {
   );
 }
 
+/** The form of `message` for the count `vars.n` in `lang`; `other` without a count. */
+export function pickForm(lang: Lang, message: Message, vars: Vars = {}): string {
+  if (typeof message === "string") return message;
+  const n = vars.n;
+  if (typeof n !== "number") return message.other;
+  const category = new Intl.PluralRules(lang).select(n);
+  return message[category] ?? message.other;
+}
+
 export function translate(lang: Lang, key: MessageKey, vars?: Vars): string {
-  return format(DICTIONARIES[lang][key], vars);
+  return format(pickForm(lang, DICTIONARIES[lang][key], vars), vars);
+}
+
+function isLang(value: unknown): value is Lang {
+  return (LANGS as readonly unknown[]).includes(value);
 }
 
 function storedLang(): Lang {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
-    if (value === "uz" || value === "en") return value;
+    if (isLang(value)) return value;
   } catch {
     // Storage can be unavailable (private mode); the default is fine.
   }
-  return "uz";
+  return DEFAULT_LANG; // never the browser's language: the user chooses (TZ 1.8)
 }
 
 interface I18n {

@@ -49,7 +49,8 @@ export interface MovieDna {
   top_genre: string | null;
 }
 
-export type Lang = "uz" | "en";
+// Mirrors app.schemas.Lang. English is the default (TZ 1.8).
+export type Lang = "en" | "uz" | "ru";
 
 export type SectionKey = "for_you" | "because_you_loved" | "under_90" | "outside_usual";
 
