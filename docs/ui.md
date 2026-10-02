@@ -80,7 +80,7 @@ Hozirgi emoji va belgilar (12 joy) va ularning o'rni:
 
 | Joy | Hozir | lucide |
 |---|---|---|
-| Nav: Home / Search / DNA / Watchlist / Profil | 🏠 🔍 🧬 🔖 (avatar) | `House`, `Search`, `Dna`, `Bookmark`, `CircleUser` |
+| Nav: Home / Search / DNA / Watchlist / Profil | 🏠 🔍 🧬 🔖 (avatar) | `House`, `Search`, `Dna`, `Bookmark`; Profil — harfli avatar qoldi (emoji emas, shaxsiy) |
 | Film sahifasi: Baholash | ★ | `Gauge` — yulduz ishlatilmaydi (reytingimiz yulduz emas) |
 | Film sahifasi: Saqlash | 🔖 | `Bookmark` / `BookmarkCheck` |
 | Watchlist guruhlari | 🔥 ⏱ ✓ | `ListVideo`, `Timer`, `CircleCheck` |
@@ -254,7 +254,7 @@ keyingina keyingi qadam.
 
 | # | Qadam | Ish |
 |---|---|---|
-| 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun |
+| 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), skrinshot ko'rigini kutmoqda |
 | 1 | Film sahifasi (backdrop hero) | 1 kun |
 | 2 | Home: poster qatorlari va hover | 1 kun |
 | 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
@@ -265,11 +265,28 @@ Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinad
 o'zgarish (backdrop hozir eng katta isrof) — yangi qoidalarni bitta ekranda sinab
 ko'ramiz.
 
+### 0-bosqich natijasi (2026-10-02)
+
+- Neytral tokenlar (R = G = B, yorqinlik avvalgidek, kontrastlar o'zgarmadi), web va Dart.
+- Qizil faqat match'da: poster badge'i (qizil fon, qora matn, 4.8:1), ring, `.match`.
+  Qolgan 10 joy neytral. Oltin — faqat ogohlantirish va xato.
+- Tugmalar pill; asosiy amal — oq to'ldirilgan; qolganlari kontur. Film sahifasidagi
+  "Baholash" endi kontur (avval qizil to'ldirilgan edi).
+- `lucide-react` 1.49.0, `Icon` o'rami; 12 ta emoji/belgi olib tashlandi; `noEmoji.test.ts`
+  barcha manba va CSS fayllarni tekshiradi.
+- Qidiruv pill'i yuqori o'ngda (≥ 640px), `/search?q=` ga olib boradi; qidiruv ekranida
+  yashirinadi.
+- Sahifa o'tishlari (`viewTransition`), ring raqami sanalib chiqadi (`useCountUp`),
+  `usePrefersReducedMotion` (matchMedia bo'lmasa — harakatsiz).
+- Bundle (o'lchangan): JS 604.24 → 616.66 kB (gzip 175.86 → 179.51), CSS 17.29 → 18.13 kB.
+- Testlar: 15 fayl, 166 test (avval 117); lint 0; build 0. 390px va 320px da
+  `scrollWidth` = ekran eni (gorizontal scroll yo'q).
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali
-boshlanmagan (F6); savol 5 bo'yicha qiymatlar o'zgarsa, Dart fayli ham o'sha commit'da
-o'zgaradi. Rang qoidasi va ikonkalar Flutter'da ham amal qiladi (Flutter'da lucide'ning
+boshlanmagan (F6); neytral qiymatlar (qaror 5) Dart fayliga ham o'sha commit'da
+yozilgan. Rang qoidasi va ikonkalar Flutter'da ham amal qiladi (Flutter'da lucide'ning
 rasmiy porti bor — F6 da tanlanadi).
 
 ### 11. Qarorlar (foydalanuvchi, 2026-10-02)

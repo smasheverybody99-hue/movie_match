@@ -63,12 +63,14 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Rus tilini ko'rib chiqish (foydalanuvchi).** `apps/web/src/i18n/ru.ts` (166 kalit)
+1. **Dizayn v2, 0-bosqich (poydevor) bajarildi** (`docs/ui.md`): skrinshotlar
+   foydalanuvchi ko'rigida. Tasdiqlansa — 1-bosqich: film sahifasi (backdrop hero).
+2. **Rus tilini ko'rib chiqish (foydalanuvchi).** `apps/web/src/i18n/ru.ts` (166 kalit)
    va `packages/shared/traits.json` dagi `label_ru` — agent yozgan, **ko'rilmagan
    qoralama**. Belgi (shu band va `ru.ts` sarlavhasi) foydalanuvchi ko'rib chiqmaguncha
    turadi. E'tibor: "Хочу посмотреть" (watchlist), ring ichida "СХОДСТВО" (joy 9px da
    ~65px, "СОВПАДЕНИЕ" sig'maydi), `dna.summary` jumla tuzilishi.
-2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
+3. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## Muhit
 
