@@ -1,19 +1,55 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Bookmark, Dna, House, Search, type LucideIcon } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { useOnline } from "../lib/useOnline";
+import { Icon } from "./Icon";
 
 /**
  * Four of the design's five sections: the Assistant arrives in Phase 4. Web: left
  * sidebar from 640px; below that a top bar and a bottom bar (design system, desktop).
  */
-const SECTIONS: { to: string; label: MessageKey; icon: string; end?: boolean }[] = [
-  { to: "/", label: "nav.home", icon: "🏠", end: true },
-  { to: "/search", label: "nav.search", icon: "🔍" },
-  { to: "/dna", label: "nav.dna", icon: "🧬" },
-  { to: "/watchlist", label: "nav.watchlist", icon: "🔖" },
+const SECTIONS: { to: string; label: MessageKey; icon: LucideIcon; end?: boolean }[] = [
+  { to: "/", label: "nav.home", icon: House, end: true },
+  { to: "/search", label: "nav.search", icon: Search },
+  { to: "/dna", label: "nav.dna", icon: Dna },
+  { to: "/watchlist", label: "nav.watchlist", icon: Bookmark },
 ];
+
+/**
+ * Search pill, top right on wide screens (design brief v2). Enter opens the search
+ * screen with the text; on the search screen itself the pill steps aside for its own
+ * field.
+ */
+function TopSearch() {
+  const t = useT();
+  const navigate = useNavigate();
+  const onSearch = useMatch("/search");
+  const [q, setQ] = useState("");
+  if (onSearch) return null;
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    const text = q.trim();
+    navigate(text ? `/search?q=${encodeURIComponent(text)}` : "/search", { viewTransition: true });
+    setQ("");
+  }
+
+  return (
+    <form role="search" className="top-search" onSubmit={submit}>
+      <Icon as={Search} size={18} />
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder={t("search.placeholder")}
+        aria-label={t("search.label")}
+      />
+    </form>
+  );
+}
 
 export function OfflineBanner() {
   const t = useT();
@@ -29,7 +65,7 @@ export function OfflineBanner() {
 function Brand() {
   const t = useT();
   return (
-    <NavLink to="/" className="brand" aria-label={t("app.name")}>
+    <NavLink to="/" className="brand" aria-label={t("app.name")} viewTransition>
       <span className="brand-mark" aria-hidden="true">
         {t("app.name").slice(0, 1)}
       </span>
@@ -61,9 +97,9 @@ export function AppShell() {
           <ul className="nav-list">
             {SECTIONS.map((s) => (
               <li key={s.to}>
-                <NavLink to={s.to} end={s.end} className="nav-link">
-                  <span className="nav-icon" aria-hidden="true">
-                    {s.icon}
+                <NavLink to={s.to} end={s.end} className="nav-link" viewTransition>
+                  <span className="nav-icon">
+                    <Icon as={s.icon} />
                   </span>
                   {t(s.label)}
                 </NavLink>
@@ -72,7 +108,7 @@ export function AppShell() {
           </ul>
         </nav>
         <div className="sidebar-foot">
-          <NavLink to="/profile" className="nav-link">
+          <NavLink to="/profile" className="nav-link" viewTransition>
             <Avatar />
             {t("nav.profile")}
           </NavLink>
@@ -83,18 +119,21 @@ export function AppShell() {
         <OfflineBanner />
         <header className="topbar">
           <Brand />
-          <NavLink to="/profile" className="avatar-link" aria-label={t("nav.profile")}>
+          <NavLink to="/profile" className="avatar-link" aria-label={t("nav.profile")} viewTransition>
             <Avatar />
           </NavLink>
         </header>
+        <div className="page-top">
+          <TopSearch />
+        </div>
         <main id="main" className="page" tabIndex={-1}>
           <Outlet />
         </main>
         <nav className="bottom-nav" aria-label={t("nav.label")}>
           {SECTIONS.map((s) => (
-            <NavLink key={s.to} to={s.to} end={s.end}>
-              <span className="nav-icon" aria-hidden="true">
-                {s.icon}
+            <NavLink key={s.to} to={s.to} end={s.end} viewTransition>
+              <span className="nav-icon">
+                <Icon as={s.icon} size={22} />
               </span>
               {t(s.label)}
             </NavLink>

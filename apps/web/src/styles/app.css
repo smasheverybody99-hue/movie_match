@@ -1,8 +1,13 @@
 /*
- * Component styles. Colours come only from tokens.css. Contrast rules (WCAG AA, 4.5:1):
- * - Text is --text or --muted. --faint (3.5-4.2:1 on our backgrounds) is never text.
- * - White text sits on --red-dark (6.3:1), not on --red (4.2:1).
- * - Numbers on a coloured scale keep the text colour; the bar carries the colour.
+ * Component styles. Colours come only from tokens.css. Design brief v2 (docs/ui.md):
+ * - Red means the match and nothing else: the ring, the percentage badge, a match number.
+ *   Buttons, navigation, chips, focus and progress are neutral (white and greys).
+ * - One white-filled pill per screen for the main action; every other button is an
+ *   outlined pill.
+ * Contrast (WCAG AA, 4.5:1 text, 3:1 non-text):
+ * - Text is --text or --muted (7.2:1 or more). --faint (3.8-4.2:1) is never text.
+ * - Red as text on --bg, or --bg text on red: 4.8:1.
+ * - Numbers on a scale keep the text colour; the bar carries the shade.
  */
 :root {
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -19,7 +24,7 @@ button, input, select { font: inherit; color: inherit; }
 a { color: inherit; }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--text);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -56,7 +61,7 @@ a { color: inherit; }
 }
 .brand-mark {
   width: 24px; height: 24px; border-radius: 50%;
-  background: var(--red-dark); color: var(--text);
+  background: var(--text); color: var(--bg);
   display: grid; place-items: center;
   font-family: var(--font-head); font-size: 12px; font-weight: 800;
 }
@@ -69,9 +74,10 @@ a { color: inherit; }
 }
 .nav-link:hover { color: var(--text); background: var(--surface-2); }
 .nav-link[aria-current="page"] {
-  color: var(--text); background: var(--surface-2); border-left-color: var(--red);
+  color: var(--text); background: var(--surface-2); border-left-color: var(--text);
 }
-.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-icon { width: 20px; height: 20px; display: grid; place-items: center; flex: none; }
+.icon { flex: none; }
 .sidebar-foot { margin-top: auto; }
 
 .topbar {
@@ -101,8 +107,7 @@ a { color: inherit; }
   font-size: 11px; color: var(--muted); text-decoration: none;
   border-top: 2px solid transparent;
 }
-.bottom-nav a[aria-current="page"] { color: var(--text); font-weight: 700; border-top-color: var(--red); }
-.bottom-nav .nav-icon { font-size: 18px; }
+.bottom-nav a[aria-current="page"] { color: var(--text); font-weight: 700; border-top-color: var(--text); }
 
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .page {
@@ -123,6 +128,23 @@ a { color: inherit; }
   padding: var(--space-2) var(--space-3); font-size: 13px; text-align: center;
 }
 
+/* Search pill, top right on wide screens: bright on black (design brief v2, NOXX). */
+.page-top { display: none; }
+.top-search {
+  display: flex; align-items: center; gap: var(--space-2);
+  width: 300px; min-height: var(--touch); padding: 0 16px;
+  border-radius: 99px; background: var(--text); color: var(--bg);
+}
+.top-search:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
+.top-search input {
+  flex: 1; min-width: 0; min-height: var(--touch);
+  background: transparent; border: none; outline: none; color: var(--bg); font-size: 14px;
+}
+.top-search input::placeholder { color: var(--bg); opacity: .6; }
+@media (min-width: 640px) {
+  .page-top { display: flex; justify-content: flex-end; padding: var(--space-3) var(--space-4) 0; max-width: 1200px; width: 100%; margin: 0 auto; }
+}
+
 /* ---------- type ---------- */
 .screen-title { font-family: var(--font-head); font-weight: 800; font-size: 24px; margin: 0 0 var(--space-3); }
 .section-title { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: var(--space-4) 0 12px; }
@@ -130,26 +152,29 @@ a { color: inherit; }
 .muted { color: var(--muted); }
 .meta { font-size: 12px; color: var(--muted); }
 .mono { font-family: var(--font-mono); }
-.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin: 0 0 var(--space-2); }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-2); }
 
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  min-height: var(--touch); padding: 0 18px;
-  border-radius: 10px; border: 1px solid transparent;
+  min-height: var(--touch); padding: 0 20px;
+  border-radius: 99px; border: 1px solid transparent;
   font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer;
-  transition: opacity var(--ease), transform var(--ease);
+  transition: opacity var(--ease), transform var(--ease), border-color var(--ease);
 }
 .btn:active:not(:disabled) { opacity: .85; transform: scale(.97); }
-.btn-primary { background: var(--red-dark); color: var(--text); }
-.btn-primary:hover:not(:disabled) { background: var(--red); color: var(--bg); }
-.btn-secondary { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+/* The one main action on a screen. */
+.btn-primary { background: var(--text); color: var(--bg); }
+.btn-primary:hover:not(:disabled) { opacity: .9; }
+/* Everything else: outlined, never filled. */
+.btn-secondary { background: transparent; color: var(--text); border-color: var(--muted); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--text); }
 .btn-ghost { background: transparent; color: var(--muted); border-color: var(--line); }
 .btn-ghost:hover { color: var(--text); }
 .btn-gold { background: var(--gold); color: var(--bg); }
 .btn:disabled { background: var(--surface-2); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
 .btn-block { width: 100%; }
-.btn-sm { min-height: var(--touch); padding: 0 12px; font-size: 13px; border-radius: var(--radius-sm); }
+.btn-sm { min-height: var(--touch); padding: 0 14px; font-size: 13px; }
 .link-btn {
   background: none; border: none; padding: 0 var(--space-1); min-height: var(--touch);
   color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px;
@@ -166,7 +191,7 @@ a { color: inherit; }
   font-size: 13px; cursor: pointer; white-space: nowrap;
 }
 .chip[aria-pressed="true"], .chip[aria-checked="true"] {
-  background: var(--red-dark); border-color: var(--red-dark); color: var(--text); font-weight: 600;
+  background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600;
 }
 
 /* ---------- inputs ---------- */
@@ -176,11 +201,11 @@ a { color: inherit; }
   padding: 0 14px; color: var(--text);
 }
 .field::placeholder { color: var(--muted); }
-.field:focus { outline: none; border-color: var(--red); }
+.field:focus { outline: none; border-color: var(--text); }
 .field[aria-invalid="true"] { border-color: var(--gold); }
 .field-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.field-error { font-size: 13px; color: var(--text); margin-top: 6px; }
-.field-error::before { content: "⚠ "; color: var(--gold); }
+.field-error { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--text); margin-top: 6px; }
+.field-error .icon { color: var(--gold); margin-top: 2px; }
 select.field { appearance: auto; }
 
 /* ---------- posters and cards ---------- */
@@ -195,11 +220,12 @@ select.field { appearance: auto; }
   position: absolute; inset: 0; display: grid; place-items: center;
   font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--muted);
 }
+/* The match percentage on a poster: red, the product's signature. */
 .badge {
   position: absolute; top: 6px; left: 6px;
-  background: var(--bg); color: var(--gold);
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  padding: 2px 6px; border-radius: 5px;
+  background: var(--red); color: var(--bg);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 99px;
 }
 
 .card-link { display: block; text-decoration: none; color: inherit; border-radius: var(--radius-sm); }
@@ -235,14 +261,15 @@ select.field { appearance: auto; }
 .trait-value { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
 .bar { position: relative; height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
 .bar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
-.bar .band-strong { background: var(--red); }
-.bar .band-medium { background: var(--gold); }
+/* Strength is shown by shade, not hue: red is kept for the match. */
+.bar .band-strong { background: var(--text); }
+.bar .band-medium { background: var(--muted); }
 .bar .band-weak { background: var(--faint); }
 .bar.compare { height: 10px; overflow: visible; }
 /* The user's taste is a tick on the film's bar, so neither hides the other. */
 .bar .taste-tick {
   position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px;
-  border-radius: 2px; background: var(--text);
+  border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--bg);
 }
 
 .ring {
@@ -295,12 +322,12 @@ select.field { appearance: auto; }
 .onboarding { max-width: 720px; margin: 0 auto; padding: var(--space-3) var(--space-3) 140px; }
 .progress-dots { display: flex; gap: 4px; margin-bottom: var(--space-3); }
 .progress-dots i { height: 3px; flex: 1; border-radius: 99px; background: var(--line); }
-.progress-dots i.on { background: var(--red); }
+.progress-dots i.on { background: var(--text); }
 .pick-tile { position: relative; padding: 0; border: 2px solid transparent; background: none; border-radius: 10px; cursor: pointer; text-align: left; }
-.pick-tile[aria-pressed="true"] { border-color: var(--red); }
+.pick-tile[aria-pressed="true"] { border-color: var(--text); }
 .pick-tile .check {
   position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%;
-  display: grid; place-items: center; background: var(--red-dark); color: var(--text); font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; background: var(--text); color: var(--bg);
 }
 .pick-title { font-size: 12px; font-weight: 600; padding: 4px 2px 0; line-height: 1.25; color: var(--text); }
 .sticky-foot {
@@ -312,8 +339,8 @@ select.field { appearance: auto; }
 .foot-meta { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); font-size: 13px; color: var(--muted); }
 .rate-card { display: flex; gap: var(--space-3); margin-bottom: var(--space-3); }
 .rate-card .poster { width: 120px; }
-.score-big { font-family: var(--font-head); font-weight: 800; font-size: 44px; color: var(--gold); line-height: 1; margin-top: var(--space-3); }
-.slider { width: 100%; min-height: var(--touch); accent-color: var(--gold); }
+.score-big { font-family: var(--font-head); font-weight: 800; font-size: 44px; color: var(--text); line-height: 1; margin-top: var(--space-3); }
+.slider { width: 100%; min-height: var(--touch); accent-color: var(--text); }
 .scale-marks { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
 .foot-actions { display: flex; gap: var(--space-2); }
 .foot-actions .btn:last-child { flex: 2; }
@@ -377,7 +404,7 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .list-row .poster { width: 52px; }
 .list-row-meta { flex: 1; min-width: 0; }
 .list-row-title { font-weight: 600; font-size: 14px; text-decoration: none; display: block; overflow-wrap: break-word; }
-.match { font-family: var(--font-head); font-weight: 800; color: var(--gold); font-size: 15px; }
+.match { font-family: var(--font-head); font-weight: 800; color: var(--red); font-size: 15px; }
 .row-actions { display: flex; gap: var(--space-1); flex-wrap: wrap; justify-content: flex-end; }
 /* Narrow screens: the buttons take their own line under the title, aligned with it. */
 @media (max-width: 559px) {
@@ -395,8 +422,13 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .title-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
 .title-row .screen-title { margin: 0; }
 
+/* Page transitions (React Router's viewTransition): a short cross-fade. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  /* The rule above does not reach view-transition pseudo-elements. */
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 .aspects { border: none; padding: 0; margin: var(--space-3) 0 0; }

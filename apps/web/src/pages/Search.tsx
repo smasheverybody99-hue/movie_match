@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { MovieCard } from "../components/MovieCard";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
@@ -156,7 +157,9 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
  */
 export default function Search() {
   const t = useT();
-  const [q, setQ] = useState("");
+  const [searchParams] = useSearchParams();
+  // The search pill in the shell arrives here with ?q=.
+  const [q, setQ] = useState(() => searchParams.get("q") ?? "");
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const typed = useDebounced(q, 250);
   const params = toParams(typed, filters);

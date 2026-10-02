@@ -5,14 +5,14 @@ library;
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const bg = Color(0xFF0A0A0F);
-  static const surface = Color(0xFF16161F);
-  static const surface2 = Color(0xFF1E1E2A);
-  static const line = Color(0xFF2A2A38);
+  static const bg = Color(0xFF0A0A0A);
+  static const surface = Color(0xFF161616);
+  static const surface2 = Color(0xFF1F1F1F);
+  static const line = Color(0xFF2B2B2B);
 
   static const text = Color(0xFFF5F5F5);
-  static const muted = Color(0xFFA6ABBA);
-  static const faint = Color(0xFF6E7383);
+  static const muted = Color(0xFFABABAB);
+  static const faint = Color(0xFF737373);
 
   static const red = Color(0xFFE63950);
   static const redDark = Color(0xFFB22E42);
@@ -43,9 +43,10 @@ const apiBaseUrl = String.fromEnvironment(
 ThemeData buildTheme() {
   const scheme = ColorScheme.dark(
     surface: AppColors.bg,
-    primary: AppColors.red,
-    secondary: AppColors.gold,
-    onPrimary: Colors.white,
+    // Red is reserved for the match (design brief v2): the primary action is white.
+    primary: AppColors.text,
+    secondary: AppColors.muted,
+    onPrimary: AppColors.bg,
     onSurface: AppColors.text,
     outline: AppColors.line,
   );

@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
+
 import { Dialog } from "../components/Dialog";
+import { FieldError } from "../components/FieldError";
+import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
@@ -130,18 +134,14 @@ function Actions({ detail }: { detail: MovieDetail }) {
         </p>
       )}
       {rate.isError && (
-        <p className="field-error" role="alert">
-          {t("movie.rateError")}
-        </p>
+        <FieldError>{t("movie.rateError")}</FieldError>
       )}
       {change.isError && (
-        <p className="field-error" role="alert">
-          {t("movie.listError")}
-        </p>
+        <FieldError>{t("movie.listError")}</FieldError>
       )}
       <div className="film-actions">
-        <button type="button" className="btn btn-primary" onClick={() => setRating(true)} disabled={rate.isPending}>
-          ★ {mine ? t("movie.yourRating", { score: score(mine.score) }) : t("movie.rate")}
+        <button type="button" className="btn btn-secondary" onClick={() => setRating(true)} disabled={rate.isPending}>
+          <Icon as={Gauge} /> {mine ? t("movie.yourRating", { score: score(mine.score) }) : t("movie.rate")}
         </button>
         <button
           type="button"
@@ -151,7 +151,7 @@ function Actions({ detail }: { detail: MovieDetail }) {
             change.mutate(saved ? { kind: "remove", movieId: detail.id } : { kind: "add", movie: detail })
           }
         >
-          🔖 {saved ? t("movie.onList") : t("movie.saveToList")}
+          <Icon as={saved ? BookmarkCheck : Bookmark} /> {saved ? t("movie.onList") : t("movie.saveToList")}
         </button>
       </div>
       {rating && (

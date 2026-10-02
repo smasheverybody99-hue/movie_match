@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { FieldError } from "../components/FieldError";
+import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
@@ -59,7 +62,7 @@ function PickGrid({
             <Poster title={movie.title} path={movie.poster_path} size="w185" />
             {on && (
               <span className="check" aria-hidden="true">
-                ✓
+                <Icon as={Check} size={14} />
               </span>
             )}
             <span className="pick-title" aria-hidden="true">
@@ -266,9 +269,7 @@ function RateStep({
       </div>
       <RatingInput value={value} onChange={onChange} aspects={aspects} onAspectsChange={setAspects} />
       {rate.isError && (
-        <p className="field-error" role="alert">
-          {t("onboarding.rate.saveError")}
-        </p>
+        <FieldError>{t("onboarding.rate.saveError")}</FieldError>
       )}
 
       <div className="sticky-foot">

@@ -1,6 +1,9 @@
+import { CircleCheck, ListVideo, Timer, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { FieldError } from "../components/FieldError";
+import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { useT, type MessageKey } from "../i18n";
@@ -15,10 +18,10 @@ import type { WatchlistItem } from "../lib/types";
  */
 export type Group = "next" | "short" | "watched";
 
-export const GROUPS: { key: Group; label: MessageKey; icon: string }[] = [
-  { key: "next", label: "watchlist.group.next", icon: "🔥" },
-  { key: "short", label: "watchlist.group.short", icon: "⏱" },
-  { key: "watched", label: "watchlist.group.watched", icon: "✓" },
+export const GROUPS: { key: Group; label: MessageKey; icon: LucideIcon }[] = [
+  { key: "next", label: "watchlist.group.next", icon: ListVideo },
+  { key: "short", label: "watchlist.group.short", icon: Timer },
+  { key: "watched", label: "watchlist.group.watched", icon: CircleCheck },
 ];
 
 export function inGroup(item: WatchlistItem, group: Group): boolean {
@@ -120,14 +123,12 @@ export default function Watchlist() {
                     aria-pressed={group === g.key}
                     onClick={() => setGroup(g.key)}
                   >
-                    <span aria-hidden="true">{g.icon}</span> {t(g.label)}
+                    <Icon as={g.icon} size={16} /> {t(g.label)}
                   </button>
                 ))}
               </div>
               {change.isError && (
-                <p className="field-error" role="alert">
-                  {t("watchlist.actionError")}
-                </p>
+                <FieldError>{t("watchlist.actionError")}</FieldError>
               )}
               {shown.length === 0 ? (
                 <p className="muted">{t("watchlist.emptyGroup")}</p>

@@ -1,15 +1,18 @@
-/* Design tokens. Mirrored in apps/mobile/lib/theme/tokens.dart — change both together. */
+/* Design tokens. Mirrored in apps/mobile/lib/theme/tokens.dart — change both together.
+   Neutrals are untinted greys (R = G = B): colour comes from the posters. --red is for
+   the match only (ring, percentage); --gold for warnings and errors; --green for success.
+   Design brief v2, docs/ui.md. */
 :root {
   color-scheme: dark;
 
-  --bg: #0a0a0f;
-  --surface: #16161f;
-  --surface-2: #1e1e2a;
-  --line: #2a2a38;
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface-2: #1f1f1f;
+  --line: #2b2b2b;
 
   --text: #f5f5f5;
-  --muted: #a6abba;
-  --faint: #6e7383;
+  --muted: #ababab;
+  --faint: #737373;
 
   --red: #e63950;
   --red-dark: #b22e42;

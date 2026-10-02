@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { useT, type MessageKey } from "../i18n";
+import { useCountUp } from "../lib/motion";
 import { traitBand, type TraitKey } from "../lib/traits";
 
 export function traitLabelKey(key: TraitKey): MessageKey {
@@ -64,9 +65,14 @@ export function TraitCompare({
   );
 }
 
-/** Conic ring with the percentage inside. Fills from 0 on first show. */
+/**
+ * Conic ring with the percentage inside. Fills from 0 on first show while the number
+ * counts up with it; with reduced motion both show the value at once. Screen readers get
+ * the final value from the label, never the count.
+ */
 export function MatchRing({ value, size = 84 }: { value: number; size?: number }) {
   const t = useT();
+  const counted = useCountUp(value);
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setShown(value));
@@ -76,7 +82,7 @@ export function MatchRing({ value, size = 84 }: { value: number; size?: number }
   return (
     <div className="ring" style={style} role="img" aria-label={t("common.matchLabel", { n: value })}>
       <div className="ring-inner" aria-hidden="true">
-        <span className="ring-value">{value}%</span>
+        <span className="ring-value">{counted}%</span>
         <span className="ring-label">{t("common.matchWord")}</span>
       </div>
     </div>

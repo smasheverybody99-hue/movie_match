@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Dialog } from "../components/Dialog";
+import { FieldError } from "../components/FieldError";
 import { LANGS, useI18n, useT } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { useDeleteAccount } from "../lib/queries";
@@ -92,9 +93,7 @@ export default function Profile() {
         <Dialog title={t("profile.delete")} onClose={() => setConfirming(false)}>
           <p>{t("profile.deleteConfirm")}</p>
           {remove.isError && (
-            <p className="field-error" role="alert">
-              {t("profile.deleteError")}
-            </p>
+            <FieldError>{t("profile.deleteError")}</FieldError>
           )}
           <div className="foot-actions">
             <button type="button" className="btn btn-ghost" onClick={() => setConfirming(false)}>

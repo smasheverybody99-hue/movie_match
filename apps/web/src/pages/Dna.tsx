@@ -1,5 +1,7 @@
+import { Share2 } from "lucide-react";
 import { useState } from "react";
 
+import { Icon } from "../components/Icon";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { TraitBar, traitLabelKey } from "../components/Traits";
 import { useT, type Translate } from "../i18n";
@@ -58,7 +60,7 @@ function Share({ text }: { text: string }) {
   return (
     <>
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void share()}>
-        ↗ {t("dna.share")}
+        <Icon as={Share2} size={16} /> {t("dna.share")}
       </button>
       <span role="status" className="visually-hidden">
         {note === "copied" ? t("dna.copied") : ""}

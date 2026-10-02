@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
+import { FieldError } from "../components/FieldError";
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { AuthFailure, type OAuthProvider } from "../lib/supabase";
@@ -113,9 +114,9 @@ export default function Welcome() {
                 autoFocus
               />
               {invalid && (
-                <p id="email-error" className="field-error">
+                <FieldError id="email-error" alert={false}>
                   {t("welcome.emailInvalid")}
-                </p>
+                </FieldError>
               )}
               <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
                 {t("welcome.emailSend")}
@@ -125,9 +126,7 @@ export default function Welcome() {
         </div>
 
         {error && (
-          <p className="field-error" role="alert">
-            {t(error)}
-          </p>
+          <FieldError>{t(error)}</FieldError>
         )}
 
         <p className="fine-print">
