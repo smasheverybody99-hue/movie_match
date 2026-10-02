@@ -64,6 +64,27 @@ clean reruns were not run with `--cov`, so that is a lower bound. Before committ
 the gate once on a stable connection:
 `ruff check . && ruff format --check . && pytest -q --cov=app --cov-report=term-missing`.
 
+## Manual check — started 2026-10-02 (the user, real data, web app)
+
+Findings from the API log (the user's analysis):
+
+1. **Explanations work.** About 20 `run=explanation` cost lines; the daily cap (20 per
+   user) was reached, after which the film page showed the fallback text. Not a bug, but
+   the user cannot tell the cap was hit: backlog item in TZ 1.9. The token numbers of
+   these lines are in the user's terminal, not yet in `docs/costs.md`.
+2. **Bug, fixed (`01d08f7`):** `POST /watchlist` answered **500** (`NotOnWatchlist:
+   969681`). `add()` committed `INSERT … ON CONFLICT DO NOTHING` and then read the row
+   with a separate SELECT; a `DELETE` from the same user in between (Save, then unsave)
+   left nothing to read. Now one `INSERT … ON CONFLICT DO UPDATE … RETURNING`;
+   `mark_watched` had the same window (read, then a separate UPDATE) and is now one
+   `UPDATE … RETURNING` (a removed film is a clean 404). The new test reproduces the race
+   and failed on the old code with the same `NotOnWatchlist`.
+3. **Feed ~15 s at 45 ratings** from the dev machine: recorded in
+   `docs/phase-3-status.md`; F5 (deploy) work, not touched now.
+
+Still open: the verdict on the recommendations, the match checked by hand, 5
+explanations read.
+
 ## Not done / open
 
 1. **Manual checklist** (needs Phase 1 data): rate 30 films and judge the

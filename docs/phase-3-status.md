@@ -1,7 +1,7 @@
 # Phase 3 — status
 
-Last updated: 2026-09-29 · Phase: **3 (web application), code built, not finished** ·
-Branch: `phase-3-web` (not merged into `main`)
+Last updated: 2026-10-02 · Phase: **3 (web application), code built, not finished** ·
+On `main` since `66bc7a0` (2026-09-30)
 
 Phase prompt: `docs/prompts/phase-03-web.md`. Its precondition — Phase 2's gate green
 *including the verdict on the 30-rating test* — is **not met**: that test needs Phase 1
@@ -62,6 +62,7 @@ Uzbek UI.
 | Keyboard only | Tab walk on each screen at 1280px reached every visible control; the rating dialog traps Tab and closes on Escape |
 | axe (axe-core 4, wcag2a/aa/21aa + best-practice) | **0 violations** on all 9 screens and the open rating dialog |
 | Lighthouse, film page | Mobile (simulated throttling): **LCP 2.1 s**, TBT 720 ms, CLS 0.006. Desktop: LCP 0.6 s. **INP 80 ms** (timespan: open rating, press 9, save, save to watchlist). Caveat: Vite dev server (unminified React dev build) and no poster images — re-measure on a deployed production build with real posters |
+| Feed speed with real data (2026-10-02) | **~15 s** for `GET /recommendations` at **45 ratings**, measured by the user during the F2 manual check: local API on the dev machine, main database in Singapore, real catalogue (500 films with traits). TZ asks < 500 ms. Phase 2 estimated ~5 s from this machine (~12 statements × ~0.5 s round trip); the measured time is three times that, cause not analysed. **Not touched now: F5 (deploy) work** — measure again from a host next to the database before deciding anything |
 | API off, every screen | No white screen, no raw error text (checked for `Failed to fetch`, status codes, `{"detail"`); each screen shows what happened and a retry |
 
 ## Where the implementation differs from the design, and why
