@@ -12,7 +12,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 |---|---|
 | F0 — Poydevor | **Tugagan** (`b2a4d35`, gate o'tgan) |
 | F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich: traitlar 500 / 500 (13 film Google filtri bilan bloklanib almashtirildi); 2-bosqich ≈ $0.28 standart tarifda, bepul tarifda $0. Embedding 500 / 500 (ikki run, $0.0182 standart, bepul tarifda $0); missing count 0. Qo'shnilar ko'rigi **o'tdi** (2026-10-02). **Ma'lumot qismi yopildi.** Ma'lum muammo: Spirited Away qo'shnilari studiya bo'yicha to'planadi (F2 qo'lda tekshiruvida qaraladi) |
-| F2 — Tavsiya dvigateli | **Kod tugagan va `main` da, qo'lda tekshiruv boshlandi (2026-10-02).** Log'dan: izohlar ishlaydi (kunlik limitga yetildi — interfeys buni aytmaydi, backlog TZ 1.9); `POST /watchlist` 500 xatosi topildi va tuzatildi (`01d08f7`); feed 45 bahoda ~15 s (F5 ishi, `docs/phase-3-status.md`). Kutilmoqda: tavsiyalar bo'yicha xulosa, qo'lda match, 5 izoh |
+| F2 — Tavsiya dvigateli | **Tugagan** (2026-10-02). Qo'lda tekshiruv **o'tdi**: "For you" dagi 20 filmdan deyarli hammasini foydalanuvchi ko'rardi; qolgan bo'limlar "yomonmas". Tekshiruvda topilgan `POST /watchlist` 500 xatosi tuzatilgan (`01d08f7`); izohlar limiti interfeysda ko'rinmaydi (backlog, TZ 1.9); feed 45 bahoda ~15 s (F5 ishi) |
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | Tillar (TZ 1.8, 2026-10-02) | **Kod tayyor.** Ingliz — standart til va kalitlar manbasi (`apps/web/src/i18n/en.ts`); o'zbek — ikkilamchi; rus — qo'shimcha, **ko'rilmagan qoralama**. Menyu: English, O'zbek, Русский; tanlov `localStorage` da saqlanadi, brauzer tili aniqlanmaydi. API: `lang` = `en` \| `uz` \| `ru`, standart `en`; izohlar rus tilida ham (har til alohida kesh). Film ma'lumoti ingliz tilida qoladi (backlog) |
 | F4 va keyingilari | Boshlanmagan |
@@ -21,6 +21,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 
 | | |
 |---|---|
+| CI (`main`, `b28b9da`, F2 yopilishi) | **Yashil**, 2026-10-02: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36989348804. `app/services/` coverage ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida, o'qish uchun GitHub login kerak) |
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |

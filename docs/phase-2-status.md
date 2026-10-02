@@ -1,7 +1,7 @@
 # Phase 2 — status
 
-Last updated: 2026-09-27 · Phase: **2 (recommendation engine and user API), code built,
-not finished**
+Last updated: 2026-10-02 · Phase: **2 (recommendation engine and user API) — finished.**
+Manual check passed (user, 2026-10-02); gate green (CI run 36989348804)
 
 Phase prompt: `docs/prompts/phase-02-engine.md`. The prompt's precondition — Phase 1's
 gate green *including the 50-film review* — is **not met**: Phase 1's code gate is green
@@ -64,7 +64,21 @@ clean reruns were not run with `--cov`, so that is a lower bound. Before committ
 the gate once on a stable connection:
 `ruff check . && ruff format --check . && pytest -q --cov=app --cov-report=term-missing`.
 
-## Manual check — started 2026-10-02 (the user, real data, web app)
+## Manual check — passed (user, 2026-10-02; real data, web app)
+
+**Verdict (the user's words, summarised):** of the 20 films in "For you" the user would
+watch almost all of them — the product's core claim holds. The other sections
+("Because you loved X", "Under 90 minutes", "Outside your usual taste"): "not bad".
+**F2 manual check: passed.**
+
+The match checked by hand and the 5 explanations were not reported item by item; the
+user's verdict covers the check as a whole. The match formula is also covered by
+`test_match_is_recomputable_from_stored_numbers`.
+
+Gate at closing: CI run https://github.com/smasheverybody99-hue/movie_match/actions/runs/36989348804
+(`b28b9da`, green). `app/services/` coverage: the CI step
+`coverage report --include="app/services/*" --fail-under=85` passed, so ≥ 85%; the exact
+figure is in that run's log (needs a GitHub login to read, not read here).
 
 Findings from the API log (the user's analysis):
 
