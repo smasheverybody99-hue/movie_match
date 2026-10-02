@@ -1,7 +1,8 @@
 # Phase 1 — status
 
-Last updated: 2026-10-01 · Phase: **1 (data foundation), not finished — stage 1 (50 films)
-done and reviewed: passed; stage 2 (500) not started**
+Last updated: 2026-10-02 · Phase: **1 (data foundation). Data for the 500-film list
+complete: traits 500/500, embeddings 500/500, missing count 0. Nearest neighbours of 5
+films shown to the user; verdict pending**
 
 Phase prompt: `docs/prompts/phase-01-data.md`. Adjustments for this run (from the user):
 catalogue of 5,000 not 20,000 (TZ v1.2 now says the same); TMDB ingestion run for real;
@@ -15,11 +16,11 @@ prompt makes the manual checklist part of the phase:
 
 | Checklist item | State |
 |---|---|
-| Every film has a trait vector and an embedding (missing count must be 0) | **50 films have traits** (the review list); none has an embedding. Target is now 500 (TZ 1.5) |
+| Every film has a trait vector and an embedding (missing count must be 0) | **Done for the 500-film list** (2026-10-02, read-only query below): 0 missing traits, 0 missing embeddings. The other 4,500 ingested films have neither, as TZ 1.5 plans |
 | Run the pipeline on real films; report cost and time | **Stage 1 done** (2026-10-01): 50 films, 50 stored, 0 failed. Below |
 | 50-film hand review; no more than 5 clearly wrong | **Passed** (2026-10-01): 3 of 50 disputed, limit 5. Below |
-| Nearest neighbours of 5 films, checked by eye | Needs real embeddings |
-| Measured cost per 1,000 films | **Measured** for traits: 380 in / 195 out tokens per film. Below |
+| Nearest neighbours of 5 films, checked by eye | **Shown to the user** (2026-10-02, below); verdict pending |
+| Measured cost per 1,000 films | **Measured**: traits 380 in / 195 out tokens per film; embeddings 182 tokens per film. Below |
 
 The phase report's items 2–4 (review table and verdict, measured cost, trait definitions
 that did not work in practice) cannot be written until those are done.
@@ -168,8 +169,44 @@ the reconnect caught this one; the same gap was on the sync trait path and in
 `count_tokens`. They are now transient (ADR 0006, item 8), with tests. The remaining
 **242** films continue with the same command.
 
-**Now:** traits 500/500, embeddings 258/500. Nearest neighbours and the "missing count
-must be 0" check follow the embeddings.
+## Embeddings — second run (2026-10-02, 10:38–11:06): complete
+
+The same command, after the network fix. **242 stored**, no interruption:
+
+```
+run=embeddings provider=gemini model=gemini-embedding-2 requests=242 input_tokens=43522
+output_tokens=0 usd=0.0087 tokens=reported status=complete
+```
+
+**Both runs together:** 500 films, 91,076 tokens (182 per film, counted by
+`count_tokens`), **$0.0182** at the standard rate, $0 on the free tier.
+
+### Missing count (2026-10-02, read-only transaction on the main database)
+
+| | |
+|---|---|
+| 500-film list: without traits / without embeddings | **0 / 0** (500 have both) |
+| `movie_traits` / `movie_embeddings` rows in total | 500 / 500, none outside the list |
+| Embedding size, min / max | 1,536 / 1,536 |
+| Films ingested / without traits | 5,000 / 4,500 (not part of this stage, TZ 1.5) |
+
+### Nearest neighbours of 5 films (2026-10-02)
+
+`find_similar` (`app/services/similarity.py`, cosine distance on the embeddings, no
+filters), first 8 of the 500. Films from the review list, one per genre:
+
+| Film | Neighbours (cosine distance) |
+|---|---|
+| Fight Club (1999) | Joker 0.188, Pulp Fiction 0.189, Eyes Wide Shut 0.201, Se7en 0.205, Battle Royale 0.206, The Matrix 0.207, Good Will Hunting 0.207, Parasite 0.208 |
+| Spirited Away (2001) | Howl's Moving Castle 0.153, Kiki's Delivery Service 0.155, My Neighbor Totoro 0.160, Arrietty 0.163, The Boy and the Heron 0.166, Whisper of the Heart 0.169, Ponyo 0.170, Castle in the Sky 0.171 |
+| The Notebook (2004) | Titanic 0.191, Eternal Sunshine of the Spotless Mind 0.191, You've Got Mail 0.209, Forrest Gump 0.214, The Shawshank Redemption 0.216, Gone with the Wind 0.226, Cinema Paradiso 0.226, In the Mood for Love 0.227 |
+| John Wick (2014) | The Raid 2 0.181, Pulp Fiction 0.183, Léon: The Professional 0.184, Kill Bill: Vol. 1 0.185, Game of Death 0.196, Vengeance (2026) 0.201, Hard Boiled 0.203, Mutiny (2026) 0.204 |
+| Arrival (2016) | Project Hail Mary 0.185, Inception 0.186, 2001: A Space Odyssey 0.188, Interstellar 0.192, Stalker 0.194, Alien 0.195, Blade Runner 2049 0.198, Dune 0.198 |
+
+**Verdict: the user's, pending.** Observations, not a verdict: Spirited Away's eight are
+all Studio Ghibli; The Notebook pulls in Forrest Gump and Shawshank (period drama of the
+same years) next to the romances; the distances are close together (0.15–0.23), so the
+order inside the top 8 says little.
 
 ## Where things stand
 
@@ -178,9 +215,9 @@ must be 0" check follow the embeddings.
 | `.env` + Supabase connection | Done. Main and test projects reachable, Postgres 17.6, pgvector 0.8.2 |
 | Migrations | Main DB at `0002 (head)`. Round-trip test passes on the test DB |
 | TMDB ingestion (5,000 films) | **Done**, run 1 finished, 0 missing |
-| Trait pipeline | Now on Gemini (`gemini-3.5-flash-lite`, Batch API, paid tier; ADR 0004). Built and tested with fixtures. **Not run** |
-| Embeddings | Gemini `gemini-embedding-2` at 1,536-d behind the `Embedder` protocol; no migration. **Not run** |
-| Similarity service | Built, tested with hand-made vectors. Needs real embeddings to try by eye |
+| Trait pipeline | Gemini `gemini-3.5-flash-lite`, `TRAIT_MODE=sync` (ADR 0006). **Run: 500/500** on the list |
+| Embeddings | Gemini `gemini-embedding-2` at 1,536-d behind the `Embedder` protocol. **Run: 500/500** on the list |
+| Similarity service | Built and tested; tried by eye on 5 films (2026-10-02, above) |
 | Review report | Built. Review list in `docs/review-films.md` (draft) |
 | Gate | Passes: ruff, format, 199 tests (0 skipped, real test DB). Coverage: `app/pipelines/` 83.1%, `app/services/` 100% |
 
@@ -298,12 +335,9 @@ migrations run as `python -m alembic upgrade head`. `tasks.ps1` / `tasks.sh` alr
    ```
    Pass rule: no more than 5 of the 50 clearly wrong. Then stage 2 (500), then stage 3
    — asking before each step up (CLAUDE.md).
-2. **Embedding step not run** — provider chosen (ADR 0004). Run after stage 1 approves
-   the traits, staged the same way: `python -m app.pipelines.embeddings --limit 50
-   --dry-run`, then `--yes`. Needed before the nearest-neighbour check by eye.
-3. **Phase 1 manual checklist** still open: the 50-film review verdict, measured cost per
-   1,000 films, neighbours for 5 films, and a 0 count of films missing traits or
-   embeddings.
+2. **Embedding step: done** (2026-10-02), 500/500 on the list, two runs, above.
+3. **Phase 1 manual checklist:** the 50-film review passed, cost per film is measured,
+   missing count is 0. Open: the user's verdict on the 5 films' neighbours.
 4. **Not built in this phase:** the daily TMDB re-sync that TZ FR-2 asks for (ingestion
    is resumable and idempotent, but nothing schedules it yet). Streaming providers were
    dropped from FR-2 in TZ v1.2.

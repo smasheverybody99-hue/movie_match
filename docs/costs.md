@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-10-01**. Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-10-02**. Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -17,6 +17,7 @@ yoki taxmin, va u shunday deb belgilangan.
 | Trait: **chiqish tokeni, film boshiga — o'lchangan** | **195** (9 746 / 50, thinking bilan) | o'sha run |
 | Trait: eski taxmin (almashtirildi) | 410 kirish / 250 chiqish | `--dry-run` taxmini, 2026-09-26. Haqiqiy kirish 14% kam, chiqish 22% kam chiqdi. Boshqa provayderlar jadvallari hali shu taxminda |
 | Embedding: token, film boshiga | ~208 (taxmin) | 5 000 filmning embedding matni, o'rtacha 729 belgi ÷ 3.5; `docs/phase-1-status.md` |
+| Embedding: **500 film o'lchangan** (2026-10-02) | **182** token film boshiga (91 076 / 500, `count_tokens`) | Ikki run: 258 film ($0.0095, `status=interrupted`) + 242 film ($0.0087, `status=complete`) = **$0.0182** standart tarifda, bepul tarifda $0; `docs/phase-1-status.md` |
 | Embedding: **258 film o'lchangan** (2026-10-01) | 184 token film boshiga (47 554 / 258, `count_tokens`) | Birinchi embedding run'i: $0.0095 standart tarifda, bepul tarifda $0; `status=interrupted` (Google serveri ulanishni uzdi), `docs/phase-1-status.md` |
 | Embedding: **bitta film o'lchangan** (2026-10-01) | 187 token (`count_tokens`) | *Fight Club*, 856 belgi (4.6 belgi/token), Gemini Embedding 2, 1 536-o'lcham; $0.000037 standart tarifda, bepul tarifda $0. Belgi ÷ 3.5 taxmini bu filmda 250 berdi (34% ortiq) |
 | Izoh: token, bitta izoh | ~200 kirish, ~60 chiqish | Taxmin: tizim prompti + 3 sabab qatori; javob 1–2 jumla. **O'lchanmagan** |
