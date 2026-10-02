@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.6 · 2026-10-01 · Holat: tasdiqlangan
+Versiya 1.7 · 2026-10-02 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -64,6 +64,7 @@ yuqoridagi doiraga ta'sir qilmaydi.
 |---|---|---|
 | `services/api/scripts/migrate_db.py` ga testlar (himoyalar: `lock_timeout`, COMMIT'dan keyin yangi ulanishda tekshiruv, `movies` soni). Hozircha faqat qo'lda sinalgan | Keyingi migratsiyadan oldin | 2026-09-29 |
 | `services/api/scripts/select_catalogue.py` ga testlar (`select`: o'n yillik kvotasi, til chegarasi, ikkinchi o'tish, traitli filmlarning majburan kirishi va kvotaga hisoblanishi, sanasiz filmlar). Hozircha faqat qo'lda sinalgan (2026-10-01) | 2-bosqichdan keyin, ro'yxat qayta tuzilishidan oldin | 2026-10-01 |
+| Embedding tokenlarini **guruhlab** sanash: har filmga alohida `count_tokens` o'rniga 25 ta matnni bitta chaqiruvda sanash; `tokens=reported` saqlanadi, hujjatda guruhlangan son per-request yig'indisidan ~0.56% kam ekani qayd etiladi (2026-10-02, 25 film: 4 265 vs 4 289). **Nega namuna (har 25-film) + kalibrlangan nisbat emas:** chaqiruvlar soni bir xil, lekin guruhda har filmning o'zi sanaladi; nisbat (4.6 belgi/token) shu 25 filmda jami +2%, alohida filmda 9% gacha xato berdi va til tarkibi o'zgarsa (yangi katalog) qayta kalibrlashni talab qiladi, natija esa `tokens=estimated` bo'lib qoladi. Maqsad: run vaqti — har film uchun bitta tarmoq so'rovi kamayadi. 2026-10-02 dan `count_tokens` xatosi run'ni to'xtatmaydi, shuning uchun bu shoshilinch emas | 5 000 film bosqichidan oldin | 2026-10-02 |
 | Movie DNA AI xulosasi (FR-7). Hozir web uchta eng kuchli traitdan shablon jumla quradi; `/me/dna` `summary: null` qaytaradi. AI versiyasi uchun kesh jadvali (migratsiya) va narx qarori kerak | F5 dan oldin | 2026-09-29 |
 | DNA ulashish uchun server tomonda rasm (FR-7). Hozir web matnni ulashadi/nusxalaydi. Ommaviy havola (token, maxfiylik) dizayni kerak | F5 dan oldin | 2026-09-29 |
 | Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
@@ -344,3 +345,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.4 | 2026-09-29 | §6 API jadvali F2–F3 endpointlari bilan to'ldirildi; backlog'ga F3 dan qolgan to'rt band (DNA AI xulosasi, ulashish rasmi, provayder filtri, filmga xos chiplar) |
 | 1.5 | 2026-09-30 | FR-2: katalog 5 000 dan 500 ga (xarajat); `catalogue_target = 500` |
 | 1.6 | 2026-10-01 | Backlog: 500 filmni kvota bilan tanlash bajarildi (`scripts/select_catalogue.py`, `docs/catalogue-500.md`); yangi band — shu skriptga testlar |
+| 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
