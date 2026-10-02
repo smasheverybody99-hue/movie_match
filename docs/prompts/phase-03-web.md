@@ -40,6 +40,8 @@ Screens, in this order — each one complete (all four states) before the next:
 
 Cross-cutting:
 - i18n from the start (`uz` and `en`). No hard-coded user-facing string anywhere.
+  *Amended 2026-10-02 (TZ 1.8): `en` is the default and the source of every key, `uz`
+  second, `ru` added; the menu order is English, O'zbek, Русский.*
 - Every screen implements loading (skeleton), empty, error and offline states.
 - Optimistic updates for rating and watchlist, rolled back on failure.
 
@@ -65,7 +67,8 @@ Specifically:
 - `Watchlist.test.tsx` — group chips filter the list; mark-watched removes the row
 - `Dna.test.tsx` — below 10 ratings shows the "rate more" screen, not empty bars
 - `api.test.ts` — attaches the bearer token; throws `ApiError` with the status on failure
-- `i18n.test.ts` — every key present in `uz` exists in `en` and vice versa
+- `i18n.test.ts` — every key present in `uz` exists in `en` and vice versa (from TZ 1.8:
+  `uz` and `ru` both have exactly the keys of `en`)
 
 ## Gate — do not skip
 

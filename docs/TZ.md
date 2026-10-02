@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.7 · 2026-10-02 · Holat: tasdiqlangan
+Versiya 1.8 · 2026-10-02 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -69,6 +69,7 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | DNA ulashish uchun server tomonda rasm (FR-7). Hozir web matnni ulashadi/nusxalaydi. Ommaviy havola (token, maxfiylik) dizayni kerak | F5 dan oldin | 2026-09-29 |
 | Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
 | Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
+| Film ma'lumotini tarjima qilish (nom, tavsif) o'zbek va rus tillariga. Hozir interfeys uch tilda, film matni esa ingliz tilida (TMDB `en-US`). Variantlar: TMDB'ning `translations` ma'lumoti (rus tilida ko'p, o'zbekchada kam) yoki LLM tarjimasi (pul, kesh kerak) | F5 dan oldin | 2026-10-02 |
 | ~~500 filmni o'n yillik/til kvotasi bilan tanlash (FR-2). Bazadagi 5 000 film 5 000 uchun rejalashtirilgan; `traits submit --limit 500` eng mashhurlarini oladi va o'n yillik taqsimoti buzilishi mumkin. Yechim: `ingest --plan-only --target 500` (TMDB, bepul) ro'yxatini `traits submit --ids` ga berish~~ **Bajarildi (2026-10-01):** `services/api/scripts/select_catalogue.py` kvota siyosatini bizning 5 000 lik katalogimizga qo'llaydi, traitli 50 film majburan kiradi; ro'yxat `docs/catalogue-500.md` (54% ingliz, 26 til). `ingest --plan-only` (TMDB) varianti rad etildi: kunlik o'zgaradi, 75% ingliz chiqdi | 1-bosqichdan keyin, 500 ga o'tishdan oldin | 2026-09-30 |
 
 ---
@@ -234,7 +235,7 @@ Foydalanuvchi ta'mi va ixtiyoriy quiz asosida personaj moslik natijasi.
 | Xavfsizlik | Kalitlar faqat env'da, JWT tekshiruvi har so'rovda | Kod ko'rigi + test |
 | Maxfiylik | Eksport va o'chirish ishlaydi | Qo'lda test |
 | Qulaylik | Kontrast 4.5:1, klaviatura navigatsiyasi, 44px tegish | axe + qo'lda |
-| Tillar | O'zbek va ingliz, birinchi kundan | i18n kaliti qattiq kodlanmaydi |
+| Tillar | Ingliz — standart til va barcha kalitlarning manbasi; o'zbek — ikkilamchi; rus — qo'shimcha variant. Standart har doim ingliz (brauzer tili aniqlanmaydi); o'zbek va rus faqat til menyusidan tanlanadi, tartib: English, O'zbek, Русский. Tanlov saqlanadi va keyingi kirishda shu tilda ochiladi. Interfeys tarjima qilinadi; film ma'lumoti (nom, tavsif, trait xulosasi) TMDB'dan ingliz tilida keladi | i18n kaliti qattiq kodlanmaydi; uchala lug'atda kalitlar to'plami bir xil (test, CI) |
 | Xarajat | LLM har foydalanuvchiga oyiga < $0.20 | Hisoblagich |
 
 ---
@@ -346,3 +347,4 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.5 | 2026-09-30 | FR-2: katalog 5 000 dan 500 ga (xarajat); `catalogue_target = 500` |
 | 1.6 | 2026-10-01 | Backlog: 500 filmni kvota bilan tanlash bajarildi (`scripts/select_catalogue.py`, `docs/catalogue-500.md`); yangi band — shu skriptga testlar |
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
+| 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
