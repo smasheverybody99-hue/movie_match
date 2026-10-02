@@ -55,7 +55,8 @@ class RecommendationOut(BaseModel):
     explanation: str | None = None
 
 
-Lang = Literal["uz", "en"]
+# English is the default and the source language; Uzbek second, Russian added (TZ 1.8).
+Lang = Literal["en", "uz", "ru"]
 SectionKey = Literal["for_you", "because_you_loved", "under_90", "outside_usual"]
 
 

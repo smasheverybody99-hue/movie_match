@@ -29,7 +29,7 @@ SPEC_VERSION: int = int(_spec()["version"])
 
 
 def trait_labels(lang: str) -> dict[str, str]:
-    """Trait key -> display label in `lang` ("en" or "uz"), from traits.json."""
+    """Trait key -> display label in `lang` ("en", "uz" or "ru"), from traits.json."""
     return {d["key"]: d[f"label_{lang}"] for d in _spec()["dimensions"]}
 
 

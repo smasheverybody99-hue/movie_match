@@ -38,8 +38,8 @@ __all__ = ["Explainer", "build_prompt", "cached", "clean", "explain"]
 TIMEOUT_SECONDS = 10.0
 MAX_CHARS = 400  # longer than two sentences means the model ignored the brief
 
-Lang = Literal["uz", "en"]
-LANGUAGE_NAMES = {"uz": "Uzbek (Latin script)", "en": "English"}
+Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test checks)
+LANGUAGE_NAMES = {"en": "English", "uz": "Uzbek (Latin script)", "ru": "Russian"}
 
 SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a film suits
 their taste. Use only the shared qualities you are given, in plain everyday words, and

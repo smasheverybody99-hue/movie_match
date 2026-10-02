@@ -31,7 +31,7 @@ router = APIRouter(tags=["recommendations"])
 
 @router.get("/recommendations", response_model=RecommendationsOut)
 async def get_recommendations(
-    lang: Lang = Query("uz"),
+    lang: Lang = Query("en"),
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> RecommendationsOut:
@@ -66,7 +66,7 @@ async def get_recommendations(
 @router.get("/recommendations/{movie_id}/explanation", response_model=ExplanationOut)
 async def get_explanation(
     movie_id: int = Path(gt=0),
-    lang: Lang = Query("uz"),
+    lang: Lang = Query("en"),
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
     explainer: Explainer | None = Depends(get_explainer),

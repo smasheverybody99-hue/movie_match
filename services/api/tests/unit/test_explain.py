@@ -2,11 +2,22 @@
 
 from datetime import date
 from types import SimpleNamespace
+from typing import get_args
 
+import pytest
+
+from app import schemas
 from app.models import Movie
 from app.providers.gemini import EXPLAIN_MODEL, GeminiExplainer
-from app.services.explain import MAX_CHARS, SYSTEM_PROMPT, build_prompt, clean
-from app.traits import TRAIT_KEYS
+from app.services.explain import (
+    LANGUAGE_NAMES,
+    MAX_CHARS,
+    SYSTEM_PROMPT,
+    Lang,
+    build_prompt,
+    clean,
+)
+from app.traits import TRAIT_KEYS, trait_labels
 
 
 def _scores(**values: float) -> dict[str, float]:
@@ -24,6 +35,27 @@ def test_prompt_names_the_film_the_reasons_and_the_language() -> None:
     assert prompt.index("Plot twists") < prompt.index("Mystery")  # strongest first
     assert "Uzbek" in prompt
     assert "Romance" not in prompt  # only the real reasons
+
+
+@pytest.mark.parametrize(
+    ("lang", "name"), [("en", "English"), ("uz", "Uzbek (Latin script)"), ("ru", "Russian")]
+)
+def test_prompt_asks_for_each_language(lang: Lang, name: str) -> None:
+    prompt = build_prompt(Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang)
+    assert prompt.endswith(f"Write the sentences in {name}.")
+    assert "- Action:" in prompt  # the brief itself stays in English
+
+
+def test_the_service_and_the_api_accept_the_same_languages() -> None:
+    assert get_args(Lang) == get_args(schemas.Lang) == ("en", "uz", "ru")
+    assert set(LANGUAGE_NAMES) == set(get_args(Lang))
+
+
+@pytest.mark.parametrize("lang", ["en", "uz", "ru"])
+def test_every_language_has_a_label_for_every_trait(lang: str) -> None:
+    labels = trait_labels(lang)
+    assert list(labels) == list(TRAIT_KEYS)
+    assert all(label.strip() for label in labels.values())
 
 
 def test_prompt_without_a_release_date() -> None:

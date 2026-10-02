@@ -119,24 +119,38 @@ async def test_the_prompt_carries_the_real_reasons(catalogue: AsyncSession) -> N
 
 async def test_each_language_is_cached_separately(catalogue: AsyncSession) -> None:
     me, fake = await _user(catalogue), FakeExplainer()
-    await _get(catalogue, me, TARGETS[0], explainer=fake, lang="uz")
-    await _get(catalogue, me, TARGETS[0], explainer=fake, lang="en")
-    await _get(catalogue, me, TARGETS[0], explainer=fake, lang="en")
-    assert len(fake.prompts) == 2
+    for lang in ("uz", "en", "en", "ru", "ru"):
+        await _get(catalogue, me, TARGETS[0], explainer=fake, lang=lang)
+    assert len(fake.prompts) == 3
+    assert "Russian" in fake.prompts[2]
+
+
+async def test_without_a_language_the_answer_is_english(catalogue: AsyncSession) -> None:
+    me, fake = await _user(catalogue), FakeExplainer()
+    async with api_client(catalogue, explainer=fake) as client:
+        response = await client.get(f"/recommendations/{TARGETS[0]}/explanation", headers=auth(me))
+    assert response.status_code == 200, response.text
+    assert response.json()["lang"] == "en"
+    assert fake.prompts[0].endswith("Write the sentences in English.")
 
 
 async def test_cached_text_rides_along_with_recommendations(catalogue: AsyncSession) -> None:
     me = await _user(catalogue)
-    await _get(catalogue, me, TARGETS[0], explainer=FakeExplainer())
-    async with api_client(catalogue) as client:  # no generator at all
-        body = (await client.get("/recommendations", headers=auth(me))).json()
-    texts = {
-        item["movie"]["id"]: item["explanation"]
-        for section in body["sections"]
-        for item in section["items"]
-    }
-    assert texts[TARGETS[0]] == "Dark and twisty, the way you like it."
-    assert texts[TARGETS[1]] is None  # not generated yet; the list does not wait for it
+    await _get(catalogue, me, TARGETS[0], explainer=FakeExplainer(), lang="ru")
+
+    async def texts(lang: str) -> dict[int, str | None]:
+        async with api_client(catalogue) as client:  # no generator at all
+            response = await client.get(f"/recommendations?lang={lang}", headers=auth(me))
+        return {
+            item["movie"]["id"]: item["explanation"]
+            for section in response.json()["sections"]
+            for item in section["items"]
+        }
+
+    in_russian = await texts("ru")
+    assert in_russian[TARGETS[0]] == "Dark and twisty, the way you like it."
+    assert in_russian[TARGETS[1]] is None  # not generated yet; the list does not wait for it
+    assert (await texts("en"))[TARGETS[0]] is None  # cached per language
 
 
 @pytest.mark.parametrize("explainer_class", [FailingExplainer, SlowExplainer])
