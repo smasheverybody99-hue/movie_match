@@ -110,6 +110,55 @@ Findings from the API log (the user's analysis):
 Still open: the verdict on the recommendations, the match checked by hand, 5
 explanations read.
 
+## Reasons repeated on every film — found and changed (2026-10-02)
+
+The user noticed "Why you?" naming nearly the same three traits on every film
+(visual style, emotional intensity, pace); 19 logged explanations confirmed it.
+
+**Measured (read-only, 500 films with traits):** the two traits with the smallest spread
+are also the highest on average — `emotional_intensity` mean 72.5, sd 14.3, 56% of films
+between 70 and 85; `visual_style` mean 75.8, sd 14.3, 54%. For comparison `plot_twist`
+30.9 / 20.4, `realism` 42.6 / 30.0. For the user's account, of 471 unrated films with a
+match of 60% or more, the old rule (strength `w·min(taste, film)`) named
+`emotional_intensity` in 93% and `visual_style` in 91%; the most common trio covered 48%.
+Three causes stack: the old strength rewards a level every film has; the user's highest
+weights are on exactly these two traits (weights measure consistency among favourites,
+and a trait that barely varies looks consistent); the taste vector sits near the
+catalogue mean (every trait within z −0.3…+0.9), the average of many varied films.
+
+**Changed (user's choice, variant C):** a trait is a reason when the film stands out from
+the catalogue mean (z ≥ 0.5) and the taste leans the same way (z ≥ 0); strength
+`w·z_film` (TZ 1.12, FR-5; `matching.top_reasons`, `services/reasons.py`; thresholds
+`reason_min_film_z`, `reason_min_taste_z`). Simulated on the same 471 films: no trait
+above 28%, 105 different trios, the most common 7%, 14 films (3%) with no reason. The
+explanation prompt now also gives the typical film's value per reason. The match
+percentage (FR-5 formula) is unchanged. A stricter variant (taste also z ≥ 0.5) left 33%
+of films without a reason and was rejected.
+
+## Match spread for one user (2026-10-02, measurement only — no change decided)
+
+Read-only, the user's account (32 ratings), every number from the stored vectors:
+
+| Films | min | p10 | median | p90 | max |
+|---|---|---|---|---|---|
+| All 500 | 59 | 68 | 77 | 85 | 92 |
+| Unrated (473) | 59 | 67 | 77 | 84 | 92 |
+| Rated 8 or higher (13) | 75 | 77 | 86 | 89 | 92 |
+| **Rated 5 or lower (12)** | 68 | 77 | **85** | 89 | 90 |
+
+- **The 60% cut removes 2 of 473 unrated films** (0.4%). At 70%: 400 pass; 75%: 289;
+  80%: 148; 85%: 44.
+- **Films the user disliked score the same as films the user loved** (median 85 vs 86).
+  For this user the percentage does not separate them.
+- Sections as the API builds them: For you 85–92, Because you loved 85–88, Under 90
+  minutes 75–82, **Outside your usual taste 81–86** — higher than Under 90 minutes and
+  close to For you. Its retrieval (films 301–600 by embedding distance) found 173
+  candidates, 1 under 60%. The section is "far in embedding space", not "lower match".
+
+What the number tells the user today: nearly every film reads as a 70–85% match, so the
+percentage ranks films but says little on its own. A separate decision (FR-5 formula),
+not part of the reasons change.
+
 ## Not done / open
 
 1. **Manual checklist** (needs Phase 1 data): rate 30 films and judge the

@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.11 · 2026-10-02 · Holat: tasdiqlangan
+Versiya 1.12 · 2026-10-02 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -70,6 +70,8 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | Qidiruvda striming provayderi filtri (F3 prompti). Katalogda provayder ma'lumoti yo'q — avval ingestion (TMDB watch providers) | F5 dan oldin | 2026-09-29 |
 | Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
 | Izohlarning kunlik limiti (FR-6, `explanation_daily_calls_per_user` = 20) tugaganda foydalanuvchi buni bilmaydi: film sahifasi jim zaxira matnga ("Siz bilan umumiy jihatlari: …") o'tadi. Interfeys limit tugaganini aytishi kerak (masalan, "Bugungi izohlar tugadi, ertaga yangilanadi"), yoki zaxira matnga o'tish aniq belgilanishi kerak. Buning uchun API sababni berishi kerak: hozir `text: null` olti holatda bir xil (limit, generator yo'q, ta'm profili yo'q, umumiy trait yo'q, provayder xatosi, rad etilgan javob). F2 qo'lda tekshiruvida topildi (2026-10-02): ~20 ta izoh yaratilgan, limitga yetilgan, keyin zaxira matn. Narx muammo emas (o'lchangan, 2026-10-02, 19 ta cost qatori): izoh o'rtacha 187 kirish / 29.6 chiqish tokeni → standart tarifda ($0.30 / $2.50) $0.00013; limit to'liq ishlatilsa oyiga 600 ta ≈ $0.08 — TZ §5 maqsadi ($0.20) ichida | F5 dan oldin | 2026-10-02 |
+| Izoh keshining kalitiga sabablar: `explanations` qatorida izoh qaysi sabablar bilan yozilgani saqlanadi, sabablar o'zgarsa (yangi qoida, katalog o'sishi, ta'm o'zgarishi) — kesh o'tkazib yuboriladi va izoh qayta yoziladi. Migratsiya kerak. Hozircha qoida o'zgarganda eski izohlar qo'lda o'chiriladi (2026-10-02: bitta foydalanuvchining izohlari, ruxsat bilan) | F5 dan oldin | 2026-10-02 |
+| Traitlarni qayta baholash (trait ta'riflari va prompt): `visual_style` (o'rtacha 75.8, σ 14.3) va `emotional_intensity` (72.5, σ 14.3) deyarli hamma filmda baland — trait ajratmaydi; promptga "oddiy film = 50" kabi shkala ko'rsatmasi kerak. **Arzon, lekin jarayon qimmat:** 500 film ≈ $0.28 standart tarifda (bepul tarifda $0), lekin qayta baholash 50 filmlik qo'lda ko'rikni bekor qiladi (qayta o'tkaziladi) va barcha embeddinglarni qayta hisoblashni talab qiladi (embedding matnida trait xulosasi bor) | Alohida qaror; 5 000 film bosqichidan oldin | 2026-10-02 |
 | Film ma'lumotini tarjima qilish (nom, tavsif) o'zbek va rus tillariga. Hozir interfeys uch tilda, film matni esa ingliz tilida (TMDB `en-US`). Variantlar: TMDB'ning `translations` ma'lumoti (rus tilida ko'p, o'zbekchada kam) yoki LLM tarjimasi (pul, kesh kerak) | F5 dan oldin | 2026-10-02 |
 | ~~500 filmni o'n yillik/til kvotasi bilan tanlash (FR-2). Bazadagi 5 000 film 5 000 uchun rejalashtirilgan; `traits submit --limit 500` eng mashhurlarini oladi va o'n yillik taqsimoti buzilishi mumkin. Yechim: `ingest --plan-only --target 500` (TMDB, bepul) ro'yxatini `traits submit --ids` ga berish~~ **Bajarildi (2026-10-01):** `services/api/scripts/select_catalogue.py` kvota siyosatini bizning 5 000 lik katalogimizga qo'llaydi, traitli 50 film majburan kiradi; ro'yxat `docs/catalogue-500.md` (54% ingliz, 26 til). `ingest --plan-only` (TMDB) varianti rad etildi: kunlik o'zgaradi, 75% ingliz chiqdi | 1-bosqichdan keyin, 500 ga o'tishdan oldin | 2026-09-30 |
 
@@ -165,7 +167,7 @@ Foydalanuvchi film baholaydi (0.5–10.0), watchlistga qo'shadi, ko'rilgan deb b
 Foydalanuvchi bosh sahifada sababli bo'limlarga ajratilgan tavsiyalar oladi.
 
 **Qabul mezoni:**
-- Har tavsiyada match foizi (0–100) va sabab traitlari bor.
+- Har tavsiyada match foizi (0–100) va sabab traitlari (0–3 ta, quyidagi qoida bo'yicha). Film hech bir traitda ajralib turmasa, ro'yxat bo'sh — interfeys "umuman mos" deydi.
 - 60% dan past match ko'rsatilmaydi.
 - Ko'rilgan va rad etilgan filmlar chiqmaydi.
 - Bir bo'limda bitta rejissyordan 2 tadan ko'p film bo'lmaydi (xilma-xillik).
@@ -182,6 +184,21 @@ match    = round( 100 * (1 - d) )
 Izchillik: foydalanuvchi yuqori baholagan filmlarda o'lchov qiymatlari qanchalik
 bir joyda to'planganidan kelib chiqadi. Tarqoq bo'lsa — o'sha o'lchov shu odam uchun
 muhim emas, vazni past.
+
+**Sabab qoidasi** (2026-10-02; match foiziga ta'sir qilmaydi) — qaysi traitlar "sabab"
+deb ko'rsatiladi:
+
+```
+μ[i], σ[i] = katalogdagi barcha traitli filmlarning i-o'lchov bo'yicha o'rtachasi va
+             standart og'ishi (populyatsiya)
+z_film[i]  = (movie[i] - μ[i]) / σ[i]        z_taste[i] = (taste[i] - μ[i]) / σ[i]
+sabab      : z_film[i] >= 0.5  va  z_taste[i] >= 0      (ikkalasi sozlama)
+kuch       = w[i] * z_film[i];  eng kuchli 3 tasi
+```
+
+Film shu traitda oddiy filmdan sezilarli yuqori va foydalanuvchi ham o'sha tomonga
+og'gan bo'lsa — sabab. Deyarli hamma filmda baland trait (masalan, katalogda
+`visual_style` o'rtachasi 76) har filmga sabab bo'lib chiqmaydi.
 
 ### FR-6 · "Nega sizga yoqadi"
 
@@ -350,5 +367,6 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.12 | 2026-10-02 | FR-5: sabab traitlari katalogga nisbatan tanlanadi (formula yuqorida), ro'yxat bo'sh bo'lishi mumkin; backlog — izoh keshi kalitiga sabablar, traitlarni qayta baholash (arzon, jarayon qimmat) |
 | 1.11 | 2026-10-02 | Backlog FR-7: ulashish rasmi brauzerda, server varianti link preview uchun qoladi |
 | 1.10 | 2026-10-02 | O'sha bandda izoh narxi taxmindan o'lchovga: $0.00013 bittasi, oyiga ≤ $0.08 (avvalgi "$0.24, maqsaddan yuqori" ogohlantirishi noto'g'ri taxminga asoslangan edi) |
