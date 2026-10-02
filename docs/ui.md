@@ -1,22 +1,294 @@
 # UI/UX spetsifikatsiyasi
 
-To'liq dizayn tizimi va barcha ekran maketlari alohida sahifada:
+Dizayn tizimining **v1** versiyasi va barcha ekran maketlari alohida sahifada:
 
 **https://claude.ai/artifact/AMbQ9PQVCAryRVZU6j96G9**
 
-U yerda bor:
+U yerda bor: rang tokenlari, tipografika (Playfair Display + Inter + JetBrains Mono),
+masofa va radius, komponentlar, navigatsiya, ekran maketlari, to'rtta majburiy holat,
+platforma pariteti, qabul mezoni.
 
-- Rang tokenlari va har rangning vazifasi
-- Tipografika shkalasi (Playfair Display + Inter + JetBrains Mono)
-- Masofa, radius, tegish maydoni o'lchamlari
-- Komponentlar: tugma, chip, input, film kartasi, trait bar, match ring
-- Navigatsiya modeli (5 bo'lim)
-- Ekran maketlari haqiqiy o'lchamda: welcome, onboarding ×2, home feed, film sahifasi,
-  watchlist, Movie DNA, assistant, character quiz, character natijasi
-- Desktop tartibi
-- To'rtta majburiy holat: yuklanmoqda, bo'sh, xato, oflayn
-- Platforma pariteti jadvali (web vs Flutter farqlari)
-- Qabul mezoni
+**Diqqat:** quyidagi **v2 brifi** v1 bilan zid kelgan joyda v2 ustun. Eng katta farq —
+rang qoidasi: v1 da qizil "foydalanuvchi bosadigan narsa", oltin "match"; v2 da qizil
+**faqat match**. v2 tasdiqlangach, artifact yangilanadi yoki "v1, eskirgan" deb
+belgilanadi.
+
+---
+
+## Dizayn brifi v2 — "jasur va zamonaviy"
+
+Holat: **taklif, foydalanuvchi tasdig'ini kutmoqda** (2026-10-02). Kod yozilmagan.
+Tasdiqdan keyin ekran-ekran, bosqichma-bosqich qilinadi (9-bo'lim), hammasi birdan emas.
+
+### 0. Manbalar va ularning o'rni
+
+| Namuna | Nima olinadi | Nima olinmaydi |
+|---|---|---|
+| **NOXX — asos** | Chuqur qora fon, neytral chrome, rangni posterlar beradi. Katta poster to'ri. Hover'da poster ustida match foizi va tez tugmalar. Haqiqiy ikonkalar. Yuqori o'ngda dumaloq, yorqin qidiruv maydoni | — |
+| **AZM movies — faqat bitta narsa** | Home tepasidagi butun kenglikdagi hero: eng yaxshi tavsiya, backdrop, 3–5 ta film aylanadi, chapda matn, pastda nuqtalar | Zaytun-yashil panel (aksent bilan urishadi); 10 yulduzli reyting (bizda match foizi bor — kuchliroq va o'ziga xos); o'rtada logo + hamburger (eskirgan); "Watch Now" (biz striming emasmiz) |
+| **Netflix / IVI — tuzilma** | Home'da bo'limlar gorizontal poster qatorlari | — |
+| **Spotify — xarakter** | Movie DNA: Wrapped uslubidagi imzo ekrani | — |
+
+Foydalanuvchining oldingi xabarlaridan **bekor qilinganlar** (NOXX rang qoidasi ustun):
+asosiy tugmaning qizil rangi va glow'i, hero'dagi faol nuqtaning qizili, bo'lim
+sarlavhasidagi belgining qizili. Shakl qoladi (pill tugma, nuqtalar, belgi), rang neytral.
+
+### 1. Rang qoidasi — eng muhim band
+
+**Qizil (`--red`) faqat match uchun.** Match foizining raqami va uning grafik ko'rinishi:
+ring, poster ustidagi foiz badge'i, hero'dagi foiz. Boshqa hech qayerda. Sabab: match foizi
+mahsulotning imzosi; qizil hamma joyda bo'lsa, u kuchini yo'qotadi. Ekranda qizil ko'rinsa —
+bu "moslik" degani.
+
+Yangi rang qo'shilmaydi: hamma narsa `apps/web/src/styles/tokens.css` dagi tokenlar bilan.
+
+| Token | Hozirgi vazifasi (v1) | v2 dagi vazifasi |
+|---|---|---|
+| `--bg` `#0a0a0f` | Ekran foni | O'zgarmaydi: chuqur qora fon |
+| `--surface`, `--surface-2`, `--line` | Kartalar, inputlar, chegaralar | Neytral chrome. **Savol 5:** qiymatlari biroz ko'k-binafsha (`#16161f`); toza kulrangga (`#161616` / `#1f1f1f` / `#2a2a2a`) o'tkazilsinmi? Bu yangi rang emas, qiymat o'zgarishi; Flutter tokenlari ham o'zgaradi |
+| `--text`, `--muted`, `--faint` | Matn | O'zgarmaydi. Oddiy tugmalarning konturi ham shulardan |
+| `--red` | Asosiy tugma, faol nav, tanlangan chip, input fokus, kuchli trait bar, progress nuqtalari, tanlangan poster, ring | **Faqat match:** ring, foiz badge'i, hero'dagi foiz |
+| `--red-dark` | Skip-link, tanlangan chip, onboarding belgisi | Ishlatilmaydi (token qoladi; F7 da kerak bo'lishi mumkin) |
+| `--gold` | Match raqami, fokus konturi, input xatosi, eyebrow, katta baho raqami, slider | **Faqat ogohlantirish va xato** (input xatosi, "diqqat"). Match'dan olinadi |
+| `--green` | Muvaffaqiyat | O'zgarmaydi: faqat "bajarildi" |
+
+Kodda qizil ishlatilgan 11 joydan 10 tasi neytralga o'tadi (`app.css`: skip-link, faol nav,
+`.btn-primary`, tanlangan chip, input fokus, kuchli trait bar, progress nuqtalari,
+tanlangan poster va uning belgisi); ring qoladi. Oltin 11 joyda, match'ga tegishlilari
+(`.match`, poster badge'i) qizilga, fokus konturi oqqa o'tadi.
+
+**Tugmalar:** pill shaklida (to'liq radius). Oddiy tugmalar (watchlist, baho, ulashish) —
+**neytral kontur**: shaffof fon, `--muted` chegara, oq matn; hover'da chegara `--text`
+ga. **Savol 2:** ekrandagi bitta asosiy amal (onboarding "Davom etish", kirish) uchun —
+oq bilan to'ldirilgan pill (qora matn), yoki u ham kontur? Tavsiya: oq to'ldirilgan,
+ekranda bittadan ko'p emas; glow yo'q.
+
+**Chiplar:** yil, davomiylik, janr — neytral pill chip (`--surface-2` fon, `--muted`
+matn). Tanlangan filtr chipi: oq fon, qora matn (qizil emas).
+
+**Fokus:** 2px oq kontur (hozir oltin). Qora fonda eng yuqori kontrast.
+
+Fayllar: `tokens.css` (faqat savol 5 bo'yicha), `app.css`. Ish: **0.5 kun.**
+
+### 2. Ikonkalar — emoji butunlay olib tashlanadi
+
+**Kutubxona: `lucide-react`** — versiya 1.49.0, litsenziya **ISC** (bepul, tijorat
+uchun ham), `sideEffects: false` — bundle'ga faqat import qilingan ikonkalar kiradi.
+`node_modules` dagi hajmi 35 MB (diskda, bundle'da emas). Bundle'ga ta'siri o'rnatilgandan
+keyin o'lchanadi: hozir asosiy JS 604 KB. Taxmin: ~20 ikonka, bir necha KB (o'lchanmagan).
+O'rnatish — CLAUDE.md bo'yicha **sizning ruxsatingiz bilan**.
+
+Hozirgi emoji va belgilar (12 joy) va ularning o'rni:
+
+| Joy | Hozir | lucide |
+|---|---|---|
+| Nav: Home / Search / DNA / Watchlist / Profil | 🏠 🔍 🧬 🔖 (avatar) | `House`, `Search`, `Dna`, `Bookmark`, `CircleUser` |
+| Film sahifasi: Baholash | ★ | `Gauge` — yulduz ishlatilmaydi (reytingimiz yulduz emas) |
+| Film sahifasi: Saqlash | 🔖 | `Bookmark` / `BookmarkCheck` |
+| Watchlist guruhlari | 🔥 ⏱ ✓ | `ListVideo`, `Timer`, `CircleCheck` |
+| Onboarding: tanlangan poster | ✓ | `Check` |
+| DNA: Ulashish | ↗ | `Share2` |
+| Input xatosi | ⚠ (CSS) | `TriangleAlert` |
+| Home bo'lim sarlavhalari (yangi) | — | For you `Sparkles`, Because you loved `Heart`, Under 90 `Timer`, Outside usual `Compass` |
+| Hero (yangi) | — | `ChevronLeft/Right`, `Pause/Play`, `CircleHelp` ("Nega menga mos?") |
+
+Ikonkalar neytral (`currentColor`), 20px, chiziq qalinligi 1.75. Bitta `Icon` o'rami
+(`aria-hidden`, o'lcham) — har joyda bir xil. Qo'riqchi test: `src/` da emoji qolmasligi
+(regex, CI'da).
+
+Fayllar: `Layout.tsx`, `MoviePage.tsx`, `Watchlist.tsx`, `Onboarding.tsx`, `Dna.tsx`,
+`app.css`, yangi `components/Icon.tsx`. Ish: **0.5 kun.**
+
+### 3. Qobiq: navigatsiya va qidiruv
+
+- **Navigatsiya:** hozirgi chap yon menyu qoladi (siz aytgansiz: "Yon menyu qoladi"),
+  emoji o'rniga ikonkalar. Mobil'da pastki panel, ikonka + yorliq. **Savol 3:** NOXX
+  uslubidagi gorizontal yuqori menyuga o'tamizmi? Tavsiya: yo'q — yon menyu tayyor va
+  sizning oldingi qaroringiz.
+- **Qidiruv maydoni yuqori o'ngda:** dumaloq (pill), yorqin — `--text` fon, qora matn,
+  `Search` ikonkasi. Qora fonda eng kuchli kontrast. Yozish `/search?q=` ga olib o'tadi.
+  Mobil'da — yuqori panelda ikonka, bosilganda maydon ochiladi.
+- **Sahifa o'tishlari:** 7-bo'lim.
+
+Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0.5–1 kun.**
+
+### 4. Home
+
+**4a. Hero (AZM'dan yagona olinadigan narsa)**
+
+- "For you" ning eng yuqori 3–5 ta filmi; backdrop butun kenglikda, desktop'da ~70vh,
+  mobil'da ~55vh.
+- Gradient: chapdan `--bg` dan shaffofga (matn o'qilishi uchun) va pastdan `--bg` ga
+  (qatorlarga silliq o'tish).
+- Chapda: film nomi (Playfair, katta), chiplar (yil · davomiylik · janr), **match foizi —
+  qizil** (ekrandagi yagona qizil), ikki tugma — **"Nega menga mos?"** va **Watchlist**,
+  ikkalasi neytral kontur. "Watch Now" yo'q.
+- "Nega menga mos?": tavsiya javobida kesh'langan izoh bo'lsa — hero ichida ochiladi; yo'q
+  bo'lsa — film sahifasining "Nega sizga?" qismiga o'tadi. **Hero o'zi LLM chaqirmaydi:**
+  aylanish izoh so'ramaydi, aks holda har slayd pul va kunlik limit sarflaydi.
+- Pastda nuqtalar: faol — oq, qolganlari — kulrang (qizil emas). Har 7 s da almashadi;
+  hover va fokusda to'xtaydi; alohida pauza tugmasi (WCAG 2.2.2: 5 s dan uzoq harakat
+  to'xtatilishi kerak); ← → tugmalari. Reduced motion: avtomatik aylanish yo'q.
+- Unumdorlik: birinchi backdrop — `fetchpriority="high"` (bu sahifaning LCP elementi),
+  qolganlari kerak bo'lganda yuklanadi. TMDB `w1280`.
+- **API o'zgarishi:** tavsiyalardagi `MovieOut` da `backdrop_path` yo'q (faqat film
+  sahifasida bor). `schemas.py` va `types.ts` ga qo'shiladi — bitta commit'da (CLAUDE.md).
+
+**4b. Poster qatorlari (Netflix/IVI tuzilmasi, NOXX ko'rinishi)**
+
+- Bo'limlar hozir ham gorizontal qator — tuzilma qoladi. Sarlavha oldida neytral ikonka
+  (2-bo'lim jadvali).
+- Posterlar kattaroq: desktop ~180px eni, mobil'da ekranda 2.4 ta (keyingisining chekkasi
+  scroll borligini bildiradi). Nisbat 2:3. Nom poster ostida, kichik, 2 qatorgacha.
+- **Match badge doim ko'rinadi** (qizil) — bu imzo.
+- **Hover** (sichqoncha, `pointer: fine`): poster 1.05 ga kattalashadi, ustida qorong'u
+  qatlam va tez tugmalar — **Baholash** (mavjud baho dialogini ochadi) va **Watchlist**.
+  Klaviatura: `:focus-within` da xuddi shu. Sensorli ekran: hover yo'q, bosish film
+  sahifasini ochadi.
+
+Fayllar: `Feed.tsx`, `MovieCard.tsx`, `Poster.tsx`, yangi `components/Hero.tsx`, `app.css`;
+API: `schemas.py`, `types.ts`. Ish: hero **1.5–2 kun**, qatorlar va hover **1 kun.**
+
+### 5. Film sahifasi
+
+Hozir backdrop 200px balandlikda va 55% shaffoflikda — deyarli ko'rinmaydi.
+
+- Backdrop **butun kenglikda hero**: desktop ~60vh (kamida 360px), mobil ~45vh, to'liq
+  shaffofliksiz; gradient pastga va chapga `--bg` ga o'tadi.
+- Poster hero'ning pastki chetiga ustma-ust tushadi; yonida nom (Playfair, katta),
+  chiplar, **match ring (qizil)**.
+- "Nega sizga?" bloki ring yonida/ostida, tavsifdan yuqorida (v1 qoidasi qoladi).
+- Amallar: Baholash va Watchlist — neytral kontur pill; mobil'da pastda sticky.
+- "Sizning ta'mingiz va shu film" taqqoslashi neytral: film — oq, siz — kulrang (hozir
+  qiymatga qarab qizil/oltin).
+- Backdrop yo'q bo'lsa: posterning o'zi kattalashtirilib, xira (blur) fon sifatida.
+- API o'zgarishi kerak emas: film sahifasida `backdrop_path` bor.
+
+Fayllar: `MoviePage.tsx`, `Traits.tsx`, `app.css`. Ish: **1 kun.**
+
+### 6. Movie DNA — imzo ekrani (Spotify Wrapped yo'nalishi)
+
+**14 o'lchovni ko'rsatish usullari:**
+
+| Usul | Baho |
+|---|---|
+| Progress barlar (hozir) | Aniq, lekin jadval kabi — imzo emas |
+| Radar (ko'pburchak) | Rad: qo'shni o'qlar orasidagi chiziq bog'liq bo'lmagan o'lchovlarni bog'langandek ko'rsatadi; shakl o'qlar tartibiga bog'liq |
+| Konstellyatsiya (yulduzlar) | Rad: chiroyli, lekin qiymatni o'qib bo'lmaydi |
+| DNA spirali | Rad: tashqi effekt, ma'lumot o'qilmaydi |
+| **Radial "DNA guli" — tavsiya** | Pastda |
+
+**Tavsiya — radial "DNA guli":** markazdan 14 ta nur (gulbarg), har biri bitta o'lchov.
+
+- **Uzunlik = qiymat** (0–100, chiziqli). Nurlar bir xil enli — to'ldirilgan sektor emas:
+  sektor yuzasi radius kvadratiga qarab o'sadi va kuchli o'lchovni bo'rttirib yuboradi.
+- **Har o'lchovning burchagi doimiy** (`traits.json` tartibida): har foydalanuvchida
+  "Syujet burilishi" bir joyda. Shuning uchun gul shakli — barmoq izidek: ikki odamning
+  DNA'sini bir qarashda solishtirsa bo'ladi, ulashishga arziydi.
+- Eng kuchli 3 ta nur — to'liq oq va yorlig'i yirik; qolganlari qiymatiga qarab xiraroq.
+- **Nega shunday:** (1) har foydalanuvchida o'ziga xos siluet — Wrapped'dagi "bu men"
+  hissi; (2) 14 tasi birdaniga, ro'yxatsiz ko'rinadi; (3) tabiiy animatsiya — nurlar
+  markazdan ketma-ket o'sib chiqadi; (4) halol — uzunlik chiziqli, raqamni qo'lda
+  tekshirsa bo'ladi.
+- Kutubxona kerak emas: qo'lda yozilgan SVG (14 ta `path`).
+
+**Rang:** DNA match emas, shuning uchun 1-bo'lim qoidasiga ko'ra **qizil yo'q** —
+monoxrom: qora fonda oq nurlar, xiralik qiymatga qarab. **Savol 1:** shunday qolsinmi,
+yoki DNA qoidadan istisno bo'ladimi? Tavsiya: monoxrom — qoida bitta istisnosiz kuchli.
+
+**Wrapped tuzilmasi:** sahifa vertikal "hikoya" bloklari, har biri scroll'da paydo bo'ladi:
+1. "Siz N ta film baholadingiz" — raqam sanalib chiqadi.
+2. "Eng kuchli tomoningiz: {trait}" — juda yirik matn.
+3. DNA guli ochiladi (nurlar ketma-ket o'sadi).
+4. Bir jumlalik xulosa (Playfair, kursiv).
+5. Statistika: o'rtacha baho, eng ko'p janr.
+6. Ulashish.
+
+**Ulashish rasmi:** brauzerda yasaladi — xuddi shu SVG + sarlavha + top-3 + ilova nomi
+`canvas` ga chiziladi (1080×1920, story formati), PNG; qo'llansa `navigator.share` (fayl
+bilan), aks holda yuklab olish. Server ham, ommaviy havola ham kerak emas, maxfiylik
+savoli yo'q — rasm foydalanuvchi o'zi ulashmaguncha qurilmadan chiqmaydi. TMDB rasmlari
+ishlatilmaydi. Shriftlar yuklangach chiziladi (`document.fonts.ready`). **Savol 4:**
+backlog'dagi FR-7 bandi "server tomonda rasm" deydi — brauzerdagi variantga
+almashtiramizmi? Tavsiya: ha.
+
+**Qulaylik:** SVG `role="img"` va xulosa `aria-label`; 14 ta qiymatning matnli ro'yxati
+("Raqamlar" tugmasi) — ekran o'quvchi va aniq qiymat kerak bo'lganlar uchun.
+
+API o'zgarishi kerak emas (`/me/dna` ballarni, sonni, o'rtacha bahoni, janrni beradi).
+
+Fayllar: `Dna.tsx`, yangi `components/DnaFlower.tsx`, `lib/shareImage.ts`, `app.css`.
+Ish: **2–3 kun** (testlari bilan).
+
+### 7. Harakat
+
+| Joy | Harakat | Davomiyligi |
+|---|---|---|
+| Sahifa o'tishlari | View Transitions API: React Router 7.18 dagi `viewTransition` (`Link`/`NavLink`). Qo'llamaydigan brauzer — oddiy o'tish | 200–250 ms |
+| Poster hover | `transform: scale(1.05)` + qatlam paydo bo'lishi | 200 ms |
+| Match foizi | 0 dan qiymatgacha sanaladi (`useCountUp`, `requestAnimationFrame`) | 600 ms |
+| Ring | Hozir bor (CSS `@property --p`) | 600 ms |
+| DNA guli | Nurlar markazdan ketma-ket o'sadi | 40 ms oraliq, jami ~900 ms |
+| Hero | Slaydlar crossfade | 400 ms |
+
+Qoidalar: faqat `transform` va `opacity` (layout emas); har animatsiya element birinchi
+paydo bo'lganda bir marta, har qayta chizishda emas.
+
+**`prefers-reduced-motion`:** CSS'da global qoida bor (`app.css`, barcha animatsiya va
+transition o'chadi). Lekin JS animatsiyalari (sanash, hero aylanishi, DNA ketma-ketligi) uni
+ko'rmaydi — ular uchun `usePrefersReducedMotion` hook: harakat o'rniga darhol oxirgi holat,
+hero avtomatik aylanmaydi. Testi: reduced-motion holatida darhol oxirgi raqam chiqadi.
+
+Kutubxona kerak emas (framer-motion/motion o'rnatilmaydi): CSS va ~40 qatorli hook yetadi.
+
+Ish: tegishli ekran bilan birga; umumiy qism (hook'lar, o'tishlar) **0.5 kun.**
+
+### 8. Yangi kutubxonalar
+
+| Nomi | Nima uchun | Litsenziya | Hajmi |
+|---|---|---|---|
+| `lucide-react` 1.49.0 | Ikonkalar | ISC, bepul | Diskda 35 MB; bundle'ga faqat ishlatilgan ikonkalar (o'rnatilgach o'lchanadi) |
+
+Boshqa hech narsa: animatsiya, grafik va rasm — qo'lda (CSS, SVG, canvas).
+
+### 9. Tartib — ekran-ekran
+
+Har qadam: alohida commit(lar), to'rt holat testlari saqlanadi, axe 0 buzilish, 320px da
+gorizontal scroll yo'q, reduced-motion tekshiruvi, keyin **skrinshot sizga** — tasdiqdan
+keyingina keyingi qadam.
+
+| # | Qadam | Ish |
+|---|---|---|
+| 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun |
+| 1 | Film sahifasi (backdrop hero) | 1 kun |
+| 2 | Home: poster qatorlari va hover | 1 kun |
+| 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
+| 4 | Movie DNA: gul, Wrapped tuzilmasi, ulashish rasmi | 2–3 kun |
+| 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun |
+
+Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinadigan
+o'zgarish (backdrop hozir eng katta isrof) — yangi qoidalarni bitta ekranda sinab
+ko'ramiz.
+
+### 10. Mobil paritet
+
+`apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali
+boshlanmagan (F6); savol 5 bo'yicha qiymatlar o'zgarsa, Dart fayli ham o'sha commit'da
+o'zgaradi. Rang qoidasi va ikonkalar Flutter'da ham amal qiladi (Flutter'da lucide'ning
+rasmiy porti bor — F6 da tanlanadi).
+
+### 11. Sizning qaroringiz kerak
+
+1. **DNA rangi:** monoxrom (tavsiya) yoki qizil qoidasidan istisno?
+2. **Asosiy amal tugmasi:** oq to'ldirilgan pill, ekranda bittadan (tavsiya), yoki hamma
+   tugmalar kontur?
+3. **Navigatsiya:** yon menyu + yuqori o'ngda qidiruv (tavsiya), yoki gorizontal yuqori
+   menyu?
+4. **DNA ulashish rasmi:** brauzerda (tavsiya) yoki serverda (FR-7 backlog'i)?
+5. **Neytral fon qiymatlari:** surface ranglarini toza kulrangga o'tkazamizmi?
+6. **`lucide-react` o'rnatishga ruxsat.**
+
+---
 
 ## Kod bilan bog'liqlik
 
