@@ -61,8 +61,8 @@ secret yo'q (`.github/workflows/gate.yml`).
    13 film Google xavfsizlik filtri bilan bloklanib almashtirildi, ro'yxat
    `docs/catalogue-500.md` da). Embedding 258 / 500: birinchi run Google serveri ulanishni
    uzgani bilan to'xtadi (`status=interrupted`, $0.0095 standart tarifda, bepul tarifda
-   $0). Oldin tuzatish: provayderning tarmoq xatolarini (`httpx.TransportError`)
-   `TransientError` ga o'girish (embedding, trait sync, `count_tokens`), keyin o'sha buyruq.
+   $0). Tarmoq xatolari (`httpx.TransportError`) endi `TransientError` (2026-10-02,
+   embedding, trait sync, `count_tokens`); qolgan 242 film — o'sha buyruq, tasdiq bilan.
 2. **F1: qolgan tekshiruvlar.** Embeddinglardan keyin: 5 filmning eng yaqin qo'shnilari
    ko'z bilan, "missing count = 0".
 3. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).

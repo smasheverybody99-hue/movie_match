@@ -11,6 +11,7 @@ dry runs work without GEMINI_API_KEY.
 from collections.abc import Sequence
 from typing import Any
 
+import httpx
 from google import genai
 from google.genai import errors, types
 
@@ -212,6 +213,11 @@ def retry_after(error: errors.APIError) -> float | None:
     return None
 
 
+# Failures below the API: the connection dropped, was refused or timed out, or the server
+# hung up without answering (httpx.RemoteProtocolError, 2026-10-01 embedding run). The
+# request may well succeed when sent again, so they are TransientError to the pipelines.
+NETWORK_ERRORS: tuple[type[BaseException], ...] = (httpx.TransportError, OSError, TimeoutError)
+
 # Errors that say "this account cannot do this", not "this film failed".
 _ACCOUNT_STATUSES = {"FAILED_PRECONDITION", "PERMISSION_DENIED", "UNAUTHENTICATED"}
 
@@ -263,8 +269,8 @@ class GeminiTraitScorer:
                 raise neutral from exc
             message = f"{exc.code} {exc.status}: {exc.message}"
             return TraitAnswer(key=request.key, text=None, error=f"refused: {message}")
-        except TimeoutError as exc:
-            raise TransientError(f"timed out: {exc}") from exc
+        except NETWORK_ERRORS as exc:
+            raise TransientError(f"network: {type(exc).__name__}: {exc}") from exc
         return read_response(request.key, response)
 
 
@@ -332,8 +338,8 @@ class GeminiEmbedder:
             )
         except errors.APIError as exc:
             raise (neutral_error(exc) or exc) from exc
-        except TimeoutError as exc:
-            raise TransientError(f"timed out: {exc}") from exc
+        except NETWORK_ERRORS as exc:
+            raise TransientError(f"network: {type(exc).__name__}: {exc}") from exc
         embeddings = response.embeddings or []
         if len(embeddings) != 1 or not embeddings[0].values:
             raise ValueError(f"expected one embedding, got {len(embeddings)}")
@@ -343,7 +349,9 @@ class GeminiEmbedder:
         """Tokens in `content` by the free count_tokens call; None if it cannot say."""
         try:
             counted = await self._client().models.count_tokens(model=self.model, contents=content)
-        except (errors.APIError, TimeoutError):
+        except errors.APIError:
+            return None  # counting is a nicety: never let it stop a run
+        except NETWORK_ERRORS:
             return None
         return counted.total_tokens
 

@@ -59,6 +59,13 @@ more paid attempts or account support. A path that works exists today.
    `count_tokens` call and the line says `tokens=reported`; only if counting fails does
    it fall back to characters / 3.5 and say `estimated` (that estimate ran 34% high on
    the one film measured: 187 counted vs 250).
+8. **Network failures are transient** (2026-10-02). The first embedding run stopped at
+   258 of 500 when Google's server hung up (`httpx.RemoteProtocolError`): only API errors
+   and timeouts were translated, so neither the retry nor the reconnect caught it. The
+   Gemini provider now turns `httpx.TransportError`, `OSError` and `TimeoutError` into
+   `TransientError` on the trait and embedding calls, so `call_with_retries` waits and
+   sends the request again; in `count_tokens` the same failures fall back to the
+   estimate instead of ending the run.
 
 **Costs and trade-offs.**
 

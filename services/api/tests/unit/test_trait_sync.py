@@ -4,6 +4,7 @@ over a fake SDK. The provider-neutral part never sees a vendor type."""
 from types import SimpleNamespace
 from typing import Any
 
+import httpx
 import pytest
 from google.genai import errors, types
 
@@ -246,3 +247,33 @@ def test_a_blocked_batch_item_is_final_too() -> None:
     )
     assert read_answer(blocked).final is True
     assert read_answer(errored).final is False
+
+
+# --- network-level failures --------------------------------------------------------------
+
+
+async def test_a_network_failure_is_transient_and_the_retry_succeeds() -> None:
+    """The scorer turns a dropped connection into TransientError; call_with_retries then
+    sends the same request again and the film is scored."""
+    request_ = httpx.Request("POST", "https://generativelanguage.googleapis.com/")
+
+    class DropsOnce(FakeModels):
+        def __init__(self) -> None:
+            super().__init__(_response(VALID))
+            self.dropped = False
+
+        async def generate_content(self, **kwargs: Any) -> Any:
+            self.calls.append(kwargs)
+            if not self.dropped:
+                self.dropped = True
+                raise httpx.RemoteProtocolError("Server disconnected", request=request_)
+            return self.outcome
+
+    models = DropsOnce()
+    scorer = GeminiTraitScorer(Settings(_env_file=None), sdk=SimpleNamespace(models=models))
+    sleep = Sleeps()
+    answer = await call_with_retries(
+        lambda: scorer.score(build_request(FILM)), retries=2, base_delay=6, sleep=sleep
+    )
+    assert answer.text == VALID
+    assert len(models.calls) == 2 and sleep.waits == [6]

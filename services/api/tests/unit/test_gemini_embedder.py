@@ -7,6 +7,7 @@ Gemini errors come out as the provider-neutral ones; tokens come from count_toke
 from types import SimpleNamespace
 from typing import Any
 
+import httpx
 import pytest
 from google.genai import errors, types
 
@@ -174,3 +175,35 @@ def test_a_size_the_model_cannot_produce_is_refused(dim: int) -> None:
 async def test_without_a_key_the_first_real_call_says_so() -> None:
     with pytest.raises(SystemExit, match="GEMINI_API_KEY"):
         await GeminiEmbedder(NO_KEY, EMBEDDING_DIM).embed(["alpha"])
+
+
+# --- network-level failures (2026-10-01: the server hung up mid-run) ---------------------
+
+_REQUEST = httpx.Request("POST", "https://generativelanguage.googleapis.com/")
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        httpx.RemoteProtocolError(
+            "Server disconnected without sending a response.", request=_REQUEST
+        ),
+        httpx.ConnectError("connection refused", request=_REQUEST),
+        httpx.ReadTimeout("read timed out", request=_REQUEST),
+        ConnectionResetError("connection reset by peer"),
+    ],
+    ids=["server-hung-up", "connect", "read-timeout", "reset"],
+)
+async def test_a_network_failure_is_transient_so_the_pipeline_retries(failure: Exception) -> None:
+    with pytest.raises(TransientError, match="network"):
+        await _embedder(FakeModels(failure=failure)).embed(["alpha"])
+
+
+async def test_a_network_failure_while_counting_falls_back_to_the_estimate() -> None:
+    class CountDrops(FakeModels):
+        async def count_tokens(self, *, model: str, contents: str) -> Any:
+            raise httpx.RemoteProtocolError("Server disconnected", request=_REQUEST)
+
+    embedded = await _embedder(CountDrops()).embed(["alpha"])
+    assert len(embedded.vectors) == 1  # the run goes on
+    assert embedded.usage.estimated is True

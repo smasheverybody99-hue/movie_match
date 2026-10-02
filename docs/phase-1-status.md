@@ -162,10 +162,11 @@ $0.0095 at the standard rate, $0 on the free tier; 184 tokens per film, counted 
 the 20 the pacing allows: each film is an embedding call, a count call and a commit to
 the database in Singapore.
 
-**Gap found:** network-level errors from the provider (`httpx.TransportError`) are not
-translated to `TransientError`, so neither the retry nor the reconnect caught this one;
-the same gap exists on the sync trait path and in `count_tokens`. To fix before the
-remaining **242** films are embedded (the same command continues with them).
+**Gap found and fixed (2026-10-02):** network-level errors from the provider
+(`httpx.TransportError`) were not translated to `TransientError`, so neither the retry nor
+the reconnect caught this one; the same gap was on the sync trait path and in
+`count_tokens`. They are now transient (ADR 0006, item 8), with tests. The remaining
+**242** films continue with the same command.
 
 **Now:** traits 500/500, embeddings 258/500. Nearest neighbours and the "missing count
 must be 0" check follow the embeddings.
