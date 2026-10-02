@@ -34,7 +34,10 @@ export const ru: Record<MessageKey, Message> = {
   "common.matchBadge": "{n}%",
   "common.matchLabel": "Совпадение {n}%",
   "common.poster": "Постер фильма «{title}»",
-  "common.matchWord": "СХОДСТВО", // inside the match ring: ~65px at 9px, "СОВПАДЕНИЕ" does not fit
+  // Inside the match ring (~65px at 9px), where "СОВПАДЕНИЕ" does not fit. Not a
+  // translation of "match": it means "similarity". If the ring grows, go back to
+  // "СОВПАДЕНИЕ" (user, 2026-10-02).
+  "common.matchWord": "СХОДСТВО",
   "common.loading": "Загрузка",
 
   "welcome.tagline":
