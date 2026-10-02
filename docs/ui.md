@@ -17,8 +17,8 @@ belgilanadi.
 
 ## Dizayn brifi v2 — "jasur va zamonaviy"
 
-Holat: **taklif, foydalanuvchi tasdig'ini kutmoqda** (2026-10-02). Kod yozilmagan.
-Tasdiqdan keyin ekran-ekran, bosqichma-bosqich qilinadi (9-bo'lim), hammasi birdan emas.
+Holat: **tasdiqlangan** (foydalanuvchi, 2026-10-02; qarorlar 11-bo'limda). Ekran-ekran,
+bosqichma-bosqich qilinadi (9-bo'lim), hammasi birdan emas.
 
 ### 0. Manbalar va ularning o'rni
 
@@ -45,7 +45,7 @@ Yangi rang qo'shilmaydi: hamma narsa `apps/web/src/styles/tokens.css` dagi token
 | Token | Hozirgi vazifasi (v1) | v2 dagi vazifasi |
 |---|---|---|
 | `--bg` `#0a0a0f` | Ekran foni | O'zgarmaydi: chuqur qora fon |
-| `--surface`, `--surface-2`, `--line` | Kartalar, inputlar, chegaralar | Neytral chrome. **Savol 5:** qiymatlari biroz ko'k-binafsha (`#16161f`); toza kulrangga (`#161616` / `#1f1f1f` / `#2a2a2a`) o'tkazilsinmi? Bu yangi rang emas, qiymat o'zgarishi; Flutter tokenlari ham o'zgaradi |
+| `--surface`, `--surface-2`, `--line` | Kartalar, inputlar, chegaralar | Neytral chrome, **toza kulrang** (qaror 5): tus yo'q, R = G = B |
 | `--text`, `--muted`, `--faint` | Matn | O'zgarmaydi. Oddiy tugmalarning konturi ham shulardan |
 | `--red` | Asosiy tugma, faol nav, tanlangan chip, input fokus, kuchli trait bar, progress nuqtalari, tanlangan poster, ring | **Faqat match:** ring, foiz badge'i, hero'dagi foiz |
 | `--red-dark` | Skip-link, tanlangan chip, onboarding belgisi | Ishlatilmaydi (token qoladi; F7 da kerak bo'lishi mumkin) |
@@ -59,24 +59,22 @@ tanlangan poster va uning belgisi); ring qoladi. Oltin 11 joyda, match'ga tegish
 
 **Tugmalar:** pill shaklida (to'liq radius). Oddiy tugmalar (watchlist, baho, ulashish) —
 **neytral kontur**: shaffof fon, `--muted` chegara, oq matn; hover'da chegara `--text`
-ga. **Savol 2:** ekrandagi bitta asosiy amal (onboarding "Davom etish", kirish) uchun —
-oq bilan to'ldirilgan pill (qora matn), yoki u ham kontur? Tavsiya: oq to'ldirilgan,
-ekranda bittadan ko'p emas; glow yo'q.
+ga. Ekrandagi bitta asosiy amal (onboarding "Davom etish", kirish) — oq bilan to'ldirilgan
+pill, qora matn, ekranda bittadan ko'p emas, glow yo'q (qaror 2).
 
 **Chiplar:** yil, davomiylik, janr — neytral pill chip (`--surface-2` fon, `--muted`
 matn). Tanlangan filtr chipi: oq fon, qora matn (qizil emas).
 
 **Fokus:** 2px oq kontur (hozir oltin). Qora fonda eng yuqori kontrast.
 
-Fayllar: `tokens.css` (faqat savol 5 bo'yicha), `app.css`. Ish: **0.5 kun.**
+Fayllar: `tokens.css` va `tokens.dart` (neytral qiymatlar), `app.css`. Ish: **0.5 kun.**
 
 ### 2. Ikonkalar — emoji butunlay olib tashlanadi
 
 **Kutubxona: `lucide-react`** — versiya 1.49.0, litsenziya **ISC** (bepul, tijorat
 uchun ham), `sideEffects: false` — bundle'ga faqat import qilingan ikonkalar kiradi.
 `node_modules` dagi hajmi 35 MB (diskda, bundle'da emas). Bundle'ga ta'siri o'rnatilgandan
-keyin o'lchanadi: hozir asosiy JS 604 KB. Taxmin: ~20 ikonka, bir necha KB (o'lchanmagan).
-O'rnatish — CLAUDE.md bo'yicha **sizning ruxsatingiz bilan**.
+keyin o'lchanadi: hozir asosiy JS 604 KB. O'rnatishga ruxsat berildi (qaror 6).
 
 Hozirgi emoji va belgilar (12 joy) va ularning o'rni:
 
@@ -101,10 +99,8 @@ Fayllar: `Layout.tsx`, `MoviePage.tsx`, `Watchlist.tsx`, `Onboarding.tsx`, `Dna.
 
 ### 3. Qobiq: navigatsiya va qidiruv
 
-- **Navigatsiya:** hozirgi chap yon menyu qoladi (siz aytgansiz: "Yon menyu qoladi"),
-  emoji o'rniga ikonkalar. Mobil'da pastki panel, ikonka + yorliq. **Savol 3:** NOXX
-  uslubidagi gorizontal yuqori menyuga o'tamizmi? Tavsiya: yo'q — yon menyu tayyor va
-  sizning oldingi qaroringiz.
+- **Navigatsiya:** hozirgi chap yon menyu qoladi (qaror 3), emoji o'rniga ikonkalar.
+  Mobil'da pastki panel, ikonka + yorliq.
 - **Qidiruv maydoni yuqori o'ngda:** dumaloq (pill), yorqin — `--text` fon, qora matn,
   `Search` ikonkasi. Qora fonda eng kuchli kontrast. Yozish `/search?q=` ga olib o'tadi.
   Mobil'da — yuqori panelda ikonka, bosilganda maydon ochiladi.
@@ -193,8 +189,8 @@ Fayllar: `MoviePage.tsx`, `Traits.tsx`, `app.css`. Ish: **1 kun.**
 - Kutubxona kerak emas: qo'lda yozilgan SVG (14 ta `path`).
 
 **Rang:** DNA match emas, shuning uchun 1-bo'lim qoidasiga ko'ra **qizil yo'q** —
-monoxrom: qora fonda oq nurlar, xiralik qiymatga qarab. **Savol 1:** shunday qolsinmi,
-yoki DNA qoidadan istisno bo'ladimi? Tavsiya: monoxrom — qoida bitta istisnosiz kuchli.
+monoxrom (qaror 1): qora fonda oq nurlar, lekin **yassi oq emas** — har nurning
+yorqinligi qiymatiga qarab o'zgaradi. Ekranning kuchi harakat va yirik tipografikadan.
 
 **Wrapped tuzilmasi:** sahifa vertikal "hikoya" bloklari, har biri scroll'da paydo bo'ladi:
 1. "Siz N ta film baholadingiz" — raqam sanalib chiqadi.
@@ -208,9 +204,8 @@ yoki DNA qoidadan istisno bo'ladimi? Tavsiya: monoxrom — qoida bitta istisnosi
 `canvas` ga chiziladi (1080×1920, story formati), PNG; qo'llansa `navigator.share` (fayl
 bilan), aks holda yuklab olish. Server ham, ommaviy havola ham kerak emas, maxfiylik
 savoli yo'q — rasm foydalanuvchi o'zi ulashmaguncha qurilmadan chiqmaydi. TMDB rasmlari
-ishlatilmaydi. Shriftlar yuklangach chiziladi (`document.fonts.ready`). **Savol 4:**
-backlog'dagi FR-7 bandi "server tomonda rasm" deydi — brauzerdagi variantga
-almashtiramizmi? Tavsiya: ha.
+ishlatilmaydi. Shriftlar yuklangach chiziladi (`document.fonts.ready`). Server varianti
+FR-7 backlog'ida link preview uchun qoladi (qaror 4).
 
 **Qulaylik:** SVG `role="img"` va xulosa `aria-label`; 14 ta qiymatning matnli ro'yxati
 ("Raqamlar" tugmasi) — ekran o'quvchi va aniq qiymat kerak bo'lganlar uchun.
@@ -277,16 +272,18 @@ boshlanmagan (F6); savol 5 bo'yicha qiymatlar o'zgarsa, Dart fayli ham o'sha com
 o'zgaradi. Rang qoidasi va ikonkalar Flutter'da ham amal qiladi (Flutter'da lucide'ning
 rasmiy porti bor — F6 da tanlanadi).
 
-### 11. Sizning qaroringiz kerak
+### 11. Qarorlar (foydalanuvchi, 2026-10-02)
 
-1. **DNA rangi:** monoxrom (tavsiya) yoki qizil qoidasidan istisno?
-2. **Asosiy amal tugmasi:** oq to'ldirilgan pill, ekranda bittadan (tavsiya), yoki hamma
-   tugmalar kontur?
-3. **Navigatsiya:** yon menyu + yuqori o'ngda qidiruv (tavsiya), yoki gorizontal yuqori
-   menyu?
-4. **DNA ulashish rasmi:** brauzerda (tavsiya) yoki serverda (FR-7 backlog'i)?
-5. **Neytral fon qiymatlari:** surface ranglarini toza kulrangga o'tkazamizmi?
-6. **`lucide-react` o'rnatishga ruxsat.**
+1. **DNA rangi: monoxrom.** Shart: yassi oq emas — har nurning yorqinligi qiymatiga qarab
+   o'zgaradi. Ekranning kuchi harakatdan va yirik tipografikadan keladi, rangdan emas.
+2. **Asosiy amal tugmasi: oq to'ldirilgan pill, ekranda bittadan.** Glow yo'q.
+3. **Navigatsiya: yon menyu qoladi**, qidiruv yuqori o'ngda.
+4. **DNA ulashish rasmi: brauzerda.** Server varianti FR-7 backlog'ida qoladi — keyin link
+   preview uchun kerak (TZ 1.11).
+5. **Fon: toza kulrang.** Tusli fon "rangni posterlar beradi" qoidasiga qarshi ishlaydi.
+   Barcha neytral tokenlar (fon, surface, chiziq, ikkilamchi matn) tussiz kulrangga
+   o'tadi; `tokens.dart` o'sha commit'da.
+6. **`lucide-react`: ruxsat berildi.**
 
 ---
 
