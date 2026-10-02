@@ -18,6 +18,7 @@ build/
 # node
 node_modules/
 apps/web/dist/
+*.tsbuildinfo
 apps/web/coverage/
 *.local
 npm-debug.log*
