@@ -3,6 +3,13 @@
 Retrieval only: candidates come back with their trait vectors attached so Phase 2 can
 rank them by trait distance. Distance is pgvector cosine distance (`<=>`), served by the
 HNSW index on movie_embeddings.
+
+Use the order, never an absolute cut-off. With Gemini Embedding 2 on the 500-film
+catalogue (2026-10-02) every pair of films lies between 0.075 and 0.370; the 1st
+percentile is 0.198, the median 0.275, the 99th percentile 0.334. "Similar if below 0.2"
+would keep about 1% of pairs and most films would have no neighbour at all. The numbers
+also move with the model, the embedding text and the catalogue
+(docs/phase-1-status.md, "Nearest neighbours").
 """
 
 from dataclasses import dataclass

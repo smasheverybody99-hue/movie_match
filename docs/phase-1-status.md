@@ -1,8 +1,8 @@
 # Phase 1 — status
 
-Last updated: 2026-10-02 · Phase: **1 (data foundation). Data for the 500-film list
-complete: traits 500/500, embeddings 500/500, missing count 0. Nearest neighbours of 5
-films shown to the user; verdict pending**
+Last updated: 2026-10-02 · Phase: **1 (data foundation). Data part closed for the
+500-film list:** traits 500/500, embeddings 500/500, missing count 0, nearest-neighbour
+check passed (user, 2026-10-02). One known issue, below
 
 Phase prompt: `docs/prompts/phase-01-data.md`. Adjustments for this run (from the user):
 catalogue of 5,000 not 20,000 (TZ v1.2 now says the same); TMDB ingestion run for real;
@@ -19,7 +19,7 @@ prompt makes the manual checklist part of the phase:
 | Every film has a trait vector and an embedding (missing count must be 0) | **Done for the 500-film list** (2026-10-02, read-only query below): 0 missing traits, 0 missing embeddings. The other 4,500 ingested films have neither, as TZ 1.5 plans |
 | Run the pipeline on real films; report cost and time | **Stage 1 done** (2026-10-01): 50 films, 50 stored, 0 failed. Below |
 | 50-film hand review; no more than 5 clearly wrong | **Passed** (2026-10-01): 3 of 50 disputed, limit 5. Below |
-| Nearest neighbours of 5 films, checked by eye | **Shown to the user** (2026-10-02, below); verdict pending |
+| Nearest neighbours of 5 films, checked by eye | **Passed** (user, 2026-10-02). Known issue: studio clustering on Spirited Away, below |
 | Measured cost per 1,000 films | **Measured**: traits 380 in / 195 out tokens per film; embeddings 182 tokens per film. Below |
 
 The phase report's items 2–4 (review table and verdict, measured cost, trait definitions
@@ -203,10 +203,47 @@ filters), first 8 of the 500. Films from the review list, one per genre:
 | John Wick (2014) | The Raid 2 0.181, Pulp Fiction 0.183, Léon: The Professional 0.184, Kill Bill: Vol. 1 0.185, Game of Death 0.196, Vengeance (2026) 0.201, Hard Boiled 0.203, Mutiny (2026) 0.204 |
 | Arrival (2016) | Project Hail Mary 0.185, Inception 0.186, 2001: A Space Odyssey 0.188, Interstellar 0.192, Stalker 0.194, Alien 0.195, Blade Runner 2049 0.198, Dune 0.198 |
 
-**Verdict: the user's, pending.** Observations, not a verdict: Spirited Away's eight are
-all Studio Ghibli; The Notebook pulls in Forrest Gump and Shawshank (period drama of the
-same years) next to the romances; the distances are close together (0.15–0.23), so the
-order inside the top 8 says little.
+**Verdict (user, 2026-10-02): passed.**
+
+- John Wick, Arrival, Fight Club: right.
+- The Notebook: one wrong neighbour of 8, *The Shawshank Redemption* (not a romance).
+  Borderline, passes.
+- Spirited Away: all 8 are Studio Ghibli. Passes, but is a **known issue** (next).
+
+### Known issue: studio clustering (Spirited Away) — look at it again in the F2 manual check
+
+The user expected films like *Pan's Labyrinth* or *Coraline* among Spirited Away's
+neighbours. Both are in the 500. Exact ranks (all 499 distances, computed in SQL without
+the index, 2026-10-02):
+
+| | Rank of 499 | Distance |
+|---|---|---|
+| Ghibli films | 1–9 (the 8 shown, then *The Cat Returns*) | 0.153–0.174 |
+| First non-Ghibli: *Harry Potter and the Philosopher's Stone* | 10 | 0.178 |
+| *Coraline* | 15 | 0.186 |
+| *Pan's Labyrinth* | 56 | 0.222 |
+
+What the embedding text holds (`build_embedding_text`): title and year, genres, keywords,
+overview, the trait summary. **No studio or director field**, and no keyword among the
+500 contains "ghibli" or "miyazaki". So the studio is not named; what the Ghibli films
+share is the genre line (*Animation, Family, Fantasy*), the keyword *anime*, similar
+keywords (*witch*, *magic*, *flying*), and whatever the model knows about the titles.
+*Pan's Labyrinth* is not *Animation* at all, which fits its rank. Hypothesis, not tested:
+animation and anime markers outweigh the content.
+
+To look at in the F2 manual check (recommendations rank by traits after the embedding
+proposes candidates, so the effect there may be smaller). Possible directions, none
+chosen: put the trait summary first, drop the genre line, or rank by traits more
+heavily. Any change to the text means embedding all films again.
+
+### Distances are compressed: use the order, not a threshold
+
+All 124,750 pairs of the 500 films: min 0.075, 1st percentile 0.198, **median 0.275**,
+99th percentile 0.334, max 0.370. One film's neighbours (Spirited Away): 0.153 to 0.331.
+So an absolute cut-off does not work: "similar below 0.2" would keep about 1% of pairs.
+Only the relative order is meaningful, and these numbers change with the model, the text
+and the catalogue. The same note is in `app/services/similarity.py`, where a "similar
+films" feature would add one.
 
 ## Where things stand
 

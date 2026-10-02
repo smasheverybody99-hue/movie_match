@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-02 · F1 ma'lumoti 500 film uchun to'liq · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -11,7 +11,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | Faza | Holat |
 |---|---|
 | F0 — Poydevor | **Tugagan** (`b2a4d35`, gate o'tgan) |
-| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich: traitlar 500 / 500 (13 film Google filtri bilan bloklanib almashtirildi); 2-bosqich ≈ $0.28 standart tarifda, bepul tarifda $0. Embedding 500 / 500 (ikki run, $0.0182 standart, bepul tarifda $0); missing count 0. 5 filmning qo'shnilari foydalanuvchiga ko'rsatildi, xulosa kutilmoqda |
+| F1 — Ma'lumot va Movie DNA | **Kod tugagan, ma'lumot chala.** 1-bosqich bajarildi (2026-10-01): 50 film trait oldi (sync, 0 yiqildi), qo'lda ko'rik **o'tdi** — 50 dan 3 tasi bahsli, chegara 5. 2-bosqich: traitlar 500 / 500 (13 film Google filtri bilan bloklanib almashtirildi); 2-bosqich ≈ $0.28 standart tarifda, bepul tarifda $0. Embedding 500 / 500 (ikki run, $0.0182 standart, bepul tarifda $0); missing count 0. Qo'shnilar ko'rigi **o'tdi** (2026-10-02). **Ma'lumot qismi yopildi.** Ma'lum muammo: Spirited Away qo'shnilari studiya bo'yicha to'planadi (F2 qo'lda tekshiruvida qaraladi) |
 | F2 — Tavsiya dvigateli | **Kod tugagan va `main` da, qo'lda tekshiruv chala.** Gate yashil. Qo'lda tekshiruv F1 ma'lumotini talab qiladi |
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | F4 va keyingilari | Boshlanmagan |
@@ -37,9 +37,11 @@ secret yo'q (`.github/workflows/gate.yml`).
    qator. Variantlar narxi bilan: `docs/costs.md`. Agar tanlangan provayderning
    embeddingi 1 536 o'lchamli bo'lmasa — migratsiya va qayta embed kerak (API bu holatda
    ishga tushmaydi, xato matni yo'lni aytadi).
-2. **F1: qo'shnilar xulosasi.** Traitlar va embeddinglar 500 / 500, missing count 0
-   (2026-10-02). 5 filmning eng yaqin qo'shnilari (`docs/phase-1-status.md`) —
-   foydalanuvchining ko'z bilan bahosi kutilmoqda.
+2. **F1: ma'lum muammo — studiya to'planishi.** Spirited Away'ning 9 ta eng yaqin
+   qo'shnisi Ghibli; Coraline 15-o'rinda, Pan's Labyrinth 56-o'rinda. Embedding matnida
+   studiya maydoni yo'q. F2 qo'lda tekshiruvida alohida qaraladi
+   (`docs/phase-1-status.md`). Masofalar siqilgan (median 0.275): absolyut chegara
+   ishlamaydi, faqat tartib.
 3. **F1: 50 filmlik ko'rik — o'tdi** (2026-10-01): 47 ok, 3 bahsli (Titanic action,
    Shawshank plot_twist, Frozen romance), chegara 5. Tafsilot: `docs/phase-1-status.md`.
 4. **F2: qo'lda tekshiruv.** 30 ta baho qo'yib tavsiyalarni o'qish; bitta match'ni qo'lda
@@ -58,11 +60,9 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **F1: qo'shnilar bo'yicha foydalanuvchi xulosasi.** Shundan keyin F1 ma'lumot qismi
-   yopiladi.
-2. **Til masalasi** (ingliz asosiy, uz/ru qo'shimcha) — foydalanuvchi bilan kelishilgan
+1. **Til masalasi** (ingliz asosiy, uz/ru qo'shimcha) — foydalanuvchi bilan kelishilgan
    keyingi mavzu.
-3. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
+2. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## Muhit
 
