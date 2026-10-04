@@ -32,7 +32,7 @@ export function TraitBar({ trait, value }: { trait: TraitKey; value: number }) {
   );
 }
 
-/** The key to the two dots on a TraitAxis: you grey, the film white. Decorative. */
+/** The key to the two dots on a TraitAxis: you a filled circle, the film an outlined one. */
 export function AxisLegend() {
   const t = useT();
   return (
@@ -43,11 +43,31 @@ export function AxisLegend() {
   );
 }
 
+/** The least distance between the two dots' centres, in px: a 12px dot plus 8px clear. */
+export const DOT_GAP = 20;
+
 /**
- * One trait on one 0-100 axis: the user's taste as a grey dot, the film as a white one,
- * the distance between them as a line. Both numbers are printed too; screen readers get
- * them as words. A taste not known yet (null) leaves its dot out rather than at 0, so the
- * dot appears instead of jumping.
+ * Where the two dots sit on the axis, as CSS lengths. Each sits at its value unless the
+ * two would be closer than DOT_GAP px on screen; then both move apart from their midpoint
+ * to exactly DOT_GAP, and stay inside the axis. Pure CSS (min/max/clamp), so it holds at
+ * any width without measuring. The true values stay in the printed numbers and the label.
+ */
+export function axisPositions(you: number, film: number): { you: string; film: string } {
+  const lo = Math.min(you, film);
+  const hi = Math.max(you, film);
+  const mid = (lo + hi) / 2;
+  const half = DOT_GAP / 2;
+  const low = `clamp(0px, min(${lo}%, ${mid}% - ${half}px), 100% - ${DOT_GAP}px)`;
+  const high = `clamp(${DOT_GAP}px, max(${hi}%, ${mid}% + ${half}px), 100%)`;
+  return you <= film ? { you: low, film: high } : { you: high, film: low };
+}
+
+/**
+ * One trait on one 0-100 axis: the user's taste as a filled dot with its number above,
+ * the film as an outlined dot with its number below, the distance between them as a line.
+ * Shape, not shade, tells them apart: both are white. A number near 0 or 100 is pushed
+ * inwards so it stays inside. Screen readers get one label with both values. A taste not
+ * known yet (null) leaves its dot out rather than drawing it at 0.
  */
 export function TraitAxis({
   trait,
@@ -61,29 +81,28 @@ export function TraitAxis({
   const t = useT();
   const you = taste === null ? null : Math.round(taste);
   const it = Math.round(film);
+  const name = t(traitLabelKey(trait));
+  const values = [
+    ...(you === null ? [] : [`${t("movie.compareYou")} ${you}`]),
+    `${t("movie.compareFilm")} ${it}`,
+  ].join(", ");
+  const at = you === null ? { film: `${it}%` } : axisPositions(you, it);
+  const style = { "--film": at.film, ...("you" in at ? { "--you": at.you } : {}) } as CSSProperties;
   return (
     <div className="axis-row" data-testid={`axis-${trait}`}>
-      <div className="axis-label">
-        <span>{t(traitLabelKey(trait))}</span>
-        <span className="axis-values">
-          <span className="key-you">
-            <span className="visually-hidden">{t("movie.compareYou")} </span>
-            {you ?? "–"}
-          </span>
-          <span className="key-film">
-            <span className="visually-hidden">{t("movie.compareFilm")} </span>
-            {it}
-          </span>
-        </span>
-      </div>
-      <div className="axis" aria-hidden="true">
+      <span className="axis-name" aria-hidden="true">
+        {name}
+      </span>
+      <div className="axis-plot" role="img" aria-label={`${name}: ${values}`} title={values} style={style}>
         {you !== null && (
           <>
-            <i className="axis-gap" style={{ left: `${Math.min(you, it)}%`, width: `${Math.abs(it - you)}%` }} />
-            <i className="axis-dot you" data-value={you} style={{ left: `${you}%` }} />
+            <span className="axis-num you">{you}</span>
+            <i className="axis-gap" />
+            <i className="axis-dot you" data-value={you} />
           </>
         )}
-        <i className="axis-dot film" data-value={it} style={{ left: `${it}%` }} />
+        <i className="axis-dot film" data-value={it} />
+        <span className="axis-num film">{it}</span>
       </div>
     </div>
   );
@@ -112,7 +131,11 @@ export function MatchRing({ value, size }: { value: number; size?: number }) {
   return (
     <div className="ring" style={style} data-p={shown} role="img" aria-label={t("common.matchLabel", { n: value })}>
       <div className="ring-inner" aria-hidden="true">
-        <span className="ring-value">{counted}%</span>
+        {/* A hidden copy of the final value fixes the box's width, so the count never moves it. */}
+        <span className="ring-value">
+          <span className="ring-ghost">{value}%</span>
+          <span className="ring-count">{counted}%</span>
+        </span>
         <span className="ring-label">{t("common.matchWord")}</span>
       </div>
     </div>

@@ -269,30 +269,46 @@ select.field { appearance: auto; }
 .bar .band-medium { background: var(--muted); }
 .bar .band-weak { background: var(--faint); }
 
-/* Taste and film on one 0-100 axis: you a grey dot, the film a white one, the gap a line.
-   Neutral on purpose: red is the match's. The dots sit inside the axis's 7px inset. */
+/* Taste and film on one 0-100 axis. Shape tells them apart, both white (red is the match's):
+   you a filled dot with your number above it, the film an outlined dot with its number
+   below. Positions come from TraitAxis as --you / --film (CSS lengths; close dots are
+   pushed DOT_GAP px apart there). Numbers: Inter, tabular, plain zero. */
 .axis-legend { display: flex; gap: var(--space-3); margin: 0; font-size: 12px; color: var(--muted); }
 .key-you, .key-film { display: inline-flex; align-items: center; gap: 6px; }
-.key-you::before, .key-film::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
-.key-you::before { background: var(--muted); }
-.key-film::before { background: var(--text); }
-.axis-row { display: grid; gap: var(--space-2); }
-.axis-label { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); font-size: 14px; }
-.axis-values { display: flex; gap: 12px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.axis-values .key-you { color: var(--muted); }
-.axis-values .key-film { color: var(--text); }
-.axis { position: relative; height: 14px; margin: 0 7px; }
-.axis::before {
-  content: ""; position: absolute; left: -7px; right: -7px; top: 6px; height: 2px;
+.key-you::before, .key-film::before {
+  content: ""; width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box;
+}
+.key-you::before { background: var(--text); }
+.key-film::before { border: 2px solid var(--text); }
+.axis-row {
+  display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
+  gap: var(--space-3); align-items: center;
+}
+.axis-name { font-size: 14px; line-height: 1.25; }
+.axis-plot { position: relative; height: 48px; margin: 0 6px; }
+.axis-plot::before {
+  content: ""; position: absolute; left: -6px; right: -6px; top: 23px; height: 2px;
   border-radius: 2px; background: var(--line);
 }
-.axis-gap { position: absolute; top: 6px; height: 2px; background: var(--faint); }
-.axis-dot {
-  position: absolute; top: 0; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--surface);
+.axis-gap {
+  position: absolute; top: 23px; height: 2px; background: var(--faint);
+  left: min(var(--you), var(--film));
+  width: calc(max(var(--you), var(--film)) - min(var(--you), var(--film)));
 }
-.axis-dot.you { background: var(--muted); }
-.axis-dot.film { background: var(--text); }
+.axis-dot {
+  position: absolute; top: 18px; width: 12px; height: 12px; margin-left: -6px;
+  border-radius: 50%; box-sizing: border-box;
+}
+.axis-dot.you { left: var(--you); background: var(--text); }
+.axis-dot.film { left: var(--film); border: 2px solid var(--text); background: var(--surface); }
+/* Centred on its dot; near 0 or 100 pushed inwards by half its width so it stays inside. */
+.axis-num {
+  position: absolute; transform: translateX(-50%);
+  font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text);
+  font-variant-numeric: tabular-nums; font-feature-settings: "zero" 0;
+}
+.axis-num.you { top: 0; left: clamp(12px, var(--you), 100% - 12px); }
+.axis-num.film { bottom: 0; left: clamp(12px, var(--film), 100% - 12px); font-weight: 500; }
 
 .ring {
   --size: 84px;
@@ -304,7 +320,10 @@ select.field { appearance: auto; }
   width: 80%; height: 80%; border-radius: 50%; background: var(--surface);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.ring-value { font-family: var(--font-head); font-weight: 800; font-size: calc(var(--size) * .25); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ring-value { display: grid; font-family: var(--font-head); font-weight: 800; font-size: calc(var(--size) * .25); line-height: 1.1; font-variant-numeric: tabular-nums; }
+/* Both in one cell: the hidden final value sets the width, the count is centred in it. */
+.ring-ghost, .ring-count { grid-area: 1 / 1; text-align: center; }
+.ring-ghost { visibility: hidden; }
 .ring-label { font-size: max(9px, calc(var(--size) * .09)); letter-spacing: .08em; color: var(--muted); }
 @supports (transition-property: --p) {
   @property --p { syntax: "<number>"; inherits: false; initial-value: 0; }
@@ -388,18 +407,20 @@ select.field { appearance: auto; }
 }
 @media (min-width: 640px) {
   .film-hero {
-    height: max(360px, 60vh);
+    height: clamp(360px, 60vh, 440px);
     margin-top: calc(-1 * (var(--space-4) + var(--page-top-h)));
   }
 }
 
-/* The poster rises over the hero's bottom edge; title and chips beside it. */
+/* The poster rises over the hero's bottom edge; title, chips and (>= 640) Rate / Save
+   beside it. */
 .film-head {
   position: relative; z-index: 1; display: flex; gap: var(--space-3); align-items: flex-end;
   margin: -96px 0 var(--space-4);
 }
 .film-head .poster { width: 112px; box-shadow: 0 16px 40px color-mix(in srgb, var(--bg) 70%, transparent); }
 .film-head-text { min-width: 0; }
+.film-head-text .meta { margin: 12px 0 0; }
 .film-title { font-size: 28px; line-height: 1.1; margin: 0; overflow-wrap: break-word; }
 .tags { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 12px 0 0; padding: 0; }
 .tags li {
@@ -412,12 +433,33 @@ select.field { appearance: auto; }
   .film-title { font-size: 52px; }
 }
 
-/* "Why you": ring, sentence and reasons in one panel, on one rhythm: --space-4 between
-   the parts, --space-2 within one (eyebrow to sentence, label to axis).
-   Phone: ring and eyebrow side by side, the sentence and the axes full width below.
-   >= 640: the ring on the left, sentence and axes in one column beside it.
-   >= 1100: ring | sentence | axes. .why-solo (no reason) keeps the same columns, so the
-   sentence wraps at the same width with or without the axes. */
+/* Rate / Save. Phone: fixed above the bottom nav (the page keeps room for it). Wider: a
+   plain row in the head, in the page's flow, never sticky. */
+.film-actions {
+  position: fixed; left: 0; right: 0; z-index: 10;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  display: flex; gap: var(--space-2);
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 10px var(--space-3);
+}
+.film-actions .btn:first-child { flex: 2; }
+.film-actions .btn:last-child { flex: 1; }
+.film-page { padding-bottom: 72px; }
+@media (min-width: 640px) {
+  .film-actions {
+    position: static; margin-top: var(--space-3); padding: 0;
+    background: none; border: none;
+  }
+  .film-actions .btn:first-child, .film-actions .btn:last-child { flex: none; }
+  .film-page { padding-bottom: 0; }
+}
+
+/* "Why you": ring, sentence and reasons in one panel. Rhythm: --space-4 between the
+   panel's parts, --space-3 between axis rows, --space-2 within a part.
+   Phone: ring and eyebrow side by side; the sentence and the axes full width below.
+   >= 640: ring beside the sentence, the axes under the sentence.
+   >= 1100: ring | sentence | axes (40% of the panel), all centred on one line.
+   .why-solo (no reason): no axes and no reserved space; the panel is as tall as its content. */
 .why {
   display: grid; gap: var(--space-4); margin-bottom: var(--space-4);
   grid-template-columns: auto minmax(0, 1fr);
@@ -430,32 +472,41 @@ select.field { appearance: auto; }
 .why-ring-skel { width: var(--size); height: var(--size); border-radius: 50%; }
 .why-main { display: contents; }
 .why-eyebrow { grid-area: head; margin: 0; }
-/* The sentence's slot is the page's main statement: Playfair, large, white. Its height is
-   reserved before the text arrives (min-height in lines of its own size). */
+/* The sentence: the page's main statement. Playfair, large, white. */
 .why-slot {
   grid-area: text;
   font-family: var(--font-head); font-weight: 700; font-size: 22px; line-height: 1.3;
-  min-height: calc(4 * 1.3em);
 }
+/* While the text can still arrive, its height is held (in lines of its own size). */
+.why-reserve { min-height: calc(4 * 1.3em); }
 .why-text { margin: 0; font: inherit; color: var(--text); }
 .why-in { animation: why-in 200ms ease-out both; }
 @keyframes why-in { from { opacity: 0; } to { opacity: 1; } }
-/* A skeleton bar per line of text: .6em tall, centred in its 1.3em line. */
+/* A skeleton bar per line of text: .6em tall, centred in its 1.3em line. A flex column, so
+   the bars' margins add up instead of collapsing: three bars are exactly three lines. */
+.why-skel-lines { display: flex; flex-direction: column; }
 .why-skel { height: .6em; margin: .35em 0; }
-.why-traits { grid-area: traits; display: grid; gap: var(--space-4); align-self: start; }
+.why-traits { grid-area: traits; display: grid; gap: var(--space-3); }
 @media (min-width: 640px) {
-  .why { grid-template-areas: "ring main" ". traits"; align-items: start; padding: var(--space-4); }
+  .why { grid-template-areas: "ring main" ". traits"; padding: var(--space-4); }
   .why-solo { grid-template-areas: "ring main"; }
   .why .ring, .why-ring-skel { --size: 112px; }
   .why-main { display: block; grid-area: main; }
   .why-eyebrow { margin-bottom: var(--space-2); }
-  .why-slot { font-size: 26px; min-height: calc(3 * 1.3em); }
+  .why-slot { font-size: 26px; }
+  .why-reserve { min-height: calc(3 * 1.3em); }
 }
 @media (min-width: 1100px) {
-  .why, .why-solo { grid-template-columns: auto minmax(0, 3fr) minmax(0, 2fr); }
-  .why { grid-template-areas: "ring main traits"; }
-  .why-solo { grid-template-areas: "ring main ."; }
-  .why-slot { font-size: 30px; }
+  .why { grid-template-columns: auto minmax(0, 1fr) 40%; grid-template-areas: "ring main traits"; }
+  .why-solo { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring main"; }
+  .why-slot { font-size: 30px; max-width: 24em; }
+  /* Here the hold moves up to eyebrow + sentence (25px + four 39px lines), centred as one
+     block: they stay together however long the text is, and the column's height does not
+     change when the text replaces the skeleton. */
+  .why-reserve { min-height: 0; }
+  .why-main:has(> .why-reserve) {
+    min-height: calc(25px + 4 * 39px); display: flex; flex-direction: column; justify-content: center;
+  }
 }
 
 .film-grid { display: grid; gap: var(--space-4); }
@@ -464,17 +515,6 @@ select.field { appearance: auto; }
 .compare .eyebrow { margin: 0; }
 @media (min-width: 900px) {
   .film-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-}
-.film-actions {
-  position: sticky; bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)); z-index: 10;
-  display: flex; gap: var(--space-2); margin-top: var(--space-4);
-  background: var(--surface); border-top: 1px solid var(--line);
-  padding: 10px var(--space-3); margin-inline: calc(-1 * var(--space-3));
-}
-.film-actions .btn:first-child { flex: 2; }
-.film-actions .btn:last-child { flex: 1; }
-@media (min-width: 640px) {
-  .film-actions { bottom: 0; margin-inline: 0; border: 1px solid var(--line); border-radius: var(--radius); }
 }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; margin: 0; }
 .facts dt { color: var(--muted); }

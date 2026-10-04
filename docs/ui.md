@@ -323,6 +323,60 @@ ko'ramiz.
   180.09), CSS 21.37 kB. Mock'dagi TMDB path'lari (`src/dev/images.ts`) bundle'ga kirmaydi
   (tekshirildi).
 
+### 1-bosqich, ko'rikdan keyingi tuzatishlar (2026-10-04)
+
+Foydalanuvchi ko'rigi: yo'nalish to'g'ri, "Why you" hali bitta kompozitsiya emas — 7 band.
+Yuqoridagi natijalardan farqi:
+
+1. **Sabab yo'q — panel qisqaradi.** Joy faqat matn kelishi mumkin bo'lganda band
+   qilinadi (`.why-reserve`); sababsiz holatda o'qlar ustuni ham, band joy ham yo'q.
+   Desktop'da panel 186 → 160px (ring balandligi + padding).
+2. **Vertikal markaz, o'qlar 40%.** ≥ 1100: ring | jumla | o'qlar, uchalasining markazi
+   bitta chiziqda (o'lchangan: 129/129/129px). O'qlar ustuni — panel kontent enining 40%.
+   Panel balandligi = eng baland ustun + padding. Joy endi sarlavha + jumla blokiga band
+   qilinadi (25px + 4 qator) va ular birga markazlanadi.
+3. **Raqam o'z nuqtasida:** siz — nuqta ustida, film — ostida, nuqta bilan bitta vertikalda;
+   0/100 ga yaqin bo'lsa yarim eniga ichkariga suriladi (`clamp(12px, x, 100% - 12px)`).
+4. **Yaqin qiymatlar:** nuqtalar markazlari orasi kamida 20px (`DOT_GAP`). Sof CSS:
+   `min()/max()/clamp()` piksel bo'yicha hisoblaydi, o'q eni qanday bo'lmasin. Aniq qiymat
+   raqamda, `aria-label` da va `title` da. O'lchangan: Mystery 84/80, Visual style va
+   Pace — 20px; uzoqlari haqiqiy joyida.
+5. **Shakl, rang emas:** siz — to'liq oq doira, film — ichi bo'sh oq doira. Legend sahifada
+   bitta: "Why you" da o'qlar bo'lsa o'sha yerda, aks holda taqqoslash bo'limida.
+6. **Raqam shrifti:** o'q raqamlari Inter, `tabular-nums`, chizilgan nol yo'q (JetBrains
+   Mono'ning noli chizilgan edi). Ring: yashirin yakuniy qiymat qutining enini belgilaydi,
+   sanoq uning ichida — quti sanoq paytida o'zgarmaydi.
+7. **Hero va amallar:** desktop hero `clamp(360px, 60vh, 440px)` (1440×900 da 440px;
+   mobil o'zgarmagan). Rate / Save ≥ 640 da sarlavha va chiplar ostida, sahifa oqimida,
+   sticky emas; mobil'da pastki menyu ustida qotgan. 1440×900 da "Why you" butunlay
+   birinchi ekranda.
+
+Topilgan va tuzatilgan: skeleton chiziqlarining margin'lari qo'shilib ketgani uchun
+skeleton 3 qator o'rniga 96px edi (matn 117px) — avval slot'ning `min-height` i buni
+yashirgan. Endi chiziqlar flex ustunda.
+
+**CLS (qayta o'lchangan, o'sha usul):**
+
+| Holat | 1440×900 | 1024 | 390×844 | 320 |
+|---|---|---|---|---|
+| O'rtacha izoh (3 sabab) | 0.000011 | 0.000041 | 0.000000 | 0.000015 |
+| Izohsiz (fallback, 2 qator) | **0.000721** | — | 0.000000 | — |
+| 2 jumlali uzun izoh | **0.007463** | — | **0.0038** | — |
+| Sabab yo'q | 0.000007 | 0.000043 | 0.000013 | — |
+| 1 sabab | 0.000010 | — | 0.000010 | — |
+| Backdrop'siz | 0.000014 | — | — | — |
+| Reduced motion | 0.000001 | — | 0.000000 | — |
+
+Sabab yo'q holatda panel qisqargani siljish keltirmadi: sabablar soni film bilan birga
+keladi. Ikki narx: (a) desktop'da qisqa fallback — sarlavha + jumla birga markazlangani
+uchun ~10px suriladi (0.0007); (b) uzun izoh endi tor ustunda 6 qator, band qilingan 4
+qatordan oshadi va panel o'sadi (0.0075, avval 0.00004). Ikkalasi ham "yaxshi" chegarasi
+0.1 dan ancha past. Qolgan mayda manbalar: ring sanog'i (quti emas, matn), ta'm
+yuklanganda film nuqtasining 20px qoidasi bo'yicha surilishi.
+
+axe 4.10.2: 0 buzilish (1440, sababsiz, 390, 390 sababsiz, 320). `scrollWidth` = ekran
+eni (320, 390). Qizil faqat ring'da. Testlar: 15 fayl, 180 test; lint 0; build 0.
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

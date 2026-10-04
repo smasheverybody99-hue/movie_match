@@ -7,6 +7,7 @@ import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import type { Rating, WatchlistItem } from "../lib/types";
 import { pending, renderWithProviders } from "../test/utils";
+import { axisPositions, DOT_GAP } from "../components/Traits";
 import MoviePage, { comparedTraits } from "./MoviePage";
 
 vi.mock("../lib/api", async () => {
@@ -99,6 +100,7 @@ describe("MoviePage", () => {
     pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here." });
     await screen.findByText("Now it is here.");
     expect(screen.getByTestId("why-slot")).toBe(slot); // replaced inside, not remounted
+    expect(slot).toHaveClass("why-reserve"); // its height was held for the text
     expect(slot).toContainElement(screen.getByText("Now it is here."));
   });
 
@@ -113,11 +115,34 @@ describe("MoviePage", () => {
     ]);
     // TASTE (fixtures) for you; scoresFor(1000) for the film: (1000 * 37 + i * 23) % 101
     const first = axes[0]!;
-    await waitFor(() => expect(first.querySelector(".axis-values .key-you")).toHaveTextContent("you 88"));
-    expect(first.querySelector(".axis-values .key-film")).toHaveTextContent("film 34");
-    expect(first.querySelector(".axis-dot.you")).toHaveStyle({ left: "88%" });
-    expect(first.querySelector(".axis-dot.film")).toHaveStyle({ left: "34%" });
-    expect(first.querySelector(".axis-gap")).toHaveStyle({ left: "34%", width: "54%" });
+    expect(await within(first).findByRole("img", { name: "Psychological: you 88, film 34" })).toBeInTheDocument();
+    // each number sits with its own dot: yours above, the film's below
+    expect(first.querySelector(".axis-num.you")).toHaveTextContent("88");
+    expect(first.querySelector(".axis-num.film")).toHaveTextContent("34");
+    const plot = first.querySelector<HTMLElement>(".axis-plot")!;
+    expect(plot.style.getPropertyValue("--you")).toContain("88%");
+    expect(plot.style.getPropertyValue("--film")).toContain("34%");
+  });
+
+  it("shows the you / film key once on the page: in Why you when it has axes, else in the comparison", async () => {
+    const { unmount } = renderWithProviders(<MoviePage />, ROUTE);
+    await screen.findByTestId("why-traits");
+    expect(document.querySelectorAll(".axis-legend")).toHaveLength(1);
+    expect(screen.getByTestId("why-traits")).toContainElement(document.querySelector(".axis-legend"));
+    unmount();
+
+    getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    const compare = await screen.findByRole("region", { name: "Your taste vs this film" });
+    expect(document.querySelectorAll(".axis-legend")).toHaveLength(1);
+    expect(compare).toContainElement(document.querySelector(".axis-legend"));
+  });
+
+  it("keeps Rate and Save in the page's head, under the title, not at the end", async () => {
+    renderWithProviders(<MoviePage />, ROUTE);
+    const head = (await screen.findByRole("heading", { level: 1 })).parentElement!;
+    expect(within(head).getByRole("button", { name: /Rate$/ })).toBeInTheDocument();
+    expect(within(head).getByRole("button", { name: /Save$/ })).toBeInTheDocument();
   });
 
   it("leaves your dot out until your taste has loaded, rather than drawing it at 0", async () => {
@@ -125,8 +150,9 @@ describe("MoviePage", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     const first = within(await screen.findByTestId("why-traits")).getAllByTestId(/^axis-/)[0]!;
     expect(first.querySelector(".axis-dot.you")).toBeNull();
+    expect(first.querySelector(".axis-num.you")).toBeNull();
     expect(first.querySelector(".axis-dot.film")).not.toBeNull();
-    expect(first.querySelector(".axis-values .key-you")).toHaveTextContent("you –");
+    expect(within(first).getByRole("img", { name: "Psychological: film 34" })).toBeInTheDocument();
   });
 
   it("falls back to the shared traits when there is no explanation", async () => {
@@ -146,6 +172,8 @@ describe("MoviePage", () => {
     // the same sentence element in the same slot as with reasons, so the same size
     expect(text).toHaveClass("why-text");
     expect(screen.getByTestId("why-slot")).toContainElement(text);
+    // nothing is coming, so no space is held: the panel is as tall as its content
+    expect(screen.getByTestId("why-slot")).not.toHaveClass("why-reserve");
     expect(screen.getByRole("img", { name: "94% match" })).toBeInTheDocument();
     expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
     expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
@@ -289,11 +317,27 @@ describe("motion in Why you", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     const ring = await screen.findByRole("img", { name: "94% match" });
     expect(ring).toHaveAttribute("data-p", "94");
-    expect(within(ring).getByText("94%")).toBeInTheDocument();
+    expect(ring.querySelector(".ring-count")).toHaveTextContent("94%");
     expect(await screen.findByText("Twisty.")).not.toHaveClass("why-in");
     // no JS animation was started: neither the count-up nor the ring's fill
     expect(raf).not.toHaveBeenCalled();
     raf.mockRestore();
+  });
+});
+
+describe("axisPositions", () => {
+  it("puts each dot at its value, pushed apart only when closer than DOT_GAP px", () => {
+    expect(DOT_GAP).toBe(20);
+    expect(axisPositions(30, 70)).toEqual({
+      you: "clamp(0px, min(30%, 50% - 10px), 100% - 20px)",
+      film: "clamp(20px, max(70%, 50% + 10px), 100%)",
+    });
+  });
+
+  it("gives the higher value the right-hand position whichever dot it is", () => {
+    const { you, film } = axisPositions(84, 80);
+    expect(you).toBe("clamp(20px, max(84%, 82% + 10px), 100%)");
+    expect(film).toBe("clamp(0px, min(80%, 82% - 10px), 100% - 20px)");
   });
 });
 

@@ -126,10 +126,11 @@ function Why({ detail }: { detail: MovieDetail }) {
         <h2 className="eyebrow why-eyebrow" id="why-title">
           {t("movie.whyYou")}
         </h2>
-        <div className="why-slot" data-testid="why-slot">
+        {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
+        <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (
             <Loading>
-              <div data-testid="explanation-skeleton">
+              <div className="why-skel-lines" data-testid="explanation-skeleton">
                 <Skeleton className="why-skel" />
                 <Skeleton className="why-skel" />
                 <Skeleton className="why-skel" style={{ width: "60%" }} />
@@ -152,6 +153,11 @@ function Why({ detail }: { detail: MovieDetail }) {
   );
 }
 
+/** True when "Why you" draws axes (and so carries the page's one legend). */
+function whyHasAxes(detail: MovieDetail): boolean {
+  return detail.match !== null && detail.reasons.some(isTraitKey);
+}
+
 function Compare({ detail }: { detail: MovieDetail }) {
   const t = useT();
   const dna = useDna();
@@ -163,7 +169,7 @@ function Compare({ detail }: { detail: MovieDetail }) {
       <h2 className="eyebrow" id="compare-title">
         {t("movie.compareTitle")}
       </h2>
-      <AxisLegend />
+      {!whyHasAxes(detail) && <AxisLegend />}
       {comparedTraits(detail).map((key) => (
         <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
       ))}
@@ -306,13 +312,14 @@ export default function MoviePage() {
 
   const detail = query.data;
   return (
-    <article className="film">
+    <article className="film-page">
       <Hero detail={detail} />
       <header className="film-head">
         <Poster title={detail.title} path={detail.poster_path} describe eager />
         <div className="film-head-text">
           <h1 className="film-title">{detail.title}</h1>
           <Tags detail={detail} />
+          <Actions detail={detail} />
         </div>
       </header>
 
@@ -350,7 +357,6 @@ export default function MoviePage() {
           </p>
         </div>
       </div>
-      <Actions detail={detail} />
     </article>
   );
 }
