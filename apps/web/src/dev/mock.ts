@@ -9,10 +9,36 @@
  *   localStorage["mm.mock.scenario"] = "new" | "active"   (then reload)
  *   localStorage["mm.mock.down"] = "1"                     (every request fails)
  *   localStorage["mm.mock.signedOut"] = "1"                (start at /welcome)
+ *   localStorage["mm.mock.explain"] = "none" | "long"      (no AI text / a 2-sentence one)
+ * Posters and backdrops are real TMDB paths (images.ts). Reasons vary by film id: three,
+ * one, or none (id % 4 == 3, the "suits you overall" case).
  */
 import type { AuthClient, Session } from "../lib/supabase";
 import type { Movie, MovieDetail, Rating, WatchlistItem } from "../lib/types";
-import { DNA, MOVIES, RECOMMENDATIONS, TASTE, WATCHLIST, detail, rating, scoresFor } from "./fixtures";
+import { DNA, MOVIES as PLAIN, RECOMMENDATIONS as PLAIN_RECS, TASTE, WATCHLIST as PLAIN_LIST, detail, rating, scoresFor } from "./fixtures";
+import { TMDB_PATHS } from "./images";
+
+function withImages(m: Movie): Movie {
+  return { ...m, poster_path: TMDB_PATHS[m.title]?.poster ?? null };
+}
+
+const MOVIES = PLAIN.map(withImages);
+const WATCHLIST = PLAIN_LIST.map((i) => ({ ...i, movie: withImages(i.movie) }));
+const RECOMMENDATIONS = {
+  ...PLAIN_RECS,
+  sections: PLAIN_RECS.sections.map((s) => ({
+    ...s,
+    seed: s.seed && withImages(s.seed),
+    items: s.items.map((r) => ({ ...r, movie: withImages(r.movie) })),
+  })),
+};
+
+/** Stand-ins for the AI text, at its measured typical length (~30 tokens) and at two sentences. */
+const EXPLANATION = {
+  typical: "It keeps you guessing the way your favourites do, and the pieces only click into place in the last act.",
+  long:
+    "It keeps you guessing the way your favourites do, and the pieces only click into place in the last act. Its rivalry plays out in layers of misdirection, more than most films attempt.",
+};
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -42,7 +68,12 @@ export function install(): AuthClient {
   function detailOf(id: number): MovieDetail | null {
     const m = byId.get(id);
     if (!m) return null;
-    return detail(m, { match: ratings.length >= 10 ? 60 + (id % 38) : null });
+    const reasons = [["psychological_complexity", "plot_twist", "mystery"], ["plot_twist", "mystery", "darkness"], ["darkness"], []][id % 4] ?? [];
+    return detail(m, {
+      backdrop_path: TMDB_PATHS[m.title]?.backdrop ?? null,
+      match: ratings.length >= 10 ? 60 + (id % 38) : null,
+      reasons,
+    });
   }
 
   async function route(method: string, url: URL, body: unknown): Promise<Response> {
@@ -76,7 +107,9 @@ export function install(): AuthClient {
     const explanation = path.match(/^\/recommendations\/(\d+)\/explanation$/);
     if (explanation) {
       await wait(900);
-      return json({ movie_id: Number(explanation[1]), lang: url.searchParams.get("lang"), text: null });
+      const mode = flag("mm.mock.explain");
+      const text = mode === "none" ? null : mode === "long" ? EXPLANATION.long : EXPLANATION.typical;
+      return json({ movie_id: Number(explanation[1]), lang: url.searchParams.get("lang"), text });
     }
     const movieMatch = path.match(/^\/movies\/(\d+)$/);
     if (movieMatch) {

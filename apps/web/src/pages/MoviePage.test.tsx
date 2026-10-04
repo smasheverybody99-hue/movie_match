@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DNA, detail, movie, rating } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
@@ -67,7 +67,9 @@ describe("MoviePage", () => {
     expect(await screen.findByText("Twisty and cerebral, like your favourites.")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Your taste vs this film" })).toBeInTheDocument();
     expect(screen.getByText("Christopher Nolan")).toBeInTheDocument();
-    expect(screen.getByText(/2006 · 130m · Drama, Mystery/)).toBeInTheDocument();
+    const head = screen.getByRole("heading", { level: 1 }).parentElement!;
+    const tags = within(head).getAllByRole("listitem").map((li) => li.textContent);
+    expect(tags).toEqual(["2006", "130m", "Drama", "Mystery"]);
     expect(getMovie).toHaveBeenCalledWith(1000);
     expect(explanation).toHaveBeenCalledWith(1000, "en");
   });
@@ -85,6 +87,48 @@ describe("MoviePage", () => {
     expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
   });
 
+  it("keeps the sentence's slot while the explanation loads, then fills that same slot", async () => {
+    const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
+    explanation.mockReturnValue(pendingText.promise);
+    renderWithProviders(<MoviePage />, ROUTE);
+    await screen.findByTestId("explanation-skeleton");
+    const slot = screen.getByTestId("why-slot");
+    // the axes are there from the start: they come with the film, not with the text
+    expect(within(screen.getByTestId("why-traits")).getAllByTestId(/^axis-/)).toHaveLength(3);
+
+    pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here." });
+    await screen.findByText("Now it is here.");
+    expect(screen.getByTestId("why-slot")).toBe(slot); // replaced inside, not remounted
+    expect(slot).toContainElement(screen.getByText("Now it is here."));
+  });
+
+  it("shows the three reasons on one axis each: your value and the film's", async () => {
+    renderWithProviders(<MoviePage />, ROUTE);
+    const why = await screen.findByTestId("why-traits");
+    const axes = within(why).getAllByTestId(/^axis-/);
+    expect(axes.map((a) => a.dataset.testid)).toEqual([
+      "axis-psychological_complexity",
+      "axis-plot_twist",
+      "axis-mystery",
+    ]);
+    // TASTE (fixtures) for you; scoresFor(1000) for the film: (1000 * 37 + i * 23) % 101
+    const first = axes[0]!;
+    await waitFor(() => expect(first.querySelector(".axis-values .key-you")).toHaveTextContent("you 88"));
+    expect(first.querySelector(".axis-values .key-film")).toHaveTextContent("film 34");
+    expect(first.querySelector(".axis-dot.you")).toHaveStyle({ left: "88%" });
+    expect(first.querySelector(".axis-dot.film")).toHaveStyle({ left: "34%" });
+    expect(first.querySelector(".axis-gap")).toHaveStyle({ left: "34%", width: "54%" });
+  });
+
+  it("leaves your dot out until your taste has loaded, rather than drawing it at 0", async () => {
+    dna.mockReturnValue(pending());
+    renderWithProviders(<MoviePage />, ROUTE);
+    const first = within(await screen.findByTestId("why-traits")).getAllByTestId(/^axis-/)[0]!;
+    expect(first.querySelector(".axis-dot.you")).toBeNull();
+    expect(first.querySelector(".axis-dot.film")).not.toBeNull();
+    expect(first.querySelector(".axis-values .key-you")).toHaveTextContent("you –");
+  });
+
   it("falls back to the shared traits when there is no explanation", async () => {
     explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null });
     renderWithProviders(<MoviePage />, ROUTE);
@@ -93,13 +137,20 @@ describe("MoviePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("says it suits overall when the match has no standout reason", async () => {
+  it("says it suits overall when the match has no standout reason: same slot, no axes, no request", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
-    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null });
     renderWithProviders(<MoviePage />, ROUTE);
-    expect(
-      await screen.findByText("It suits your taste overall rather than through one standout quality."),
-    ).toBeInTheDocument();
+    const text = await screen.findByText(
+      "It suits your taste overall rather than through one standout quality.",
+    );
+    // the same sentence element in the same slot as with reasons, so the same size
+    expect(text).toHaveClass("why-text");
+    expect(screen.getByTestId("why-slot")).toContainElement(text);
+    expect(screen.getByRole("img", { name: "94% match" })).toBeInTheDocument();
+    expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
+    // the API writes no text without a reason, so the page does not ask
+    expect(explanation).not.toHaveBeenCalled();
     expect(screen.queryByText(/What you share with it/)).not.toBeInTheDocument();
   });
 
@@ -108,6 +159,29 @@ describe("MoviePage", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText(/Rate 10 films first/)).toBeInTheDocument();
     expect(explanation).not.toHaveBeenCalled();
+  });
+
+  it("puts the backdrop in the hero as the page's priority image", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { backdrop_path: "/b.jpg", poster_path: "/p.jpg" }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    await screen.findByRole("heading", { level: 1 });
+    const img = screen.getByTestId("film-hero").querySelector("img")!;
+    expect(img).toHaveAttribute("src", "https://image.tmdb.org/t/p/w1280/b.jpg");
+    expect(img).toHaveAttribute("fetchpriority", "high");
+    expect(img).not.toHaveClass("film-hero-blur");
+  });
+
+  it("blurs the poster into the hero when there is no backdrop, and leaves it plain without either", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { backdrop_path: null, poster_path: "/p.jpg" }));
+    const { unmount } = renderWithProviders(<MoviePage />, ROUTE);
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getByTestId("film-hero").querySelector("img")).toHaveClass("film-hero-blur");
+    unmount();
+
+    getMovie.mockResolvedValue(detail(movie(0), { backdrop_path: null, poster_path: null }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getByTestId("film-hero").querySelector("img")).toBeNull();
   });
 
   it("updates the rating optimistically and rolls it back on a failed request", async () => {
@@ -183,15 +257,55 @@ describe("MoviePage", () => {
   });
 });
 
+describe("motion in Why you", () => {
+  function prefersReduced(reduce: boolean) {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: reduce, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+    );
+  }
+
+  beforeEach(() => {
+    for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
+    getMovie.mockResolvedValue(FILM);
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty." });
+    ratings.mockResolvedValue([]);
+    dna.mockResolvedValue(DNA);
+    watchlist.mockResolvedValue([]);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("fades the sentence in and counts the ring up when motion is allowed", async () => {
+    prefersReduced(false);
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByText("Twisty.")).toHaveClass("why-in");
+    const ring = screen.getByRole("img", { name: "94% match" });
+    await waitFor(() => expect(ring).toHaveAttribute("data-p", "94"));
+  });
+
+  it("with reduced motion: no fade, and the ring and its number at the final value from the first frame", async () => {
+    prefersReduced(true);
+    const raf = vi.spyOn(window, "requestAnimationFrame");
+    renderWithProviders(<MoviePage />, ROUTE);
+    const ring = await screen.findByRole("img", { name: "94% match" });
+    expect(ring).toHaveAttribute("data-p", "94");
+    expect(within(ring).getByText("94%")).toBeInTheDocument();
+    expect(await screen.findByText("Twisty.")).not.toHaveClass("why-in");
+    // no JS animation was started: neither the count-up nor the ring's fill
+    expect(raf).not.toHaveBeenCalled();
+    raf.mockRestore();
+  });
+});
+
 describe("comparedTraits", () => {
-  it("puts the match's reasons first, then the film's strongest traits", () => {
+  it("leaves out the reasons Why you already shows, then takes the film's strongest", () => {
     const film = detail(movie(0), {
-      reasons: ["mystery"],
+      reasons: ["mystery", "darkness"],
       traits: {
         summary: null,
         scores: { mystery: 60, darkness: 99, humor: 98, romance: 10, action: 97, pacing: 96 },
       },
     });
-    expect(comparedTraits(film)).toEqual(["mystery", "darkness", "humor", "action", "pacing"]);
+    expect(comparedTraits(film)).toEqual(["humor", "action", "pacing", "romance", "psychological_complexity"]);
   });
 });

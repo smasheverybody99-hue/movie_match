@@ -15,6 +15,8 @@
   --bottom-nav-height: 64px;
   --touch: 44px;
   --ease: 160ms ease;
+  /* The search row above .page on wide screens: its top padding plus the pill. */
+  --page-top-h: calc(var(--space-3) + var(--touch));
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -109,7 +111,8 @@ a { color: inherit; }
 }
 .bottom-nav a[aria-current="page"] { color: var(--text); font-weight: 700; border-top-color: var(--text); }
 
-.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+/* A container, so a full-bleed block inside .page can span .main's width (100cqw). */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; container-type: inline-size; }
 .page {
   width: 100%; max-width: 1200px; margin: 0 auto;
   padding: var(--space-3) var(--space-3) calc(var(--bottom-nav-height) + var(--space-4));
@@ -142,7 +145,7 @@ a { color: inherit; }
 }
 .top-search input::placeholder { color: var(--bg); opacity: .6; }
 @media (min-width: 640px) {
-  .page-top { display: flex; justify-content: flex-end; padding: var(--space-3) var(--space-4) 0; max-width: 1200px; width: 100%; margin: 0 auto; }
+  .page-top { position: relative; z-index: 2; display: flex; justify-content: flex-end; padding: var(--space-3) var(--space-4) 0; max-width: 1200px; width: 100%; margin: 0 auto; }
 }
 
 /* ---------- type ---------- */
@@ -265,12 +268,31 @@ select.field { appearance: auto; }
 .bar .band-strong { background: var(--text); }
 .bar .band-medium { background: var(--muted); }
 .bar .band-weak { background: var(--faint); }
-.bar.compare { height: 10px; overflow: visible; }
-/* The user's taste is a tick on the film's bar, so neither hides the other. */
-.bar .taste-tick {
-  position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px;
-  border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--bg);
+
+/* Taste and film on one 0-100 axis: you a grey dot, the film a white one, the gap a line.
+   Neutral on purpose: red is the match's. The dots sit inside the axis's 7px inset. */
+.axis-legend { display: flex; gap: var(--space-3); margin: 0; font-size: 12px; color: var(--muted); }
+.key-you, .key-film { display: inline-flex; align-items: center; gap: 6px; }
+.key-you::before, .key-film::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.key-you::before { background: var(--muted); }
+.key-film::before { background: var(--text); }
+.axis-row { display: grid; gap: var(--space-2); }
+.axis-label { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); font-size: 14px; }
+.axis-values { display: flex; gap: 12px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.axis-values .key-you { color: var(--muted); }
+.axis-values .key-film { color: var(--text); }
+.axis { position: relative; height: 14px; margin: 0 7px; }
+.axis::before {
+  content: ""; position: absolute; left: -7px; right: -7px; top: 6px; height: 2px;
+  border-radius: 2px; background: var(--line);
 }
+.axis-gap { position: absolute; top: 6px; height: 2px; background: var(--faint); }
+.axis-dot {
+  position: absolute; top: 0; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.axis-dot.you { background: var(--muted); }
+.axis-dot.film { background: var(--text); }
 
 .ring {
   --size: 84px;
@@ -279,11 +301,11 @@ select.field { appearance: auto; }
   background: conic-gradient(var(--red) calc(var(--p) * 1%), var(--surface-2) 0);
 }
 .ring-inner {
-  width: 78%; height: 78%; border-radius: 50%; background: var(--surface);
+  width: 80%; height: 80%; border-radius: 50%; background: var(--surface);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.ring-value { font-family: var(--font-head); font-weight: 800; font-size: 20px; }
-.ring-label { font-size: 9px; letter-spacing: .08em; color: var(--muted); }
+.ring-value { font-family: var(--font-head); font-weight: 800; font-size: calc(var(--size) * .25); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ring-label { font-size: max(9px, calc(var(--size) * .09)); letter-spacing: .08em; color: var(--muted); }
 @supports (transition-property: --p) {
   @property --p { syntax: "<number>"; inherits: false; initial-value: 0; }
   .ring { transition: --p 600ms ease-out; }
@@ -347,21 +369,102 @@ select.field { appearance: auto; }
 .foot-actions .btn:first-child { flex: 1; }
 
 /* ---------- film page ---------- */
-.backdrop.empty { height: 88px; }
-.backdrop { position: relative; height: 200px; margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) 0; overflow: hidden; background: var(--surface); }
-.backdrop img { width: 100%; height: 100%; object-fit: cover; opacity: .55; }
-.backdrop::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg)); }
-.film-head { display: flex; gap: var(--space-3); align-items: flex-end; margin-top: -64px; position: relative; z-index: 1; margin-bottom: var(--space-3); }
-.film-head .poster { width: 96px; }
-.film-title { font-size: 26px; margin: 0; }
-.film-grid { display: grid; gap: var(--space-3); }
-@media (min-width: 900px) {
-  .backdrop { height: 280px; margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0; }
-  .film-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .film-head .poster { width: 140px; }
+/* Hero: the backdrop across .main's full width (not .page's), unfaded; the gradient runs
+   into --bg at the bottom and on the left. On wide screens it also slides under the
+   search row. Without a backdrop: the poster, blurred (.film-hero-blur). */
+.film-hero {
+  position: relative; overflow: hidden; background: var(--surface);
+  width: 100cqw; margin-left: calc(50% - 50cqw);
+  margin-top: calc(-1 * var(--space-3));
+  height: max(240px, 45vh); height: max(240px, 45svh);
 }
-.why { display: flex; gap: var(--space-3); align-items: center; }
-.why-text { margin: 0; color: var(--text); font-size: 14px; }
+.film-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.film-hero-blur { filter: blur(28px) brightness(.75); transform: scale(1.2); }
+.film-hero::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 30%, transparent 60%),
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 80%, transparent) 0%, transparent 50%);
+}
+@media (min-width: 640px) {
+  .film-hero {
+    height: max(360px, 60vh);
+    margin-top: calc(-1 * (var(--space-4) + var(--page-top-h)));
+  }
+}
+
+/* The poster rises over the hero's bottom edge; title and chips beside it. */
+.film-head {
+  position: relative; z-index: 1; display: flex; gap: var(--space-3); align-items: flex-end;
+  margin: -96px 0 var(--space-4);
+}
+.film-head .poster { width: 112px; box-shadow: 0 16px 40px color-mix(in srgb, var(--bg) 70%, transparent); }
+.film-head-text { min-width: 0; }
+.film-title { font-size: 28px; line-height: 1.1; margin: 0; overflow-wrap: break-word; }
+.tags { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 12px 0 0; padding: 0; }
+.tags li {
+  padding: 4px 12px; border-radius: 99px; font-size: 13px;
+  background: var(--surface-2); color: var(--muted);
+}
+@media (min-width: 900px) {
+  .film-head { gap: var(--space-4); margin-top: -200px; }
+  .film-head .poster { width: 200px; }
+  .film-title { font-size: 52px; }
+}
+
+/* "Why you": ring, sentence and reasons in one panel, on one rhythm: --space-4 between
+   the parts, --space-2 within one (eyebrow to sentence, label to axis).
+   Phone: ring and eyebrow side by side, the sentence and the axes full width below.
+   >= 640: the ring on the left, sentence and axes in one column beside it.
+   >= 1100: ring | sentence | axes. .why-solo (no reason) keeps the same columns, so the
+   sentence wraps at the same width with or without the axes. */
+.why {
+  display: grid; gap: var(--space-4); margin-bottom: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "ring head" "text text" "traits traits";
+  align-items: center;
+  padding: var(--space-4) 20px;
+}
+.why-solo { grid-template-areas: "ring head" "text text"; }
+.why .ring, .why-ring-skel { grid-area: ring; --size: 72px; }
+.why-ring-skel { width: var(--size); height: var(--size); border-radius: 50%; }
+.why-main { display: contents; }
+.why-eyebrow { grid-area: head; margin: 0; }
+/* The sentence's slot is the page's main statement: Playfair, large, white. Its height is
+   reserved before the text arrives (min-height in lines of its own size). */
+.why-slot {
+  grid-area: text;
+  font-family: var(--font-head); font-weight: 700; font-size: 22px; line-height: 1.3;
+  min-height: calc(4 * 1.3em);
+}
+.why-text { margin: 0; font: inherit; color: var(--text); }
+.why-in { animation: why-in 200ms ease-out both; }
+@keyframes why-in { from { opacity: 0; } to { opacity: 1; } }
+/* A skeleton bar per line of text: .6em tall, centred in its 1.3em line. */
+.why-skel { height: .6em; margin: .35em 0; }
+.why-traits { grid-area: traits; display: grid; gap: var(--space-4); align-self: start; }
+@media (min-width: 640px) {
+  .why { grid-template-areas: "ring main" ". traits"; align-items: start; padding: var(--space-4); }
+  .why-solo { grid-template-areas: "ring main"; }
+  .why .ring, .why-ring-skel { --size: 112px; }
+  .why-main { display: block; grid-area: main; }
+  .why-eyebrow { margin-bottom: var(--space-2); }
+  .why-slot { font-size: 26px; min-height: calc(3 * 1.3em); }
+}
+@media (min-width: 1100px) {
+  .why, .why-solo { grid-template-columns: auto minmax(0, 3fr) minmax(0, 2fr); }
+  .why { grid-template-areas: "ring main traits"; }
+  .why-solo { grid-template-areas: "ring main ."; }
+  .why-slot { font-size: 30px; }
+}
+
+.film-grid { display: grid; gap: var(--space-4); }
+.film-about { display: grid; gap: var(--space-4); align-content: start; }
+.compare { display: grid; gap: var(--space-4); }
+.compare .eyebrow { margin: 0; }
+@media (min-width: 900px) {
+  .film-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
 .film-actions {
   position: sticky; bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)); z-index: 10;
   display: flex; gap: var(--space-2); margin-top: var(--space-4);

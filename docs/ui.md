@@ -255,7 +255,7 @@ keyingina keyingi qadam.
 | # | Qadam | Ish |
 |---|---|---|
 | 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), skrinshot ko'rigini kutmoqda |
-| 1 | Film sahifasi (backdrop hero) | 1 kun |
+| 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
 | 2 | Home: poster qatorlari va hover | 1 kun |
 | 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
 | 4 | Movie DNA: gul, Wrapped tuzilmasi, ulashish rasmi | 2–3 kun |
@@ -281,6 +281,47 @@ ko'ramiz.
 - Bundle (o'lchangan): JS 604.24 → 616.66 kB (gzip 175.86 → 179.51), CSS 17.29 → 18.13 kB.
 - Testlar: 15 fayl, 166 test (avval 117); lint 0; build 0. 390px va 320px da
   `scrollWidth` = ekran eni (gorizontal scroll yo'q).
+
+### 1-bosqich natijasi (2026-10-04)
+
+- **Hero:** backdrop `.main` ning to'liq enida (`container-type: inline-size`, `100cqw`),
+  desktop `max(360px, 60vh)`, mobil `max(240px, 45svh)`, shaffofliksiz; gradient pastga
+  va chapga `--bg` ga. Desktop'da qidiruv qatori ostiga ham kiradi. `srcset` w780/w1280,
+  `fetchpriority="high"`. Backdrop yo'q — poster xira fon; ikkalasi ham yo'q — `--surface`.
+- **Sarlavha:** poster hero chetidan chiqib turadi (desktop 200px, mobil 112px); nom
+  Playfair 52px / 28px; yil, davomiylik, janrlar — neytral chiplar.
+- **"Why you" — bitta panel:** ring, jumla va 3 tagacha sabab bitta grid'da; bo'shliq
+  ritmi: qismlar orasida `--space-4`, qism ichida `--space-2`. Jumla Playfair 700, oq,
+  30px (≥ 1100px), 26px (640–1099), 22px (mobil). Joylashuv: ≥ 1100 — ring | jumla |
+  o'qlar; 640–1099 — ring, yonida jumla va ostida o'qlar; mobil — ring + sarlavha, ostida
+  jumla, o'qlar.
+- **Sabablar o'qda:** har trait bitta 0–100 o'qda, siz — kulrang nuqta, film — oq nuqta,
+  orasi chiziq; ikkala raqam ham yozilgan, ekran o'quvchiga so'z bilan ("you 88, film 34").
+  Ta'm hali yuklanmagan bo'lsa, sizning nuqtangiz 0 da chizilmaydi — keyin paydo bo'ladi.
+  Qizil yo'q. "Sizning ta'mingiz va shu film" ham shu o'qlarga o'tdi va panelda
+  ko'rsatilgan sabablarni takrorlamaydi (filmning qolgan eng kuchli 5 trait'i).
+- **Sabab yo'q holat:** "suits you overall" jumlasi xuddi shu slot'da, shu o'lchamda; o'qlar
+  qismi yo'q, ustunlar o'sha (jumla bir xil enda o'raladi). API sababsiz izoh yozmaydi
+  (`explain.py`), shuning uchun bu holatda izoh so'ralmaydi — skeleton ham, siljish ham yo'q.
+- **Skeleton:** jumla slot'ining balandligi oldindan band (`min-height`: mobil 4, 640–1099
+  da 3 qator; ≥ 1100 da o'qlar ustuni balandroq); matn 200 ms da paydo bo'ladi.
+- **Reduced motion:** CSS qoidasidan tashqari JS ham: fade klassi qo'yilmaydi, ring va
+  raqam birinchi kadrdanoq oxirgi qiymatda, `requestAnimationFrame` chaqirilmaydi (test).
+- **Tuzatilgan xato (0-bosqichdan):** `useCountUp` birinchi kadrda manfiy son ko'rsatardi
+  (Chrome'da "-8%" ko'rindi): rAF vaqt belgisi `performance.now()` dan oldin bo'lishi
+  mumkin. Progress endi 0 dan pastga tushmaydi; testi bor.
+- **Layout shift (o'lchangan, headless Chrome, CDP, `layout-shift` PerformanceObserver,
+  mock API: film 250 ms, izoh +900 ms):** desktop 1440×900 — CLS 0.000007–0.000037
+  (o'rtacha, 2 jumlali, izohsiz, sababsiz, backdrop'siz); 1024 — 0.000042; 390×844 —
+  0.000000–0.000028; 320 — 0.000016. Yagona sezilarli holat: 390px da 2 jumlali uzun
+  izoh (6 qator, 4 qator band) — **0.0038**. "Yaxshi" chegarasi 0.1. Qolgan mayda
+  siljishlar: ring raqami sanalganda eni o'zgaradi, ta'm yuklanganda "–" raqamga almashadi.
+- axe 4.10.2: 0 buzilish (1440, sababsiz holat, 390, 320). 320px va 390px: `scrollWidth`
+  = ekran eni. Qizil faqat ring'da (sahifadagi barcha elementlarning hisoblangan rangi
+  tekshirildi).
+- Testlar: 15 fayl, 176 test (avval 166); lint 0; build 0. Bundle: JS 618.93 kB (gzip
+  180.09), CSS 21.37 kB. Mock'dagi TMDB path'lari (`src/dev/images.ts`) bundle'ga kirmaydi
+  (tekshirildi).
 
 ### 10. Mobil paritet
 

@@ -9,10 +9,11 @@ import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
-import { MatchRing, TraitCompare, traitLabelKey } from "../components/Traits";
+import { AxisLegend, MatchRing, TraitAxis, traitLabelKey } from "../components/Traits";
 import { useT } from "../i18n";
 import { isNotFound } from "../lib/api";
-import { imageUrl, movieMeta, score } from "../lib/format";
+import { imageUrl, releaseYear, score } from "../lib/format";
+import { usePrefersReducedMotion } from "../lib/motion";
 import {
   useDna,
   useExplanation,
@@ -26,46 +27,128 @@ import { isTraitKey, TRAIT_KEYS, type TraitKey } from "../lib/traits";
 import type { MovieDetail } from "../lib/types";
 
 const COMPARED = 5;
+/** "Why you" names at most this many traits: the match's reasons (top_reasons, n = 3). */
+const WHY_TRAITS = 3;
 
-/** The match's reasons first, then the film's strongest traits, up to COMPARED. */
+/**
+ * The film's strongest traits that "Why you" does not already show, up to COMPARED.
+ * The reasons sit on the same axes in the panel above, so they are not repeated.
+ */
 export function comparedTraits(detail: MovieDetail): TraitKey[] {
   const scores = detail.traits?.scores ?? {};
-  const reasons = detail.reasons.filter(isTraitKey);
-  const rest = [...TRAIT_KEYS]
-    .filter((key) => !reasons.includes(key))
-    .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0));
-  return [...reasons, ...rest].slice(0, COMPARED);
+  const shown = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
+  return [...TRAIT_KEYS]
+    .filter((key) => !shown.includes(key))
+    .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
+    .slice(0, COMPARED);
 }
 
+/**
+ * The backdrop across the full width; the gradient runs into the page at the bottom and
+ * on the left. Without a backdrop, the poster blurred; without either, a plain surface.
+ */
+function Hero({ detail }: { detail: MovieDetail }) {
+  const backdrop = imageUrl(detail.backdrop_path, "w1280");
+  const poster = imageUrl(detail.poster_path, "w342");
+  return (
+    <div className="film-hero" data-testid="film-hero">
+      {backdrop ? (
+        <img
+          className="film-hero-img"
+          src={backdrop}
+          srcSet={`${imageUrl(detail.backdrop_path, "w780")} 780w, ${backdrop} 1280w`}
+          sizes="100vw"
+          alt=""
+          fetchPriority="high"
+        />
+      ) : (
+        poster && <img className="film-hero-img film-hero-blur" src={poster} alt="" />
+      )}
+    </div>
+  );
+}
+
+/** Year, runtime and genres as neutral chips. */
+function Tags({ detail }: { detail: MovieDetail }) {
+  const t = useT();
+  const year = releaseYear(detail);
+  const tags = [
+    ...(year ? [year] : []),
+    ...(detail.runtime_minutes ? [t("common.minutes", { n: detail.runtime_minutes })] : []),
+    ...detail.genres,
+  ];
+  if (!tags.length) return null;
+  return (
+    <ul className="tags">
+      {tags.map((tag) => (
+        <li key={tag}>{tag}</li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * "Why you": the ring, the sentence and up to three reasons on their axes, as one panel.
+ * The sentence's slot is sized before the text arrives, so nothing below it moves; the
+ * text then fades in over 200 ms (not with reduced motion). A film with no standout
+ * reason gets the "suits you overall" sentence at the same size, without the axes.
+ */
 function Why({ detail }: { detail: MovieDetail }) {
   const t = useT();
-  const explanation = useExplanation(detail.id, detail.match !== null);
+  const reduce = usePrefersReducedMotion();
+  const dna = useDna();
+  const reasons = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
+  // With no reason the API writes no text (explain.py), so there is nothing to ask for.
+  const asks = detail.match !== null && reasons.length > 0;
+  const explanation = useExplanation(detail.id, asks);
   if (detail.match === null) {
-    return <p className="why-text muted">{t("movie.noMatch")}</p>;
+    return (
+      <section className="panel" aria-labelledby="why-title">
+        <h2 className="eyebrow" id="why-title">
+          {t("movie.whyYou")}
+        </h2>
+        <p className="muted" style={{ margin: 0 }}>
+          {t("movie.noMatch")}
+        </p>
+      </section>
+    );
   }
-  // Without an explanation: the reasons in words. A film can have none (it matches
-  // overall, standing out on no trait); then a sentence that says so.
-  const reasons = detail.reasons.filter(isTraitKey);
-  const fallback = reasons.length
-    ? t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") })
+  const sentence = reasons.length
+    ? (explanation.data?.text ??
+      t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") }))
     : t("movie.whyYouGeneral");
+  const film = detail.traits?.scores ?? {};
+  const taste = dna.data?.scores;
   return (
-    <div className="why">
+    <section className={reasons.length ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
       <MatchRing value={detail.match} />
-      <div style={{ flex: 1 }}>
-        <p className="eyebrow">{t("movie.whyYou")}</p>
-        {explanation.isPending ? (
-          <Loading>
-            <div data-testid="explanation-skeleton">
-              <Skeleton className="skeleton-line" />
-              <Skeleton className="skeleton-line" style={{ width: "70%" }} />
-            </div>
-          </Loading>
-        ) : (
-          <p className="why-text">{explanation.data?.text ?? fallback}</p>
-        )}
+      <div className="why-main">
+        <h2 className="eyebrow why-eyebrow" id="why-title">
+          {t("movie.whyYou")}
+        </h2>
+        <div className="why-slot" data-testid="why-slot">
+          {asks && explanation.isPending ? (
+            <Loading>
+              <div data-testid="explanation-skeleton">
+                <Skeleton className="why-skel" />
+                <Skeleton className="why-skel" />
+                <Skeleton className="why-skel" style={{ width: "60%" }} />
+              </div>
+            </Loading>
+          ) : (
+            <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
+          )}
+        </div>
       </div>
-    </div>
+      {reasons.length > 0 && (
+        <div className="why-traits" data-testid="why-traits">
+          <AxisLegend />
+          {reasons.map((key) => (
+            <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -74,14 +157,15 @@ function Compare({ detail }: { detail: MovieDetail }) {
   const dna = useDna();
   const film = detail.traits?.scores;
   if (!film) return <p className="muted">{t("movie.traitsPending")}</p>;
-  const taste = dna.data?.scores ?? {};
+  const taste = dna.data?.scores;
   return (
-    <section className="panel" aria-labelledby="compare-title">
+    <section className="panel compare" aria-labelledby="compare-title">
       <h2 className="eyebrow" id="compare-title">
         {t("movie.compareTitle")}
       </h2>
+      <AxisLegend />
       {comparedTraits(detail).map((key) => (
-        <TraitCompare key={key} trait={key} taste={taste[key] ?? 0} film={film[key] ?? 0} />
+        <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
       ))}
     </section>
   );
@@ -174,23 +258,33 @@ function Actions({ detail }: { detail: MovieDetail }) {
   );
 }
 
+/** The page's shape while it loads: hero, poster and title, the "Why you" panel. */
 function MovieSkeleton() {
   return (
     <Loading>
-      <Skeleton style={{ height: 200, borderRadius: 0 }} />
+      <div className="film-hero" />
       <div className="film-head">
-        <Skeleton className="poster" style={{ width: 96 }} />
-        <div style={{ flex: 1 }}>
-          <Skeleton className="skeleton-line" style={{ height: 22, width: "70%" }} />
+        <Skeleton className="poster" />
+        <div className="film-head-text" style={{ flex: 1 }}>
+          <Skeleton className="skeleton-line" style={{ height: 28, width: "70%" }} />
           <Skeleton className="skeleton-line" style={{ width: "40%" }} />
         </div>
       </div>
-      <Skeleton style={{ height: 110 }} />
+      <div className="panel why why-solo">
+        <Skeleton className="why-ring-skel" />
+        <div className="why-main">
+          <Skeleton className="skeleton-line why-eyebrow" style={{ width: 80 }} />
+          <div className="why-slot">
+            <Skeleton className="why-skel" />
+            <Skeleton className="why-skel" style={{ width: "60%" }} />
+          </div>
+        </div>
+      </div>
     </Loading>
   );
 }
 
-/** /movie/:id — match and "why you" above the overview (design system, film page). */
+/** /movie/:id — backdrop hero, then the match and "why you" above the overview (docs/ui.md, 5). */
 export default function MoviePage() {
   const t = useT();
   const params = useParams();
@@ -211,28 +305,22 @@ export default function MoviePage() {
   }
 
   const detail = query.data;
-  const backdrop = imageUrl(detail.backdrop_path, "w1280");
   return (
-    <article>
-      <div className={backdrop ? "backdrop" : "backdrop empty"}>{backdrop && <img src={backdrop} alt="" fetchPriority="high" />}</div>
-      <div className="film-head">
+    <article className="film">
+      <Hero detail={detail} />
+      <header className="film-head">
         <Poster title={detail.title} path={detail.poster_path} describe eager />
-        <div>
+        <div className="film-head-text">
           <h1 className="film-title">{detail.title}</h1>
-          <p className="meta" style={{ margin: "4px 0 0" }}>
-            {[movieMeta(detail, t), detail.genres.join(", ")].filter(Boolean).join(" · ")}
-          </p>
+          <Tags detail={detail} />
         </div>
-      </div>
+      </header>
+
+      <Why detail={detail} />
 
       <div className="film-grid">
-        <div style={{ display: "grid", gap: 16 }}>
-          <section className="panel panel-elev">
-            <Why detail={detail} />
-          </section>
-          <Compare detail={detail} />
-        </div>
-        <div style={{ display: "grid", gap: 16 }}>
+        <Compare detail={detail} />
+        <div className="film-about">
           {detail.overview && (
             <section>
               <h2 className="eyebrow">{t("movie.overview")}</h2>

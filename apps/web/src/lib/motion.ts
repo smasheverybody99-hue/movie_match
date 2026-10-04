@@ -33,7 +33,8 @@ export function useCountUp(target: number, ms = 600): number {
     let frame = 0;
     const start = performance.now();
     const step = (now: number) => {
-      const progress = Math.min((now - start) / ms, 1);
+      // A frame can be stamped slightly before `start`: clamp, or the first value is negative.
+      const progress = Math.min(Math.max((now - start) / ms, 0), 1);
       setValue(Math.round(target * (1 - (1 - progress) ** 3)));
       if (progress < 1) frame = requestAnimationFrame(step);
     };

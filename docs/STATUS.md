@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -25,7 +25,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
-| Web testlari | Mahalliy, 2026-10-02 (tillar): 12 fayl, 117 test, hammasi o'tgan; lint 0, build (tsc) 0. 16 ta `act(...)` ogohlantirishi eski testlardan (AuthProvider), yangilarida 0 |
+| Web testlari | Mahalliy, 2026-10-04 (dizayn 1-bosqich): 15 fayl, 176 test, hammasi o'tgan; lint 0, build 0 |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
 | API testlari | Mahalliy to'liq run, 2026-09-30 (`852c767` holatida): 424 o'tgan, 1 yiqilgan — CI'dagi o'sha log testi; tuzatishdan keyin u juftlik (migratsiya + provayder testlari) bilan qayta o'tgan |
@@ -63,9 +63,11 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Dizayn v2, 1-bosqich: film sahifasi (backdrop hero) + "Why you" skeleton** (joy oldindan
-   band, matn silliq paydo bo'ladi). 0-bosqich bajarilgan (`docs/ui.md`).
-   Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
+1. **Dizayn v2, 1-bosqich bajarildi (2026-10-04), skrinshot ko'rigini kutmoqda:** film
+   sahifasi — backdrop hero, "Why you" bitta panelda (ring, yirik jumla, sabablar o'qda),
+   skeleton joyi band; CLS o'lchangan (eng yomoni 0.0038, 390px, uzun izoh). Natijalar:
+   `docs/ui.md`, "1-bosqich natijasi". Tasdiqdan keyin — 2-bosqich (Home: poster qatorlari).
+   Match foizi (FR-5) bo'yicha qaror hali ochiq. Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
    foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
    izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan
    yoziladi. Mahalliy API qayta ishga tushirilishi kerak. Match foizi taqsimoti o'lchandi

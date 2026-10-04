@@ -38,6 +38,17 @@ describe("motion", () => {
     expect(renderHook(() => useCountUp(82)).result.current).toBe(82);
   });
 
+  it("never shows a negative number when a frame is stamped before the count started", () => {
+    mediaQuery(false);
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const { result } = renderHook(() => useCountUp(72, 600));
+    // Chrome hands rAF the frame's start time, which can be earlier than performance.now()
+    act(() => frames.shift()?.(performance.now() - 50));
+    expect(result.current).toBe(0);
+  });
+
   it("counts up from 0 and ends exactly on the target", () => {
     mediaQuery(false);
     vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
