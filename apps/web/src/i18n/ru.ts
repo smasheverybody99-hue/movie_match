@@ -112,6 +112,9 @@ export const ru: Record<MessageKey, Message> = {
   "feed.empty": "Пока нет фильмов с совпадением выше 60%. Оцените ещё несколько фильмов.",
   "feed.emptyCta": "Поиск фильмов",
   "feed.error": "Не удалось загрузить рекомендации. Проверьте подключение и попробуйте снова.",
+  "feed.quickSave": "Сохранить «{title}»",
+  "feed.scrollPrev": "Предыдущие фильмы",
+  "feed.scrollNext": "Следующие фильмы",
 
   "movie.whyYou": "Почему вам?",
   "movie.whyYouFallback": "Что у вас общего: {traits}.",

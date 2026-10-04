@@ -15,7 +15,7 @@
  */
 import type { AuthClient, Session } from "../lib/supabase";
 import type { Movie, MovieDetail, Rating, WatchlistItem } from "../lib/types";
-import { DNA, MOVIES as PLAIN, RECOMMENDATIONS as PLAIN_RECS, TASTE, WATCHLIST as PLAIN_LIST, detail, rating, scoresFor } from "./fixtures";
+import { DNA, MOVIES as PLAIN, RECOMMENDATIONS as PLAIN_RECS, TASTE, WATCHLIST as PLAIN_LIST, detail, rating, rec, scoresFor } from "./fixtures";
 import { TMDB_PATHS } from "./images";
 
 function withImages(m: Movie): Movie {
@@ -29,7 +29,11 @@ const RECOMMENDATIONS = {
   sections: PLAIN_RECS.sections.map((s) => ({
     ...s,
     seed: s.seed && withImages(s.seed),
-    items: s.items.map((r) => ({ ...r, movie: withImages(r.movie) })),
+    // "For you" carries 12 here (the fixtures have 6), so a row overflows on wide screens.
+    items: (s.key === "for_you" ? PLAIN.slice(0, 12).map((m, i) => rec(m, 94 - i * 2)) : s.items).map((r) => ({
+      ...r,
+      movie: withImages(r.movie),
+    })),
   })),
 };
 

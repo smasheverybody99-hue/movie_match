@@ -3,11 +3,11 @@ import { useParams } from "react-router-dom";
 
 import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
-import { Dialog } from "../components/Dialog";
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
-import { RatingInput, showsLikedAspects } from "../components/RatingInput";
+import { RateDialog } from "../components/RateDialog";
+import { showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
 import { AxisLegend, MatchRing, TraitAxis, traitLabelKey } from "../components/Traits";
 import { useT } from "../i18n";
@@ -180,35 +180,6 @@ function Compare({ detail }: { detail: MovieDetail }) {
   );
 }
 
-function RateDialog({
-  detail,
-  current,
-  onSave,
-  onClose,
-}: {
-  detail: MovieDetail;
-  current: number | null;
-  onSave: (value: number, aspects: TraitKey[]) => void;
-  onClose: () => void;
-}) {
-  const t = useT();
-  const [value, setValue] = useState(current ?? 7);
-  const [aspects, setAspects] = useState<TraitKey[]>([]);
-  return (
-    <Dialog title={t("movie.rateDialog", { title: detail.title })} onClose={onClose}>
-      <RatingInput value={value} onChange={setValue} aspects={aspects} onAspectsChange={setAspects} />
-      <div className="foot-actions" style={{ marginTop: 16 }}>
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          {t("common.cancel")}
-        </button>
-        <button type="button" className="btn btn-primary" onClick={() => onSave(value, aspects)}>
-          {t("movie.rateSave")}
-        </button>
-      </div>
-    </Dialog>
-  );
-}
-
 function Actions({ detail }: { detail: MovieDetail }) {
   const t = useT();
   const ratings = useRatings();
@@ -249,7 +220,7 @@ function Actions({ detail }: { detail: MovieDetail }) {
       </div>
       {rating && (
         <RateDialog
-          detail={detail}
+          title={detail.title}
           current={mine?.score ?? null}
           onClose={() => setRating(false)}
           onSave={(value, aspects) => {

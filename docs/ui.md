@@ -255,8 +255,8 @@ keyingina keyingi qadam.
 | # | Qadam | Ish |
 |---|---|---|
 | 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), skrinshot ko'rigini kutmoqda |
-| 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
-| 2 | Home: poster qatorlari va hover | 1 kun |
+| 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi va tasdiqlandi** (2026-10-04) |
+| 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
 | 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
 | 4 | Movie DNA: gul, Wrapped tuzilmasi, ulashish rasmi | 2–3 kun |
 | 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun |
@@ -398,6 +398,35 @@ uzun). Mobil: o'rtacha izoh 390px da 0.000000; o'ralish tufayli qatorlar ko'payd
 izoh 390px da **0.0154** (avval 0.0038), 320px da o'rtacha izoh **0.0071** (avval
 0.000016). Band qilingan joy 4 qator qoldi: 5 qatorda 390px dagi o'rtacha izoh ostida bo'sh
 qator qolardi. axe 0 (1440, 390, 320). Testlar: 15 fayl, 181; lint 0; build 0.
+
+### 2-bosqich natijasi (2026-10-04)
+
+- **Qatorlar** har ekranda gorizontal (avval ≥ 640px da to'r edi). Poster eni desktop'da
+  180px (1440 da ekranda 5.9 ta), mobil'da ekranga 2.4 ta (o'lchangan: 390 da 2.45, 320 da
+  2.47); keyingi posterning cheti qator davom etishini ko'rsatadi. Nisbat 2:3, nom 2
+  qatorgacha.
+- **Sarlavha ikonkalari** (neytral, `--muted`): For you `Sparkles`, Because you loved
+  `Heart`, Under 90 `Timer`, Outside usual `Compass`.
+- **Match badge** har kartada doim ko'rinadi (qizil; sahifadagi yagona qizil).
+- **Hover** (`hover: hover` va `pointer: fine`) yoki klaviatura fokusi (`:focus-within`,
+  har qurilmada): poster va qatlam birga `scale(1.05)`, pastdan ko'tariluvchi qorong'u
+  qatlam (92% → 70% → shaffof; badge ochiq qoladi) va ikkita kontur ikonka-tugma:
+  **Baholash** (film sahifasidagi o'sha dialog, `components/RateDialog.tsx` ga ko'chirildi;
+  joriy baho bilan ochiladi) va **Watchlist** (`aria-pressed`, darhol, xatoda qaytadi va
+  xabar chiqadi). Tugmalar havola ichida emas, yonida. Sensorli ekranda hover yo'q:
+  bosish film sahifasini ochadi. Faqat `transform` va `opacity`, 200 ms.
+- **Qo'shimcha (brifda yo'q):** desktop'da ←/→ tugmalari — qator sig'masa chiqadi, chetda
+  yashirinadi, qatorni 80% eniga suradi (reduced motion'da sakrab). Sabab: gorizontal
+  qatorda sichqonchali foydalanuvchi aks holda 7-filmdan keyingisiga yetolmaydi.
+  Sensorli ekranda va < 640px da ko'rinmaydi.
+- Mock: "For you" 12 ta film (qator to'lib, tugmalar ko'rinsin); faqat dev.
+- **O'lchovlar:** CLS 0.000000 (1440, 1440 reduced motion, 1024, 390, 320). axe 4.10.2:
+  0 buzilish (1440, 390, 320). `scrollWidth` = ekran eni. Testlar: 15 fayl, 189; lint 0;
+  build 0. Bundle: JS 624.01 kB (gzip 181.54), CSS 24.31 kB.
+- **Testlar haqida:** kompyuter band bo'lganda (fonda dev server va headless Chrome)
+  Onboarding'ning bir nechta testi 1–5 s chegarasiga yetib yiqilgan (har safar boshqasi);
+  server to'xtatilgach ikki marta alohida va bir marta to'liq run'da hammasi o'tdi.
+  Onboarding bu bosqichda o'zgarmagan. Kuzatiladi.
 
 ### 10. Mobil paritet
 

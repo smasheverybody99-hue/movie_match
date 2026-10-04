@@ -1,8 +1,8 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { RECOMMENDATIONS, movie, rec } from "../dev/fixtures";
+import { RECOMMENDATIONS, movie, rating, rec, watchItem } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import type { Recommendations } from "../lib/types";
@@ -16,10 +16,17 @@ vi.mock("../lib/api", async () => {
 });
 
 const recommendations = vi.mocked(api.recommendations);
+const watchlist = vi.mocked(api.watchlist);
+const ratings = vi.mocked(api.ratings);
+const rate = vi.mocked(api.rate);
+const add = vi.mocked(api.addToWatchlist);
+const remove = vi.mocked(api.removeFromWatchlist);
 
 describe("Feed", () => {
   beforeEach(() => {
-    recommendations.mockReset();
+    for (const fn of [recommendations, watchlist, ratings, rate, add, remove]) fn.mockReset();
+    watchlist.mockResolvedValue([]);
+    ratings.mockResolvedValue([]);
   });
 
   it("renders its loading state", () => {
@@ -108,5 +115,97 @@ describe("Feed", () => {
     renderWithProviders(<Feed />, { lang: "uz" });
     expect(await screen.findByRole("heading", { name: "Shutter Island yoqqani uchun" })).toBeInTheDocument();
     expect(recommendations).toHaveBeenCalledWith("uz");
+  });
+
+  it("puts a neutral icon before each row's title", async () => {
+    recommendations.mockResolvedValue(RECOMMENDATIONS);
+    renderWithProviders(<Feed />);
+    const title = await screen.findByRole("heading", { name: "For you" });
+    const icon = title.querySelector("svg");
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("gives each card quick Rate and Save buttons beside its link, not inside it", async () => {
+    recommendations.mockResolvedValue(RECOMMENDATIONS);
+    renderWithProviders(<Feed />);
+    const rateButton = await screen.findByRole("button", { name: "Rate The Prestige" });
+    const saveButton = screen.getByRole("button", { name: "Save The Prestige" });
+    expect(saveButton).toHaveAttribute("aria-pressed", "false");
+    expect(rateButton.closest("a")).toBeNull();
+    expect(saveButton.closest("a")).toBeNull();
+    // the card's link still opens the film page
+    expect(screen.getAllByRole("link", { name: /The Prestige/ })[0]).toHaveAttribute("href", "/movie/1000");
+  });
+
+  it("rates from the card through the rating dialog, starting at the current score", async () => {
+    recommendations.mockResolvedValue(RECOMMENDATIONS);
+    ratings.mockResolvedValue([rating(1000, 6)]);
+    rate.mockImplementation(async (body) => rating(body.movie_id, body.score));
+    renderWithProviders(<Feed />);
+    await userEvent.click(await screen.findByRole("button", { name: "Rate The Prestige" }));
+    const dialog = await screen.findByRole("dialog", { name: "Rate The Prestige" });
+    await waitFor(() => expect(within(dialog).getByRole("slider")).toHaveValue("6"));
+    fireEvent.change(within(dialog).getByRole("slider"), { target: { value: "8" } });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save rating" }));
+    expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 8, liked_aspects: [] });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("saves from the card at once, and takes it off for a film already on the list", async () => {
+    recommendations.mockResolvedValue(RECOMMENDATIONS);
+    watchlist.mockResolvedValue([watchItem(movie(1))]);
+    add.mockReturnValue(pending());
+    remove.mockReturnValue(pending());
+    renderWithProviders(<Feed />);
+
+    const prestige = await screen.findByRole("button", { name: "Save The Prestige" });
+    await userEvent.click(prestige);
+    expect(add).toHaveBeenCalledWith(1000);
+    expect(prestige).toHaveAttribute("aria-pressed", "true"); // before the server answers
+
+    const memento = screen.getByRole("button", { name: "Save Memento" });
+    await waitFor(() => expect(memento).toHaveAttribute("aria-pressed", "true"));
+    await userEvent.click(memento);
+    expect(remove).toHaveBeenCalledWith(1001);
+  });
+
+  it("says so when a quick save fails, and rolls the button back", async () => {
+    recommendations.mockResolvedValue(RECOMMENDATIONS);
+    add.mockRejectedValue(new ApiError(500, "no"));
+    renderWithProviders(<Feed />);
+    const button = await screen.findByRole("button", { name: "Save The Prestige" });
+    await userEvent.click(button);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Your watchlist didn't change. Try again.");
+    expect(button).toHaveAttribute("aria-pressed", "false");
+  });
+
+  describe("row scrolling", () => {
+    const size = (name: "scrollWidth" | "clientWidth", value: number) =>
+      vi.spyOn(HTMLElement.prototype, name, "get").mockReturnValue(value);
+    afterEach(() => vi.restoreAllMocks());
+
+    it("shows Next while there is more to the right, and scrolls by most of a screen", async () => {
+      size("scrollWidth", 2000);
+      size("clientWidth", 1000);
+      const scrollBy = vi.fn();
+      HTMLElement.prototype.scrollBy = scrollBy;
+      recommendations.mockResolvedValue(RECOMMENDATIONS);
+      renderWithProviders(<Feed />);
+      const forYou = await screen.findByRole("region", { name: "For you" });
+      // at the start: no Previous
+      expect(within(forYou).queryByRole("button", { name: "Previous films" })).not.toBeInTheDocument();
+      await userEvent.click(within(forYou).getByRole("button", { name: "Next films" }));
+      // reduced motion in tests (no matchMedia): an instant jump
+      expect(scrollBy).toHaveBeenCalledWith({ left: 800, behavior: "auto" });
+    });
+
+    it("shows neither button when the row fits", async () => {
+      size("scrollWidth", 900);
+      size("clientWidth", 1000);
+      recommendations.mockResolvedValue(RECOMMENDATIONS);
+      renderWithProviders(<Feed />);
+      const forYou = await screen.findByRole("region", { name: "For you" });
+      expect(within(forYou).queryByRole("button", { name: /films$/ })).not.toBeInTheDocument();
+    });
   });
 });

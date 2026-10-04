@@ -98,6 +98,9 @@ export const uz: Record<MessageKey, Message> = {
   "feed.empty": "Hozircha sizga 60% dan yuqori mos film topilmadi. Yana bir nechta film baholang.",
   "feed.emptyCta": "Film qidirish",
   "feed.error": "Tavsiyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urining.",
+  "feed.quickSave": "{title} filmini saqlash",
+  "feed.scrollPrev": "Oldingi filmlar",
+  "feed.scrollNext": "Keyingi filmlar",
 
   // Film page
   "movie.whyYou": "Nega sizga?",

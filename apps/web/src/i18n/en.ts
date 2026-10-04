@@ -112,6 +112,9 @@ export const en = {
   "feed.empty": "No film matches you above 60% yet. Rate a few more films.",
   "feed.emptyCta": "Search films",
   "feed.error": "Couldn't load recommendations. Check your connection and try again.",
+  "feed.quickSave": "Save {title}",
+  "feed.scrollPrev": "Previous films",
+  "feed.scrollNext": "Next films",
 
   "movie.whyYou": "Why you?",
   "movie.whyYouFallback": "What you share with it: {traits}.",
