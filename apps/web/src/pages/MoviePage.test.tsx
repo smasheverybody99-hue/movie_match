@@ -138,6 +138,18 @@ describe("MoviePage", () => {
     expect(compare).toContainElement(document.querySelector(".axis-legend"));
   });
 
+  it("puts overview and credits in one section, then six compared axes, and no Back link", async () => {
+    renderWithProviders(<MoviePage />, ROUTE);
+    const about = await screen.findByRole("region", { name: "Overview" });
+    expect(within(about).getByText("The Prestige: a hand-written overview for the fixtures.")).toBeInTheDocument();
+    expect(within(about).getByText("Christopher Nolan")).toBeInTheDocument();
+    const compare = screen.getByRole("region", { name: "Your taste vs this film" });
+    expect(within(compare).getAllByTestId(/^axis-/)).toHaveLength(6);
+    // shown in Why you, so not repeated here
+    expect(within(compare).queryByTestId("axis-psychological_complexity")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Back" })).not.toBeInTheDocument();
+  });
+
   it("keeps Rate and Save in the page's head, under the title, not at the end", async () => {
     renderWithProviders(<MoviePage />, ROUTE);
     const head = (await screen.findByRole("heading", { level: 1 })).parentElement!;
@@ -350,6 +362,13 @@ describe("comparedTraits", () => {
         scores: { mystery: 60, darkness: 99, humor: 98, romance: 10, action: 97, pacing: 96 },
       },
     });
-    expect(comparedTraits(film)).toEqual(["humor", "action", "pacing", "romance", "psychological_complexity"]);
+    expect(comparedTraits(film)).toEqual([
+      "humor",
+      "action",
+      "pacing",
+      "romance",
+      "psychological_complexity",
+      "plot_twist",
+    ]);
   });
 });

@@ -377,6 +377,28 @@ yuklanganda film nuqtasining 20px qoidasi bo'yicha surilishi.
 axe 4.10.2: 0 buzilish (1440, sababsiz, 390, 390 sababsiz, 320). `scrollWidth` = ekran
 eni (320, 390). Qizil faqat ring'da. Testlar: 15 fayl, 180 test; lint 0; build 0.
 
+### 1-bosqich tasdiqlandi; yakuniy to'rt ish (2026-10-04)
+
+1. **Ustunlar:** Overview va rejissyor/aktyorlar bitta to'liq enli qatorda (tavsif
+   `max-width: 65ch`, ro'yxat o'ngda); taqqoslash to'liq enda, o'qlar 3 + 3 (≥ 900px),
+   endi 6 trait. "Back" havolasi olib tashlandi.
+2. **Mobil o'q:** trait nomi o'q ustida, o'q kartaning to'liq enida (< 640px). 390px da
+   20px surilishi kerak bo'lgan juftliklar: Visual style 69/62 va Pace 55/48 endi haqiqiy
+   joyida (22px); Mystery 84/80 hali suriladi (4 ball ≈ 13px).
+3. **Mobil "Why you":** eyebrow tepada to'liq enda; ring chapda, jumla uning doirasi
+   atrofida o'raladi (`float` + `shape-outside: circle()`), keyin to'liq enga chiqadi.
+4. **Hero scrim:** butun backdrop ustida `--bg` ning 25% i (≈ rgba(0, 0, 0, .25)), pastki
+   va chap gradientlar ostida. O'lchangan o'rtacha yorqinlik (0–255, oq qidiruv
+   pikselisiz), oldin → keyin: The Prestige o'ng-yuqori 100.4 → 78.0, qidiruv atrofi
+   105.0 → 83.4; Prisoners o'ng-yuqori 77.5 → 61.0, butun hero 37.5 → 31.6. Bir tekis scrim
+   har pikselni bir xil ulushga qoraytiradi: yorqin joy ko'p, qorong'i joy kam o'zgaradi.
+
+CLS (o'sha usul): desktop o'zgarmadi (0.000013 o'rtacha, 0.0007 qisqa fallback, 0.0075
+uzun). Mobil: o'rtacha izoh 390px da 0.000000; o'ralish tufayli qatorlar ko'paydi — uzun
+izoh 390px da **0.0154** (avval 0.0038), 320px da o'rtacha izoh **0.0071** (avval
+0.000016). Band qilingan joy 4 qator qoldi: 5 qatorda 390px dagi o'rtacha izoh ostida bo'sh
+qator qolardi. axe 0 (1440, 390, 320). Testlar: 15 fayl, 181; lint 0; build 0.
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

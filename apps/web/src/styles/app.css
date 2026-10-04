@@ -280,9 +280,11 @@ select.field { appearance: auto; }
 }
 .key-you::before { background: var(--text); }
 .key-film::before { border: 2px solid var(--text); }
-.axis-row {
-  display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
-  gap: var(--space-3); align-items: center;
+/* Phone: the name above, the axis across the card's full width (more px per point, so the
+   DOT_GAP push is needed less often). From 640: the name beside the axis. */
+.axis-row { display: grid; gap: var(--space-1); }
+@media (min-width: 640px) {
+  .axis-row { grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr); gap: var(--space-3); align-items: center; }
 }
 .axis-name { font-size: 14px; line-height: 1.25; }
 .axis-plot { position: relative; height: 48px; margin: 0 6px; }
@@ -399,11 +401,15 @@ select.field { appearance: auto; }
 }
 .film-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .film-hero-blur { filter: blur(28px) brightness(.75); transform: scale(1.2); }
+/* Bottom and left gradients into --bg, over an even 25% scrim on the whole image: a bright
+   backdrop does not wash the page out (or swallow the search pill); on a dark one the
+   scrim is barely visible. --bg is near-black, so 25% of it is ~rgba(0, 0, 0, .25). */
 .film-hero::after {
   content: ""; position: absolute; inset: 0;
   background:
     linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 30%, transparent 60%),
-    linear-gradient(to right, color-mix(in srgb, var(--bg) 80%, transparent) 0%, transparent 50%);
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 80%, transparent) 0%, transparent 50%),
+    color-mix(in srgb, var(--bg) 25%, transparent);
 }
 @media (min-width: 640px) {
   .film-hero {
@@ -460,14 +466,7 @@ select.field { appearance: auto; }
    >= 640: ring beside the sentence, the axes under the sentence.
    >= 1100: ring | sentence | axes (40% of the panel), all centred on one line.
    .why-solo (no reason): no axes and no reserved space; the panel is as tall as its content. */
-.why {
-  display: grid; gap: var(--space-4); margin-bottom: var(--space-4);
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas: "ring head" "text text" "traits traits";
-  align-items: center;
-  padding: var(--space-4) 20px;
-}
-.why-solo { grid-template-areas: "ring head" "text text"; }
+.why { display: flow-root; margin-bottom: var(--space-4); padding: var(--space-4) 20px; }
 .why .ring, .why-ring-skel { grid-area: ring; --size: 72px; }
 .why-ring-skel { width: var(--size); height: var(--size); border-radius: 50%; }
 .why-main { display: contents; }
@@ -487,8 +486,22 @@ select.field { appearance: auto; }
 .why-skel-lines { display: flex; flex-direction: column; }
 .why-skel { height: .6em; margin: .35em 0; }
 .why-traits { grid-area: traits; display: grid; gap: var(--space-3); }
+/* Phone: the eyebrow across the top; the ring floats left under it and the sentence wraps
+   round its circle (shape-outside), then runs the full width. The ring starts below the
+   eyebrow's line (16.5px + 16px) and its 12px shape margin stays clear of it. */
+@media (max-width: 639px) {
+  .why .ring, .why-ring-skel {
+    float: left; margin: calc(1.5 * 11px + var(--space-3)) 12px 0 0;
+    shape-outside: circle(50%) content-box; shape-margin: 12px;
+  }
+  .why-eyebrow { margin-bottom: var(--space-2); }
+  .why-traits { clear: both; padding-top: var(--space-4); }
+}
 @media (min-width: 640px) {
-  .why { grid-template-areas: "ring main" ". traits"; padding: var(--space-4); }
+  .why {
+    display: grid; gap: var(--space-4); grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "ring main" ". traits"; align-items: center; padding: var(--space-4);
+  }
   .why-solo { grid-template-areas: "ring main"; }
   .why .ring, .why-ring-skel { --size: 112px; }
   .why-main { display: block; grid-area: main; }
@@ -509,12 +522,18 @@ select.field { appearance: auto; }
   }
 }
 
-.film-grid { display: grid; gap: var(--space-4); }
-.film-about { display: grid; gap: var(--space-4); align-content: start; }
+/* Overview and credits share one full-width row (text ~65 characters wide, the short list
+   beside it), so neither half is left empty; then the comparison across the full width,
+   its axes in two columns of three. */
+.film-about { margin: 0 0 var(--space-4); }
+.film-about-body { display: grid; gap: var(--space-3); }
+.film-overview { margin: 0; max-width: 65ch; }
 .compare { display: grid; gap: var(--space-4); }
 .compare .eyebrow { margin: 0; }
+.compare-axes { display: grid; gap: var(--space-3); }
 @media (min-width: 900px) {
-  .film-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .film-about-body { grid-template-columns: minmax(0, 65ch) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+  .compare-axes { grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: var(--space-5); }
 }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; margin: 0; }
 .facts dt { color: var(--muted); }

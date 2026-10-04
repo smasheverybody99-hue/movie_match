@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
@@ -26,7 +26,8 @@ import {
 import { isTraitKey, TRAIT_KEYS, type TraitKey } from "../lib/traits";
 import type { MovieDetail } from "../lib/types";
 
-const COMPARED = 5;
+/** Two columns of three on wide screens. */
+const COMPARED = 6;
 /** "Why you" names at most this many traits: the match's reasons (top_reasons, n = 3). */
 const WHY_TRAITS = 3;
 
@@ -170,9 +171,11 @@ function Compare({ detail }: { detail: MovieDetail }) {
         {t("movie.compareTitle")}
       </h2>
       {!whyHasAxes(detail) && <AxisLegend />}
-      {comparedTraits(detail).map((key) => (
-        <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
-      ))}
+      <div className="compare-axes">
+        {comparedTraits(detail).map((key) => (
+          <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -325,38 +328,34 @@ export default function MoviePage() {
 
       <Why detail={detail} />
 
-      <div className="film-grid">
-        <Compare detail={detail} />
-        <div className="film-about">
-          {detail.overview && (
-            <section>
-              <h2 className="eyebrow">{t("movie.overview")}</h2>
-              <p style={{ margin: 0 }}>{detail.overview}</p>
-            </section>
-          )}
-          {(detail.director || detail.cast.length > 0) && (
-            <dl className="facts">
-              {detail.director && (
-                <>
-                  <dt>{t("movie.director")}</dt>
-                  <dd>{detail.director}</dd>
-                </>
-              )}
-              {detail.cast.length > 0 && (
-                <>
-                  <dt>{t("movie.cast")}</dt>
-                  <dd>{detail.cast.join(", ")}</dd>
-                </>
-              )}
-            </dl>
-          )}
-          <p>
-            <Link to="/" className="link-btn">
-              {t("nav.back")}
-            </Link>
-          </p>
-        </div>
-      </div>
+      {(detail.overview || detail.director || detail.cast.length > 0) && (
+        <section className="film-about" aria-labelledby="overview-title">
+          <h2 className="eyebrow" id="overview-title">
+            {t("movie.overview")}
+          </h2>
+          <div className="film-about-body">
+            {detail.overview && <p className="film-overview">{detail.overview}</p>}
+            {(detail.director || detail.cast.length > 0) && (
+              <dl className="facts">
+                {detail.director && (
+                  <>
+                    <dt>{t("movie.director")}</dt>
+                    <dd>{detail.director}</dd>
+                  </>
+                )}
+                {detail.cast.length > 0 && (
+                  <>
+                    <dt>{t("movie.cast")}</dt>
+                    <dd>{detail.cast.join(", ")}</dd>
+                  </>
+                )}
+              </dl>
+            )}
+          </div>
+        </section>
+      )}
+
+      <Compare detail={detail} />
     </article>
   );
 }
