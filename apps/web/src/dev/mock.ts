@@ -19,7 +19,7 @@ import { DNA, MOVIES as PLAIN, RECOMMENDATIONS as PLAIN_RECS, TASTE, WATCHLIST a
 import { TMDB_PATHS } from "./images";
 
 function withImages(m: Movie): Movie {
-  return { ...m, poster_path: TMDB_PATHS[m.title]?.poster ?? null };
+  return { ...m, poster_path: TMDB_PATHS[m.title]?.poster ?? null, backdrop_path: TMDB_PATHS[m.title]?.backdrop ?? null };
 }
 
 const MOVIES = PLAIN.map(withImages);
@@ -30,7 +30,14 @@ const RECOMMENDATIONS = {
     ...s,
     seed: s.seed && withImages(s.seed),
     // "For you" carries 12 here (the fixtures have 6), so a row overflows on wide screens.
-    items: (s.key === "for_you" ? PLAIN.slice(0, 12).map((m, i) => rec(m, 94 - i * 2, i < 2 ? "strong" : i < 6 ? "good" : null)) : s.items).map((r) => ({
+    // The first carries a cached sentence (the hero opens it in place); the rest have none.
+    items: (s.key === "for_you"
+      ? PLAIN.slice(0, 12).map((m, i) => ({
+          ...rec(m, 94 - i * 2, i < 2 ? "strong" : i < 6 ? "good" : null),
+          explanation: i === 0 ? "It keeps you guessing the way your favourites do, and the pieces only click into place in the last act." : null,
+        }))
+      : s.items
+    ).map((r) => ({
       ...r,
       movie: withImages(r.movie),
     })),

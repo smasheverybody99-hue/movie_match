@@ -437,6 +437,77 @@ select.field { appearance: auto; }
 .foot-actions .btn:last-child { flex: 2; }
 .foot-actions .btn:first-child { flex: 1; }
 
+/* ---------- home hero (docs/ui.md, 4a) ---------- */
+/* The top of "For you", one film at a time: its backdrop across .main's full width,
+   ~55vh on a phone, ~70vh wider (440-720px), under the search row. A fixed height, not a
+   minimum: a longer title or the opened sentence must not move the rows below at each
+   slide (layout shift); the text grows upwards inside it. The same gradients as
+   the film page: into --bg at the bottom and on the left, a scrim from the top. Slides
+   cross-fade (600 ms; none with reduced motion). The text sits at the bottom left. */
+.home-hero {
+  position: relative; overflow: hidden; background: var(--surface);
+  width: 100cqw; margin-left: calc(50% - 50cqw);
+  margin-top: calc(-1 * var(--space-3)); margin-bottom: var(--space-4);
+  height: max(440px, 55vh); height: max(440px, 55svh);
+  display: flex; align-items: flex-end;
+}
+.home-hero-media { position: absolute; inset: 0; }
+.home-hero-media::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 35%, transparent 65%),
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 85%, transparent) 0%, transparent 60%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 45%, transparent) 0%, transparent 45%);
+}
+.home-hero-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 600ms ease;
+}
+.home-hero-img.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .home-hero-img { transition: none; } }
+.home-hero-body {
+  position: relative; z-index: 1; width: 100%; max-width: 1200px; margin: 0 auto;
+  padding: 96px var(--space-3) var(--space-4);
+}
+.home-hero-slide { max-width: 36rem; }
+.home-hero-title { font-size: 32px; line-height: 1.1; overflow-wrap: break-word; }
+.home-hero-title a { color: inherit; text-decoration: none; }
+.home-hero-title a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.home-hero-band { margin: 12px 0 0; }
+.home-hero-why {
+  margin: var(--space-3) 0 0; max-width: 32rem;
+  font-family: var(--font-head); font-weight: 700; font-size: 20px; line-height: 1.35;
+}
+.home-hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.home-hero-controls { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); }
+.hero-ctl {
+  display: grid; place-items: center; width: var(--touch); height: var(--touch); padding: 0;
+  border-radius: 50%; border: 1px solid var(--muted); cursor: pointer;
+  background: color-mix(in srgb, var(--bg) 50%, transparent); color: var(--text);
+}
+.hero-ctl:hover { border-color: var(--text); }
+/* Dots: a 24px target each (WCAG 2.5.8); the current one white and wider, the rest grey. */
+.home-hero-dots { display: flex; align-items: center; }
+.home-hero-dot {
+  display: grid; place-items: center; width: 24px; height: var(--touch); padding: 0;
+  border: none; background: none; cursor: pointer;
+}
+.home-hero-dot::before {
+  content: ""; width: 8px; height: 8px; border-radius: 99px; background: var(--faint);
+  transition: width var(--ease), background-color var(--ease);
+}
+.home-hero-dot[aria-current="true"]::before { width: 18px; background: var(--text); }
+@media (min-width: 640px) {
+  .home-hero {
+    height: clamp(440px, 70vh, 720px);
+    margin-top: calc(-1 * (var(--space-4) + var(--page-top-h)));
+  }
+  .home-hero-body { padding: 120px var(--space-4) var(--space-5); }
+}
+@media (min-width: 900px) {
+  .home-hero-title { font-size: 56px; }
+}
+
 /* ---------- film page ---------- */
 /* Hero: the backdrop across .main's full width (not .page's), unfaded; the gradient runs
    into --bg at the bottom and on the left. On wide screens it also slides under the

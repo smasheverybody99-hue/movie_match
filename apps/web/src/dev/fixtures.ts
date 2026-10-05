@@ -50,6 +50,7 @@ export function movie(i: number, patch: Partial<Movie> = {}): Movie {
     runtime_minutes,
     overview: `${title}: a hand-written overview for the fixtures.`,
     poster_path: null,
+    backdrop_path: null,
     ...patch,
   };
 }
@@ -68,7 +69,6 @@ export const TASTE: Record<string, number> = Object.fromEntries(
 export function detail(m: Movie, patch: Partial<MovieDetail> = {}): MovieDetail {
   return {
     ...m,
-    backdrop_path: null,
     traits: { scores: scoresFor(m.id), summary: null },
     genres: ["Drama", "Mystery"],
     director: "Christopher Nolan",

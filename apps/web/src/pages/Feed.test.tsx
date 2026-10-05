@@ -57,7 +57,9 @@ describe("Feed", () => {
     await screen.findByRole("heading", { name: "For you" });
     // outside_usual is in the response with an empty list
     expect(screen.queryByRole("heading", { name: "Outside your usual taste" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("region")).toHaveLength(3);
+    // three rows and the hero
+    expect(screen.getAllByRole("region")).toHaveLength(4);
+    expect(screen.getByRole("region", { name: "Top picks for you" })).toBeInTheDocument();
   });
 
   it("shows the band, never the number: red only for strong, nothing on a card for good", async () => {
@@ -75,9 +77,38 @@ describe("Feed", () => {
     recommendations.mockResolvedValue(data);
     renderWithProviders(<Feed />);
     await screen.findByRole("heading", { name: "For you" });
-    expect(screen.getAllByText("Strong match")).toHaveLength(1);
-    expect(screen.queryByText("Good match")).not.toBeInTheDocument();
+    // on the cards: strong only
+    const row = screen.getByRole("region", { name: "For you" });
+    expect(within(row).getAllByText("Strong match")).toHaveLength(1);
+    expect(within(row).queryByText("Good match")).not.toBeInTheDocument();
+    // the hero shows the first pick's band, whichever it is
+    expect(within(screen.getByTestId("home-hero")).getByText("Strong match")).toHaveClass("match-band-strong");
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
+  });
+
+  it("puts the top five of For you in the hero, and never asks for an explanation", async () => {
+    const data: Recommendations = {
+      ...RECOMMENDATIONS,
+      sections: RECOMMENDATIONS.sections.map((s) =>
+        s.key === "for_you" ? { ...s, items: [0, 1, 2, 3, 4, 5, 6].map((i) => rec(movie(i), 94 - i)) } : s,
+      ),
+    };
+    recommendations.mockResolvedValue(data);
+    renderWithProviders(<Feed />);
+    const hero = await screen.findByTestId("home-hero");
+    expect(within(hero).getByRole("heading", { level: 2, name: "The Prestige" })).toBeInTheDocument();
+    expect(within(hero).getAllByRole("button", { name: /^Film \d of 5$/ })).toHaveLength(5);
+    expect(vi.mocked(api.explanation)).not.toHaveBeenCalled();
+  });
+
+  it("has no hero when For you is empty", async () => {
+    recommendations.mockResolvedValue({
+      ...RECOMMENDATIONS,
+      sections: RECOMMENDATIONS.sections.map((s) => (s.key === "for_you" ? { ...s, items: [] } : s)),
+    });
+    renderWithProviders(<Feed />);
+    await screen.findByRole("heading", { name: "Under 90 minutes" });
+    expect(screen.queryByTestId("home-hero")).not.toBeInTheDocument();
   });
 
   it("renders its empty state with a call to action when nothing matches", async () => {

@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Compass, Heart, Sparkles, Timer, type Lucide
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
+import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
 import { RateDialog } from "../components/RateDialog";
@@ -106,6 +107,8 @@ function QuickRate({ movie, onSave, onClose }: {
 function FeedSkeleton() {
   return (
     <>
+      {/* The hero's box, so the rows do not jump when it arrives. */}
+      <div className="home-hero" />
       {[0, 1, 2].map((i) => (
         <div key={i} className="feed-section">
           <Skeleton className="section-title skeleton-title" />
@@ -117,8 +120,9 @@ function FeedSkeleton() {
 }
 
 /**
- * / — sections with reasons (design system, home feed). A section without items is not
- * rendered at all; the match on each card is the API's number, never recomputed here.
+ * / — the hero (the top of "For you"), then sections with reasons (design system, home
+ * feed). A section without items is not rendered at all; the band on each card is the
+ * API's, never recomputed here.
  */
 export default function Feed() {
   const t = useT();
@@ -153,7 +157,13 @@ export default function Feed() {
               />
             );
           }
-          return sections.map((section) => (
+          const forYou = sections.find((s) => s.key === "for_you");
+          const toggleSave = (movie: Movie, isSaved: boolean) =>
+            change.mutate(isSaved ? { kind: "remove", movieId: movie.id } : { kind: "add", movie });
+          return (
+            <>
+              {forYou && <Hero items={forYou.items.slice(0, HERO_COUNT)} saved={saved} onToggleSave={toggleSave} />}
+              {sections.map((section) => (
             <section key={section.key} className="feed-section" aria-labelledby={`section-${section.key}`}>
               <h2 className="section-title" id={`section-${section.key}`}>
                 <SectionTitle section={section} />
@@ -169,12 +179,7 @@ export default function Feed() {
                         quick={{
                           saved: isSaved,
                           onRate: () => setRating(item.movie),
-                          onToggleSave: () =>
-                            change.mutate(
-                              isSaved
-                                ? { kind: "remove", movieId: item.movie.id }
-                                : { kind: "add", movie: item.movie },
-                            ),
+                          onToggleSave: () => toggleSave(item.movie, isSaved),
                         }}
                       />
                     </li>
@@ -182,7 +187,9 @@ export default function Feed() {
                 })}
               </Row>
             </section>
-          ));
+              ))}
+            </>
+          );
         }}
       </QueryView>
       {rating && (

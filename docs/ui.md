@@ -618,6 +618,52 @@ Testlar: 15 fayl, 192 (yangi: bitta sabab — bir ustun va legend o'q bilan; 2�
 ikki ustun; darajasiz kicker; ta'm yo'q — kicker va "siz" nuqtasi yo'q). Bundle: JS
 623.22 kB (gzip 181.32), CSS 23.82 kB.
 
+### 3-bosqich: Home hero (2026-10-05)
+
+`components/Hero.tsx`, Feed'ning boshida. "For you" ning birinchi 5 filmi, bittadan.
+
+- **Rasm:** backdrop `.main` ning to'liq enida, w780/w1280 `srcset`; backdrop yo'q —
+  poster xira; ikkalasi ham yo'q — `--surface`. Birinchisi `fetchpriority="high"` (LCP),
+  qolganlari faqat navbati kelganda: ko'rsatilganlar va keyingisi. Slaydlar 600 ms
+  cross-fade (reduced motion'da yo'q). Gradientlar film sahifasidagidek.
+- **Balandlik qat'iy:** telefon `max(440px, 55svh)`, ≥ 640 `clamp(440px, 70vh, 720px)`.
+  Minimal emas, qat'iy: uzun nom yoki ochilgan jumla har slaydda qatorlarni surmasin.
+- **Matn:** nom (Playfair 32 / 56px, film sahifasiga havola), yil va davomiylik chiplari,
+  daraja pill'i (kuchli qizil, yaxshi neytral, aks holda yo'q), ikki neytral tugma —
+  "Why it suits me?" va Save.
+- **"Why it suits me?":** tavsiya javobida keshlangan jumla bo'lsa — hero ichida ochiladi
+  (`aria-expanded`); yo'q bo'lsa — film sahifasiga havola. Hero hech qachon izoh
+  so'ramaydi (testda tekshirilgan).
+- **Aylanish:** 7 s; sichqoncha yoki fokus ichida bo'lsa, jumla ochiq bo'lsa, Pause
+  bosilsa to'xtaydi (WCAG 2.2.2). Reduced motion — o'zi aylanmaydi, Pause yo'q. ← →
+  tugmalari, nuqtalar (joriy — oq va kengroq, qolgani `--faint`; har biri 24px nishon),
+  klaviaturada ← →. Aylanayotganda `aria-live="off"`, to'xtaganda `polite`.
+- **API:** `backdrop_path` endi har `MovieOut` da (tavsiyalar, qidiruv, watchlist),
+  `MovieDetailOut` dan ko'chirildi; `types.ts` da `Movie` ga. Test: tavsiya elementlari
+  saqlangan backdrop'ni qaytaradi.
+
+**Brifdan farqlar:** janr chipi yo'q — `MovieOut` da janr yo'q, uni qo'shish tavsiya
+so'roviga yana bir join (keyin, kerak bo'lsa). Hero'dagi film birinchi qatorda ham bor
+(Netflix kabi); natijada 1440 birinchi ekranida qizil 3 ta (hero + 2 poster badge'i),
+ikkitasi bitta film.
+
+**O'lchovlar** (headless Chrome, CDP, mock API; axe 4.10.2):
+
+| | 1440 | 1024 | 390 | 320 |
+|---|---|---|---|---|
+| Hero (en × balandlik) | 1232 × 630 | 816 × 538 | 390 × 464 | 320 × 440 |
+| Birinchi qator tepasi | 654 | 562 | 540 | 516 |
+| CLS (yuklanish) | 0 | 0 | 0 | 0 |
+| CLS (16.5 s, ikki aylanish) | 0 | — | 0 | — |
+| LCP elementi | hero backdrop | hero backdrop | hero backdrop | hero backdrop |
+| axe | 0 | 0 | 0 | 0 |
+| `scrollWidth` | ekran eni | ekran eni | ekran eni | ekran eni |
+
+Aylanish brauzerda: 1.1 s Prestige → 8.1 s Memento → 14.8 Zodiac → 21.9 Prisoners → 29
+Wind River (~7 s). Reduced motion'da 16 s da ham birinchi film, `aria-live="polite"`.
+Yuklanmagan rasmlar: boshida 2 ta `img` (joriy + keyingi). Testlar: 16 fayl, 205
+(Hero 10, Feed +2). Bundle: JS 628.33 kB (gzip 182.71), CSS 26.41 kB.
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

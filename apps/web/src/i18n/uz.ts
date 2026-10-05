@@ -100,6 +100,14 @@ export const uz: Record<MessageKey, Message> = {
   "feed.quickSave": "{title} filmini saqlash",
   "feed.scrollPrev": "Oldingi filmlar",
   "feed.scrollNext": "Keyingi filmlar",
+  "hero.label": "Siz uchun eng yaxshilari",
+  "hero.slide": "{n} / {total}",
+  "hero.why": "Nega menga mos?",
+  "hero.prev": "Oldingi film",
+  "hero.next": "Keyingi film",
+  "hero.goTo": "{total} tadan {n}-film",
+  "hero.pause": "Aylanishni to'xtatish",
+  "hero.play": "Aylanishni davom ettirish",
 
   // Film page
   "movie.whyKicker": "Siz va bu film",

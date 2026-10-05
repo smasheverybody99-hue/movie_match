@@ -68,8 +68,7 @@ async def get_movie(
     )
     base = MovieOut.model_validate(detail.movie)
     return MovieDetailOut(
-        **base.model_dump(),
-        backdrop_path=detail.movie.backdrop_path,
+        **base.model_dump(),  # backdrop_path included: every MovieOut carries it
         traits=(
             TraitScores(scores=detail.scores, summary=detail.summary)
             if detail.scores is not None

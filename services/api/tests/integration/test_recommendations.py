@@ -62,7 +62,10 @@ CATALOGUE = [
     *({"id": m, "vector": near(i % 3), "director": 1_000 + i} for i, m in enumerate(RATED)),
     *({"id": m, "vector": near(2), "director": AUTEUR} for m in BY_AUTEUR),
     *({"id": m, "vector": near(8 + i), "director": 2_000 + i} for i, m in enumerate(GOOD)),
-    *({"id": m, "vector": near(3), "director": 8_000 + i} for i, m in enumerate(FILLERS)),
+    *(
+        {"id": m, "vector": near(3), "director": 8_000 + i, "backdrop": f"/backdrop-{m}.jpg"}
+        for i, m in enumerate(FILLERS)
+    ),
     *(
         {"id": m, "vector": near(20), "director": 3_000 + i, "runtime": 80 + i}
         for i, m in enumerate(SHORT)
@@ -190,6 +193,18 @@ async def test_band_is_recomputable_from_stored_numbers(world) -> None:
         assert item["band"] == expected, item["movie"]["id"]
         bands.append(item["band"])
     assert "good" in bands and None in bands  # the check is not vacuous
+
+
+async def test_items_carry_the_backdrop_for_the_home_hero(world) -> None:
+    _, _, body = world
+    items = _items(body)
+    assert all("backdrop_path" in item["movie"] for item in items)
+    fillers = [item["movie"] for item in items if item["movie"]["id"] in FILLERS]
+    assert fillers  # the check is not vacuous
+    for movie in fillers:
+        assert movie["backdrop_path"] == f"/backdrop-{movie['id']}.jpg"
+    others = [item["movie"] for item in items if item["movie"]["id"] not in FILLERS]
+    assert all(movie["backdrop_path"] is None for movie in others)
 
 
 async def test_rated_watched_and_dismissed_films_are_excluded(world) -> None:

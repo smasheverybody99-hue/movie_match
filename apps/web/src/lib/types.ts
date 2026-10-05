@@ -8,6 +8,8 @@ export interface Movie {
   runtime_minutes: number | null;
   overview: string | null;
   poster_path: string | null;
+  /** Every film carries it: the Home hero shows the top picks' backdrops. */
+  backdrop_path: string | null;
 }
 
 /**
@@ -23,7 +25,6 @@ export interface TraitScores {
 }
 
 export interface MovieDetail extends Movie {
-  backdrop_path: string | null;
   traits: TraitScores | null;
   genres: string[];
   director: string | null;

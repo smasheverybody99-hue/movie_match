@@ -99,7 +99,8 @@ async def seed_catalogue(session: AsyncSession, films: Sequence[dict]) -> None:
     """Films with traits, an embedding, and optionally a director, runtime and genres.
 
     Each dict: id, vector, and any of director (person id), runtime, popularity,
-    genres ([(id, name)]), embedding (defaults to fake_embedding(vector)).
+    genres ([(id, name)]), backdrop (a TMDB path), embedding (defaults to
+    fake_embedding(vector)).
     """
     records = []
     for film in films:
@@ -116,6 +117,7 @@ async def seed_catalogue(session: AsyncSession, films: Sequence[dict]) -> None:
         payload = {
             "id": film["id"],
             "title": f"Film {film['id']}",
+            "backdrop_path": film.get("backdrop"),
             "popularity": film.get("popularity", 1.0),
             "runtime": film.get("runtime", 120),
             "genres": [{"id": g, "name": n} for g, n in film.get("genres", [])],

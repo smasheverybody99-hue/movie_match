@@ -20,6 +20,9 @@ class MovieOut(BaseModel):
     runtime_minutes: int | None = None
     overview: str | None = None
     poster_path: str | None = None
+    # Every film carries it (not only the detail): the Home hero shows the top picks'
+    # backdrops from the recommendations response (docs/ui.md, 4a).
+    backdrop_path: str | None = None
 
 
 # Where the match places the film in the catalogue for this user (FR-5, TZ 1.13): one of
@@ -37,7 +40,6 @@ class TraitScores(BaseModel):
 
 
 class MovieDetailOut(MovieOut):
-    backdrop_path: str | None = None
     traits: TraitScores | None = None
     genres: list[str] = Field(default_factory=list)
     director: str | None = None
