@@ -61,10 +61,13 @@ describe("MoviePage", () => {
     expect(screen.getByTestId("loading")).toBeInTheDocument();
   });
 
-  it("renders the film from the API: match, why, comparison, facts", async () => {
+  it("renders the film from the API: match band, why, comparison, facts", async () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "94% match" })).toBeInTheDocument();
+    // the band beside "Why you?", no number and no ring (FR-5, TZ 1.13)
+    const why = screen.getByRole("region", { name: "Why you?" });
+    expect(within(why).getByText("Strong match")).toHaveClass("match-band-strong");
+    expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
     expect(await screen.findByText("Twisty and cerebral, like your favourites.")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Your taste vs this film" })).toBeInTheDocument();
     expect(screen.getByText("Christopher Nolan")).toBeInTheDocument();
@@ -186,7 +189,7 @@ describe("MoviePage", () => {
     expect(screen.getByTestId("why-slot")).toContainElement(text);
     // nothing is coming, so no space is held: the panel is as tall as its content
     expect(screen.getByTestId("why-slot")).not.toHaveClass("why-reserve");
-    expect(screen.getByRole("img", { name: "94% match" })).toBeInTheDocument();
+    expect(screen.getByText("Strong match")).toBeInTheDocument();
     expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
     expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
     // the API writes no text without a reason, so the page does not ask
@@ -315,23 +318,17 @@ describe("motion in Why you", () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("fades the sentence in and counts the ring up when motion is allowed", async () => {
+  it("fades the sentence in when motion is allowed", async () => {
     prefersReduced(false);
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText("Twisty.")).toHaveClass("why-in");
-    const ring = screen.getByRole("img", { name: "94% match" });
-    await waitFor(() => expect(ring).toHaveAttribute("data-p", "94"));
   });
 
-  it("with reduced motion: no fade, and the ring and its number at the final value from the first frame", async () => {
+  it("with reduced motion: no fade, and no JS animation", async () => {
     prefersReduced(true);
     const raf = vi.spyOn(window, "requestAnimationFrame");
     renderWithProviders(<MoviePage />, ROUTE);
-    const ring = await screen.findByRole("img", { name: "94% match" });
-    expect(ring).toHaveAttribute("data-p", "94");
-    expect(ring.querySelector(".ring-count")).toHaveTextContent("94%");
     expect(await screen.findByText("Twisty.")).not.toHaveClass("why-in");
-    // no JS animation was started: neither the count-up nor the ring's fill
     expect(raf).not.toHaveBeenCalled();
     raf.mockRestore();
   });
@@ -370,5 +367,30 @@ describe("comparedTraits", () => {
       "psychological_complexity",
       "plot_twist",
     ]);
+  });
+});
+
+describe("match band in Why you", () => {
+  beforeEach(() => {
+    for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty." });
+    ratings.mockResolvedValue([]);
+    dna.mockResolvedValue(DNA);
+    watchlist.mockResolvedValue([]);
+  });
+
+  it("shows a good match in the neutral pill, never red", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { band: "good" }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    const pill = await screen.findByText("Good match");
+    expect(pill).toHaveClass("match-band-good");
+    expect(pill).not.toHaveClass("match-band-strong");
+  });
+
+  it("shows no pill outside both bands, and the sentence still explains", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { band: null }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByText("Twisty.")).toBeInTheDocument();
+    expect(screen.queryByText(/Strong match|Good match/)).not.toBeInTheDocument();
   });
 });

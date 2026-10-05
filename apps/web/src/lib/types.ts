@@ -10,6 +10,13 @@ export interface Movie {
   poster_path: string | null;
 }
 
+/**
+ * Where the match places the film in the catalogue for this user (FR-5, TZ 1.13): one of
+ * their N closest ("strong"), or in their closest share ("good"). This is what the UI
+ * shows; `match` stays in the responses for ordering and checking by hand, not for display.
+ */
+export type MatchBand = "strong" | "good";
+
 export interface TraitScores {
   scores: Record<string, number>;
   summary: string | null;
@@ -21,16 +28,19 @@ export interface MovieDetail extends Movie {
   genres: string[];
   director: string | null;
   cast: string[];
-  /** The caller's match (FR-5). Null signed out, or without traits or taste. */
+  /** The caller's match (FR-5). Null signed out, or without traits or taste. Not shown. */
   match: number | null;
+  /** The caller's match band; null outside both bands, or without a match. */
+  band: MatchBand | null;
   /** Trait keys that drove the match, strongest first. */
   reasons: string[];
 }
 
 export interface Recommendation {
   movie: Movie;
-  /** 0-100, computed from trait distance. */
+  /** 0-100, computed from trait distance. Not shown. */
   match: number;
+  band: MatchBand | null;
   /** Trait keys that drove the match, strongest first. */
   reasons: string[];
   explanation: string | null;
@@ -113,6 +123,7 @@ export interface WatchlistItem {
   movie: Movie;
   added_at: string;
   watched_at: string | null;
-  /** The caller's match; null without traits or taste. */
+  /** The caller's match; null without traits or taste. Not shown. */
   match: number | null;
+  band: MatchBand | null;
 }

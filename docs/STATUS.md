@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-05 (dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -21,6 +21,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 
 | | |
 |---|---|
+| CI (`main`, `1033ed9`, dizayn 2-bosqich tuzatishlari) | **Yashil**, 2026-10-05: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37266785192 |
 | CI (`main`, `b28b9da`, F2 yopilishi) | **Yashil**, 2026-10-02: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36989348804. `app/services/` coverage ≥ 85% (`--fail-under=85` qadami o'tgan). **Aniq raqam o'qilmadi** (log GitHub login talab qiladi) — keyingi to'liq mahalliy run'da yoziladi |
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
@@ -63,12 +64,12 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Dizayn v2: 2-bosqich ko'rigidagi beshta tuzatish bajarildi (2026-10-05).** Mobil
-   "Why you" float'siz, scrim tepadan gradient, legend o'qlar ustunida, Home hover 8% +
-   soya, Onboarding testlari barqaror. Natijalar: `docs/ui.md`, "2-bosqich, ko'rikdan
-   keyingi tuzatishlar". **3-bosqich (Home hero, `backdrop_path` API'ga) FR-5 qaroridan
-   keyin** — unda ham match foizi ko'rsatiladi (foydalanuvchi, 2026-10-05). FR-5 variantlari
-   (Z, P) o'lchandi, natija foydalanuvchiga ko'rsatildi, qaror kutilmoqda (kod o'zgarmagan).
+1. **FR-5: match darajasi joriy qilindi (TZ 1.13, 2026-10-05).** Interfeys foizni emas,
+   darajani ko'rsatadi: "kuchli" (eng yaqin 5 film, qizil), "yaxshi" (eng yaqin 35%,
+   neytral). Foiz API'da ichki qoladi; "60% dan past" o'rniga eng uzoq 25% tavsiya
+   qilinmaydi. Film sahifasida ring yo'q. Asos — pastdagi "FR-5 o'lchovi". Keyingisi:
+   **3-bosqich (Home hero, `backdrop_path` API'ga).** Dizayn 2-bosqich tuzatishlari
+   (2026-10-05) bajarilgan: `docs/ui.md`.
    Match foizi (FR-5) bo'yicha qaror hali ochiq. Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
    foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
    izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan
@@ -81,6 +82,46 @@ secret yo'q (`.github/workflows/gate.yml`).
    turadi. E'tibor: "Хочу посмотреть" (watchlist), ring ichida "СХОДСТВО" (joy 9px da
    ~65px, "СОВПАДЕНИЕ" sig'maydi), `dna.summary` jumla tuzilishi.
 3. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
+
+## FR-5 o'lchovi (2026-10-05) — match darajasi qarorining asosi
+
+Bitta akkaunt (32 baho, 27 tasi traitli film; 8+ — 13, ≤ 5 — 12), 500 film, faqat o'qish
+(`READ ONLY` tranzaksiya), LLM yo'q. Katalog statistikasi `reasons.trait_stats` dan.
+Ajratish o'lchovi — **AUC**: tasodifiy 8+ film tasodifiy ≤ 5 filmdan yuqori turishi
+ehtimoli (0.5 — tanga). Median farqi ham yozildi, lekin u shkala cho'zilsa o'sadi,
+tartib o'zgarmasa ham — shuning uchun mezon AUC.
+
+| Variant | 8+ median | ≤ 5 median | Median farqi | AUC | Butun 500: min–max |
+|---|---|---|---|---|---|
+| Hozirgi formula | 86 | 84.5 | 1.5 | 0.52 | 59–92 |
+| Z (z-fazoda masofa, `100·e^(−d²/2)`) | 83 | 77 | 6 | 0.55 | 13–94 |
+| Z (`100·(1 − d/3)`) | 80 | 76 | 4 | 0.55 | 32–89 |
+| P (persentil, hozirgi tartibda) | 93 | 88.5 | 4.5 | 0.52 | 0–100 |
+| P (persentil, Z tartibida) | 93 | 86.5 | 6.5 | 0.55 | 0–100 |
+
+- **Leave-one-out** (yoqqan filmlar ta'm vektorining o'zida bor; har film o'zisiz qurilgan
+  profilga qarshi): hozirgi 0.44, Z 0.50.
+- 13 va 12 filmda AUC xatosi ±0.12: 0.55 tasodifdan farq qilmaydi. To'g'ri xulosa —
+  **foiz bahoni bashorat qilishini ko'rsata olmadik**, "ma'nosiz" emas: u trait bo'yicha
+  uzoqlikni o'lchaydi.
+- Misollar: 2 baholangan film — 90% (P da yuqori 1%), 4 baholangan — 89%.
+- **Traitlar bo'yicha** (8+ o'rtachasi − ≤ 5 o'rtachasi, katalog σ da; AUC): `realism`
+  +0.59 (0.75), `emotional_intensity` +0.56 (0.73), `plot_twist` +0.55 (0.67),
+  `character_depth` +0.41 (0.65), `visual_style` −0.33 (0.35); qolgan 9 tasi |0.21| dan
+  kichik. Ikki guruh markazlari orasi o'rtacha 0.31 σ. 14 trait 25 filmda sinalgan —
+  tasodif ham bo'lishi mumkin. Ta'm faqat yoqqan filmlardan quriladi (≤ 5 vazni 0) —
+  ehtimoliy asosiy sabab (TZ backlog, 2026-10-05).
+- **Daraja chegaralari** (o'sha akkaunt): top 10% bo'lsa 500 dan 50 "kuchli" va Home
+  birinchi ekranida (1440, 12 karta) 11 qizil — "For you" va "Because you loved" ta'rifan
+  eng yuqori o'rinlardan tuziladi. Kuchli = top 5% → 6, 2% → 4, **1% (5 film) → 2**; ulush
+  katalog o'sganda (5 000) yana 11 ga qaytadi, shuning uchun kuchli — mutlaq N = 5. Yaxshi
+  (top 35%): 125 film; unrated 473 dan 115. Kuchli 5 talikning ikkitasi allaqachon
+  baholangan (biri 9, biri 2).
+- **Pastki chegara:** "60% dan past" 473 dan 2 ta filmni chiqarardi; eng uzoq 25% (o'rin
+  > 375) bugun Home'dan hech narsani chiqarmaydi (eng uzoq karta — 315-o'rin, "Under 90").
+- Narx: chegaralar har foydalanuvchiga 500 filmda 4 ms, 5 000 da 68 ms (o'lchangan);
+  katalog vektorlari 10 daqiqa, chegaralar `taste_updated_at` bo'yicha keshlanadi
+  (`services/bands.py`).
 
 ## Muhit
 

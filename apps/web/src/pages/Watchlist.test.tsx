@@ -52,11 +52,13 @@ describe("Watchlist", () => {
     expect(list).toHaveBeenCalledTimes(2);
   });
 
-  it("renders rows with the API's match, unwatched films under Watch next", async () => {
+  it("renders rows with the API's match band, unwatched films under Watch next", async () => {
     renderWithProviders(<Watchlist />, ROUTE);
     await screen.findByText("The Machinist");
     expect(rowTitles()).toEqual(["The Machinist", "Wind River", "The Guilty", "Enemy"]);
-    expect(screen.getByLabelText("88% match")).toHaveTextContent("88%");
+    expect(screen.getAllByText("Strong match")).toHaveLength(1);
+    expect(screen.getAllByText("Good match")).toHaveLength(2);
+    expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Watch next" })).toHaveAttribute("aria-pressed", "true");
   });
 

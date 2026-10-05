@@ -40,10 +40,9 @@ export const en = {
   "common.cancel": "Cancel",
   "common.save": "Save",
   "common.minutes": "{n}m",
-  "common.matchBadge": "{n}%",
-  "common.matchLabel": "{n}% match",
+  "band.strong": "Strong match",
+  "band.good": "Good match",
   "common.poster": "Poster for {title}",
-  "common.matchWord": "MATCH",
   "common.loading": "Loading",
 
   "welcome.tagline":
@@ -109,7 +108,7 @@ export const en = {
     other: "Rate {n} more films to get recommendations.",
   },
   "feed.notEnoughCta": "Keep rating",
-  "feed.empty": "No film matches you above 60% yet. Rate a few more films.",
+  "feed.empty": "No recommendations for you yet. Rate a few more films.",
   "feed.emptyCta": "Search films",
   "feed.error": "Couldn't load recommendations. Check your connection and try again.",
   "feed.quickSave": "Save {title}",

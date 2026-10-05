@@ -57,7 +57,7 @@ async def get_movie(
     user_id: uuid.UUID | None = Depends(optional_user_id),
     session: AsyncSession = Depends(get_session),
 ) -> MovieDetailOut:
-    """The film. With a token, also the caller's match and its reasons."""
+    """The film. With a token, also the caller's match, its band and its reasons."""
     detail = await movies.get_detail(session, movie_id)
     if detail is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
@@ -79,5 +79,6 @@ async def get_movie(
         director=detail.director,
         cast=detail.cast,
         match=personal.match if personal else None,
+        band=personal.band if personal else None,
         reasons=personal.reasons if personal else [],
     )

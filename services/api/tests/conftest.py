@@ -107,9 +107,12 @@ async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, Non
 
 @pytest.fixture(autouse=True)
 def _fresh_reason_stats() -> Iterator[None]:
-    """Each test seeds its own catalogue: never reuse another test's trait statistics."""
-    from app.services import reasons
+    """Each test seeds its own catalogue: never reuse another test's trait statistics or
+    band cuts."""
+    from app.services import bands, reasons
 
     reasons.clear_cache()
+    bands.clear_cache()
     yield
     reasons.clear_cache()
+    bands.clear_cache()

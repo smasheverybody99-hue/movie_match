@@ -35,10 +35,12 @@ sarlavhasidagi belgining qizili. Shakl qoladi (pill tugma, nuqtalar, belgi), ran
 
 ### 1. Rang qoidasi — eng muhim band
 
-**Qizil (`--red`) faqat match uchun.** Match foizining raqami va uning grafik ko'rinishi:
-ring, poster ustidagi foiz badge'i, hero'dagi foiz. Boshqa hech qayerda. Sabab: match foizi
-mahsulotning imzosi; qizil hamma joyda bo'lsa, u kuchini yo'qotadi. Ekranda qizil ko'rinsa —
-bu "moslik" degani.
+**Qizil (`--red`) faqat kuchli moslik uchun** (TZ 1.13, 2026-10-05). Interfeys match
+foizini ko'rsatmaydi — uning o'rnida daraja: **"Kuchli moslik"** (foydalanuvchining
+katalogdagi eng yaqin 5 filmi) — qizil pill, **"Yaxshi moslik"** (eng yaqin 35%) —
+neytral pill, qolganida hech narsa. Boshqa hech qayerda qizil yo'q. Sabab: qizil kam
+uchrasa, kuchini saqlaydi; 1.13 gacha har kartadagi foiz badge'i bir ekranda 11 ta qizil
+bergan edi. Ekranda qizil ko'rinsa — bu "katalogda sizga eng yaqinlaridan biri" degani.
 
 Yangi rang qo'shilmaydi: hamma narsa `apps/web/src/styles/tokens.css` dagi tokenlar bilan.
 
@@ -47,7 +49,7 @@ Yangi rang qo'shilmaydi: hamma narsa `apps/web/src/styles/tokens.css` dagi token
 | `--bg` `#0a0a0f` | Ekran foni | O'zgarmaydi: chuqur qora fon |
 | `--surface`, `--surface-2`, `--line` | Kartalar, inputlar, chegaralar | Neytral chrome, **toza kulrang** (qaror 5): tus yo'q, R = G = B |
 | `--text`, `--muted`, `--faint` | Matn | O'zgarmaydi. Oddiy tugmalarning konturi ham shulardan |
-| `--red` | Asosiy tugma, faol nav, tanlangan chip, input fokus, kuchli trait bar, progress nuqtalari, tanlangan poster, ring | **Faqat match:** ring, foiz badge'i, hero'dagi foiz |
+| `--red` | Asosiy tugma, faol nav, tanlangan chip, input fokus, kuchli trait bar, progress nuqtalari, tanlangan poster, ring | **Faqat "Kuchli moslik" pill'i** (poster, film sahifasi, watchlist, hero) |
 | `--red-dark` | Skip-link, tanlangan chip, onboarding belgisi | Ishlatilmaydi (token qoladi; F7 da kerak bo'lishi mumkin) |
 | `--gold` | Match raqami, fokus konturi, input xatosi, eyebrow, katta baho raqami, slider | **Faqat ogohlantirish va xato** (input xatosi, "diqqat"). Match'dan olinadi |
 | `--green` | Muvaffaqiyat | O'zgarmaydi: faqat "bajarildi" |
@@ -116,8 +118,8 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   mobil'da ~55vh.
 - Gradient: chapdan `--bg` dan shaffofga (matn o'qilishi uchun) va pastdan `--bg` ga
   (qatorlarga silliq o'tish).
-- Chapda: film nomi (Playfair, katta), chiplar (yil · davomiylik · janr), **match foizi —
-  qizil** (ekrandagi yagona qizil), ikki tugma — **"Nega menga mos?"** va **Watchlist**,
+- Chapda: film nomi (Playfair, katta), chiplar (yil · davomiylik · janr), **match darajasi**
+  (kuchli — qizil pill, yaxshi — neytral; raqam yo'q, TZ 1.13), ikki tugma — **"Nega menga mos?"** va **Watchlist**,
   ikkalasi neytral kontur. "Watch Now" yo'q.
 - "Nega menga mos?": tavsiya javobida kesh'langan izoh bo'lsa — hero ichida ochiladi; yo'q
   bo'lsa — film sahifasining "Nega sizga?" qismiga o'tadi. **Hero o'zi LLM chaqirmaydi:**
@@ -136,7 +138,9 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   (2-bo'lim jadvali).
 - Posterlar kattaroq: desktop ~180px eni, mobil'da ekranda 2.4 ta (keyingisining chekkasi
   scroll borligini bildiradi). Nisbat 2:3. Nom poster ostida, kichik, 2 qatorgacha.
-- **Match badge doim ko'rinadi** (qizil) — bu imzo.
+- **Faqat "Kuchli moslik" badge'i** (qizil) posterda doim ko'rinadi; "Yaxshi moslik"
+  kartada ko'rsatilmaydi (aks holda ~25 kulrang pill — o'sha shovqin), u film sahifasida
+  va watchlist'da. Raqam yo'q (TZ 1.13).
 - **Hover** (sichqoncha, `pointer: fine`): poster 1.08 ga kattalashadi va yumshoq soya oladi, ustida qorong'u
   qatlam va tez tugmalar — **Baholash** (mavjud baho dialogini ochadi) va **Watchlist**.
   Klaviatura: `:focus-within` da xuddi shu. Sensorli ekran: hover yo'q, bosish film
@@ -152,8 +156,10 @@ Hozir backdrop 200px balandlikda va 55% shaffoflikda — deyarli ko'rinmaydi.
 - Backdrop **butun kenglikda hero**: desktop ~60vh (kamida 360px), mobil ~45vh, to'liq
   shaffofliksiz; gradient pastga va chapga `--bg` ga o'tadi.
 - Poster hero'ning pastki chetiga ustma-ust tushadi; yonida nom (Playfair, katta),
-  chiplar, **match ring (qizil)**.
-- "Nega sizga?" bloki ring yonida/ostida, tavsifdan yuqorida (v1 qoidasi qoladi).
+  chiplar.
+- "Nega sizga?" bloki tavsifdan yuqorida (v1 qoidasi qoladi). **Ring yo'q (TZ 1.13):**
+  sarlavha yonida daraja pill'i (kuchli — qizil, yaxshi — neytral, aks holda hech narsa),
+  jumla asosiy signal.
 - Amallar: Baholash va Watchlist — neytral kontur pill; mobil'da pastda sticky.
 - "Sizning ta'mingiz va shu film" taqqoslashi neytral: film — oq, siz — kulrang (hozir
   qiymatga qarab qizil/oltin).
@@ -221,8 +227,6 @@ Ish: **2–3 kun** (testlari bilan).
 |---|---|---|
 | Sahifa o'tishlari | View Transitions API: React Router 7.18 dagi `viewTransition` (`Link`/`NavLink`). Qo'llamaydigan brauzer — oddiy o'tish | 200–250 ms |
 | Poster hover | `transform: scale(1.08)` + soya + qatlam paydo bo'lishi | 200 ms |
-| Match foizi | 0 dan qiymatgacha sanaladi (`useCountUp`, `requestAnimationFrame`) | 600 ms |
-| Ring | Hozir bor (CSS `@property --p`) | 600 ms |
 | DNA guli | Nurlar markazdan ketma-ket o'sadi | 40 ms oraliq, jami ~900 ms |
 | Hero | Slaydlar crossfade | 400 ms |
 
@@ -528,6 +532,37 @@ axe 4.10.2: 0 buzilish (1440, 1024, 390, 320 film; 1440, 390 Home). `scrollWidth
 eni (1440, 1024, 390, 320; Home ham). Qizil: film sahifasida faqat ring, Home'da faqat
 badge'lar. Testlar: 15 fayl, 189; lint 0; build 0. Bundle: JS 624.11 kB (gzip 181.53),
 CSS 24.81 kB.
+
+### Match darajasi (TZ 1.13, 2026-10-05)
+
+Foiz interfeysdan olindi; o'rnida daraja pill'i (`components/MatchBand.tsx`). Qaror asosi:
+`docs/STATUS.md`, "FR-5 o'lchovi".
+
+- **Home:** posterda faqat "Strong match" (qizil, `.badge`). "Good match" kartada yo'q.
+- **Film sahifasi:** ring olib tashlandi (`MatchRing`, `useCountUp` va ularning testlari
+  bilan). "Why you" sarlavhasi qatorida pill: kuchli — qizil, yaxshi — neytral (`--surface-2`,
+  `--line` chegara), aks holda hech narsa. Sarlavha qatori har holatda 26px — pill bor-yo'qligi
+  jumlani surmaydi. ≥ 1100: jumla | o'qlar (40%); undan tor — ustma-ust.
+- **Watchlist:** `NN%` o'rnida o'sha pill.
+- **Matnlar:** "Strong match" / "Good match"; uz "Kuchli moslik" / "Yaxshi moslik"; ru
+  (qoralama) "Очень близко" / "Близко" — "Сильное совпадение" 112px posterga sig'masdi.
+  Feed bo'sh holati endi "60%" demaydi.
+
+**O'lchovlar** (headless Chrome, mock API, o'sha usul):
+
+| | Natija |
+|---|---|
+| Home qizil (1440 birinchi ekran / 390 / 320) | 2 / 2 / 2 (mock: "For you" ning 2 tasi kuchli) |
+| Posterdagi badge eni, 112px poster (320) | en 88px, uz 88px, ru 92px — sig'adi |
+| Sahifada `NN%` ko'rinishi | yo'q (film 1440/1024/390/320, Home, Watchlist) |
+| CLS film, o'rtacha izoh | 1440 0.000001, 1024 0, 390 0, 320 0 |
+| CLS film, 390 uzun izoh (6 qator, 4 band) | **0.0073** (ring bilan 0.0024): ring qatori ketgach o'qlar ekranga ko'tarildi va o'sha siljish endi ko'rinadigan joyda. "Yaxshi" chegarasi 0.1 |
+| CLS Home / Watchlist | 0 / 0 |
+| axe 4.10.2 | 0 (film 1440 kuchli va yaxshi, 1024, 390, 320; Home 1440, 390; Watchlist 390) |
+| `scrollWidth` | ekran eni (hamma holatda) |
+
+Testlar: 15 fayl, 189 (ring va sanoq testlari o'rniga daraja testlari: kuchli/yaxshi/yo'q,
+Feed'da raqam yo'qligi, Watchlist). Bundle: JS 623.03 kB (gzip 181.23), CSS 23.51 kB.
 
 ### 10. Mobil paritet
 

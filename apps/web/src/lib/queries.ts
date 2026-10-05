@@ -137,7 +137,7 @@ function applyChange(list: WatchlistItem[], change: WatchlistChange): WatchlistI
     case "add":
       if (list.some((i) => i.movie.id === change.movie.id)) return list;
       return [
-        { movie: change.movie, added_at: new Date().toISOString(), watched_at: null, match: null },
+        { movie: change.movie, added_at: new Date().toISOString(), watched_at: null, match: null, band: null },
         ...list,
       ];
     case "remove":

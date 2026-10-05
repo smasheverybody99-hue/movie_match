@@ -35,7 +35,7 @@ describe("Feed", () => {
     expect(screen.getByTestId("loading")).toBeInTheDocument();
   });
 
-  it("renders sections with their reasons, and the API's match on each card", async () => {
+  it("renders sections, with the strong-match band on the cards the API marked strong", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
     renderWithProviders(<Feed />);
 
@@ -46,7 +46,7 @@ describe("Feed", () => {
     const forYou = screen.getByRole("region", { name: "For you" });
     const first = within(forYou).getAllByRole("link")[0];
     expect(first).toHaveAttribute("href", "/movie/1000");
-    expect(within(first as HTMLElement).getByText("94%")).toBeInTheDocument();
+    expect(within(first as HTMLElement).getByText("Strong match")).toBeInTheDocument();
     expect(within(first as HTMLElement).getByText("The Prestige")).toBeInTheDocument();
     expect(recommendations).toHaveBeenCalledWith("en");
   });
@@ -60,15 +60,24 @@ describe("Feed", () => {
     expect(screen.getAllByRole("region")).toHaveLength(3);
   });
 
-  it("shows the match number exactly as the API sent it", async () => {
+  it("shows the band, never the number: red only for strong, nothing on a card for good", async () => {
     const data: Recommendations = {
       status: "ok",
       ratings_needed: 0,
-      sections: [{ key: "for_you", seed: null, items: [rec(movie(2), 73)] }],
+      sections: [
+        {
+          key: "for_you",
+          seed: null,
+          items: [rec(movie(2), 91, "strong"), rec(movie(3), 88, "good"), rec(movie(4), 73, null)],
+        },
+      ],
     };
     recommendations.mockResolvedValue(data);
     renderWithProviders(<Feed />);
-    expect(await screen.findByLabelText("73% match")).toHaveTextContent("73%");
+    await screen.findByRole("heading", { name: "For you" });
+    expect(screen.getAllByText("Strong match")).toHaveLength(1);
+    expect(screen.queryByText("Good match")).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
   });
 
   it("renders its empty state with a call to action when nothing matches", async () => {
@@ -78,7 +87,7 @@ describe("Feed", () => {
       sections: [{ key: "for_you", seed: null, items: [] }],
     });
     renderWithProviders(<Feed />);
-    expect(await screen.findByText(/No film matches you above 60%/)).toBeInTheDocument();
+    expect(await screen.findByText(/No recommendations for you yet/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Search films" })).toHaveAttribute("href", "/search");
   });
 

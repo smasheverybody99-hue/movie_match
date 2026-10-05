@@ -18,6 +18,7 @@ movie_traits.vector), so any match the API returns can be recomputed by hand (CL
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from typing import Literal
 
 from app.traits import TRAIT_KEYS
 
@@ -49,12 +50,70 @@ def weighted_gap(taste: Sequence[float], weights: Sequence[float], movie: Sequen
     return math.sqrt(squares / total_weight)
 
 
+def match_raw(
+    taste: Sequence[float], weights: Sequence[float], movie_vector: Sequence[float]
+) -> float:
+    """100·(1 - d) before rounding: what the bands rank by, so ties on the integer do not
+    decide which side of a cut a film falls."""
+    return 100.0 - weighted_gap(taste, weights, movie_vector)
+
+
 def match_percentage(
     taste: Sequence[float], weights: Sequence[float], movie_vector: Sequence[float]
 ) -> int:
     """0..100, per docs/TZ.md FR-5. Rounded half up (96.5 -> 97)."""
-    raw = 100.0 - weighted_gap(taste, weights, movie_vector)  # = 100·(1 - d)
+    raw = match_raw(taste, weights, movie_vector)
     return min(100, max(0, math.floor(raw + 0.5)))
+
+
+# --- bands (TZ 1.13) --------------------------------------------------------------------
+# The number is internal: it ranks and sorts, but did not predict the user's ratings
+# (2026-10-05, AUC 0.52 on one account, docs/STATUS.md). The client shows a band instead,
+# a claim about place rather than a score: the film is one of the user's N closest in the
+# catalogue ("strong"), or in their closest share of it ("good").
+
+MatchBand = Literal["strong", "good"]
+
+
+@dataclass(frozen=True)
+class BandCuts:
+    """Raw match values (match_raw) at the cut places, for one user and one catalogue."""
+
+    strong: float  # at place strong_top_n
+    good: float  # at place ceil(good_share · N)
+    floor: float  # at place ceil((1 - floor_share) · N): below it, never recommended
+
+
+def _at_place(desc: Sequence[float], place: int) -> float:
+    return desc[min(max(place, 1), len(desc)) - 1]
+
+
+def band_cuts(
+    raws: Sequence[float], strong_top_n: int, good_share: float, floor_share: float
+) -> BandCuts | None:
+    """The cuts from every catalogue film's raw match for this user; None for no films.
+
+    Places count from 1 at the best film. A film whose raw value equals a cut is inside it.
+    """
+    if not raws:
+        return None
+    desc = sorted(raws, reverse=True)
+    n = len(desc)
+    return BandCuts(
+        strong=_at_place(desc, strong_top_n),
+        good=_at_place(desc, math.ceil(good_share * n)),
+        floor=_at_place(desc, math.ceil((1.0 - floor_share) * n)),
+    )
+
+
+def match_band(raw: float, cuts: BandCuts | None) -> MatchBand | None:
+    if cuts is None:
+        return None
+    if raw >= cuts.strong:
+        return "strong"
+    if raw >= cuts.good:
+        return "good"
+    return None
 
 
 @dataclass(frozen=True)

@@ -5,11 +5,12 @@ import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
+import { MatchBand } from "../components/MatchBand";
 import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
-import { AxisLegend, MatchRing, TraitAxis, traitLabelKey } from "../components/Traits";
+import { AxisLegend, TraitAxis, traitLabelKey } from "../components/Traits";
 import { useT } from "../i18n";
 import { isNotFound } from "../lib/api";
 import { imageUrl, releaseYear, score } from "../lib/format";
@@ -89,7 +90,9 @@ function Tags({ detail }: { detail: MovieDetail }) {
 }
 
 /**
- * "Why you": the ring, the sentence and up to three reasons on their axes, as one panel.
+ * "Why you": the match band, the sentence and up to three reasons on their axes, as one
+ * panel. The band is the match as the user sees it (FR-5, TZ 1.13; no number, no ring):
+ * the sentence is the main signal.
  * The sentence's slot is sized before the text arrives, so nothing below it moves; the
  * text then fades in over 200 ms (not with reduced motion). A film with no standout
  * reason gets the "suits you overall" sentence at the same size, without the axes.
@@ -122,11 +125,13 @@ function Why({ detail }: { detail: MovieDetail }) {
   const taste = dna.data?.scores;
   return (
     <section className={reasons.length ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
-      <MatchRing value={detail.match} />
       <div className="why-main">
-        <h2 className="eyebrow why-eyebrow" id="why-title">
-          {t("movie.whyYou")}
-        </h2>
+        <div className="why-head">
+          <h2 className="eyebrow why-eyebrow" id="why-title">
+            {t("movie.whyYou")}
+          </h2>
+          <MatchBand band={detail.band} />
+        </div>
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
         <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (
@@ -251,9 +256,10 @@ function MovieSkeleton() {
         </div>
       </div>
       <div className="panel why why-solo">
-        <Skeleton className="why-ring-skel" />
         <div className="why-main">
-          <Skeleton className="skeleton-line why-eyebrow" style={{ width: 80 }} />
+          <div className="why-head">
+            <Skeleton className="skeleton-line why-eyebrow" style={{ width: 80 }} />
+          </div>
           <div className="why-slot">
             <Skeleton className="why-skel" />
             <Skeleton className="why-skel" style={{ width: "60%" }} />

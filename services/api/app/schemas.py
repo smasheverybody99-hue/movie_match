@@ -22,6 +22,13 @@ class MovieOut(BaseModel):
     poster_path: str | None = None
 
 
+# Where the match places the film in the catalogue for this user (FR-5, TZ 1.13): one of
+# their N closest ("strong"), or in their closest share ("good"). Clients show this, not
+# the number; `match` stays for ordering and for checking by hand.
+MatchBand = Literal["strong", "good"]
+BAND_DESCRIPTION = "The caller's match band (FR-5); null outside both bands, or without a match"
+
+
 class TraitScores(BaseModel):
     """Trait key -> 0..100. Keys come from packages/shared/traits.json."""
 
@@ -41,6 +48,7 @@ class MovieDetailOut(MovieOut):
         le=100,
         description="The caller's match (FR-5). Null signed out, or without traits or taste",
     )
+    band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
     reasons: list[str] = Field(
         default_factory=list, description="Trait keys that drove the match, strongest first"
     )
@@ -49,6 +57,7 @@ class MovieDetailOut(MovieOut):
 class RecommendationOut(BaseModel):
     movie: MovieOut
     match: int = Field(ge=0, le=100, description="Match percentage, computed from trait distance")
+    band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
     reasons: list[str] = Field(
         default_factory=list, description="Trait keys that drove the match, strongest first"
     )
@@ -131,6 +140,7 @@ class WatchlistItemOut(BaseModel):
     match: int | None = Field(
         default=None, ge=0, le=100, description="The caller's match; null without traits or taste"
     )
+    band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
 
 
 class MovieDnaOut(BaseModel):

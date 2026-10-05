@@ -4,6 +4,7 @@
  */
 import { TRAIT_KEYS } from "../lib/traits";
 import type {
+  MatchBand,
   Movie,
   MovieDetail,
   MovieDna,
@@ -73,13 +74,19 @@ export function detail(m: Movie, patch: Partial<MovieDetail> = {}): MovieDetail 
     director: "Christopher Nolan",
     cast: ["Hugh Jackman", "Christian Bale"],
     match: 94,
+    band: "strong",
     reasons: ["psychological_complexity", "plot_twist", "mystery"],
     ...patch,
   };
 }
 
-export function rec(m: Movie, match: number): Recommendation {
-  return { movie: m, match, reasons: ["mystery", "plot_twist"], explanation: null };
+export function rec(m: Movie, match: number, band: MatchBand | null = null): Recommendation {
+  return { movie: m, match, band, reasons: ["mystery", "plot_twist"], explanation: null };
+}
+
+/** As the API bands a feed: the first two of "For you" strong (red stays rare), then good. */
+function bandAt(i: number): MatchBand | null {
+  return i < 2 ? "strong" : i < 5 ? "good" : null;
 }
 
 export const RECOMMENDATIONS: Recommendations = {
@@ -89,12 +96,12 @@ export const RECOMMENDATIONS: Recommendations = {
     {
       key: "for_you",
       seed: null,
-      items: MOVIES.slice(0, 6).map((m, i) => rec(m, 94 - i * 2)),
+      items: MOVIES.slice(0, 6).map((m, i) => rec(m, 94 - i * 2, bandAt(i))),
     },
     {
       key: "because_you_loved",
       seed: movie(9),
-      items: MOVIES.slice(6, 11).map((m, i) => rec(m, 87 - i * 2)),
+      items: MOVIES.slice(6, 11).map((m, i) => rec(m, 87 - i * 2, i < 2 ? "good" : null)),
     },
     {
       key: "under_90",
@@ -119,13 +126,13 @@ export function rating(movieId: number, score: number): Rating {
 }
 
 export function watchItem(m: Movie, patch: Partial<WatchlistItem> = {}): WatchlistItem {
-  return { movie: m, added_at: "2026-09-28T10:00:00Z", watched_at: null, match: 85, ...patch };
+  return { movie: m, added_at: "2026-09-28T10:00:00Z", watched_at: null, match: 85, band: "good", ...patch };
 }
 
 export const WATCHLIST: WatchlistItem[] = [
-  watchItem(movie(5), { match: 88 }),
-  watchItem(movie(4), { match: 85 }),
-  watchItem(movie(8), { match: 81 }),
-  watchItem(movie(6), { match: 79 }),
-  watchItem(movie(11), { match: null, watched_at: "2026-09-20T10:00:00Z" }),
+  watchItem(movie(5), { match: 88, band: "strong" }),
+  watchItem(movie(4), { match: 85, band: "good" }),
+  watchItem(movie(8), { match: 81, band: "good" }),
+  watchItem(movie(6), { match: 79, band: null }),
+  watchItem(movie(11), { match: null, band: null, watched_at: "2026-09-20T10:00:00Z" }),
 ];

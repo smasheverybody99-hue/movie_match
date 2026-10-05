@@ -31,13 +31,9 @@ export const ru: Record<MessageKey, Message> = {
   "common.cancel": "Отмена",
   "common.save": "Сохранить",
   "common.minutes": "{n} мин",
-  "common.matchBadge": "{n}%",
-  "common.matchLabel": "Совпадение {n}%",
+  "band.strong": "Очень близко",
+  "band.good": "Близко",
   "common.poster": "Постер фильма «{title}»",
-  // Inside the match ring (~65px at 9px), where "СОВПАДЕНИЕ" does not fit. Not a
-  // translation of "match": it means "similarity". If the ring grows, go back to
-  // "СОВПАДЕНИЕ" (user, 2026-10-02).
-  "common.matchWord": "СХОДСТВО",
   "common.loading": "Загрузка",
 
   "welcome.tagline":
@@ -109,7 +105,7 @@ export const ru: Record<MessageKey, Message> = {
     other: "Оцените ещё {n} фильма, чтобы получить рекомендации.",
   },
   "feed.notEnoughCta": "Продолжить оценивать",
-  "feed.empty": "Пока нет фильмов с совпадением выше 60%. Оцените ещё несколько фильмов.",
+  "feed.empty": "Пока нет рекомендаций для вас. Оцените ещё несколько фильмов.",
   "feed.emptyCta": "Поиск фильмов",
   "feed.error": "Не удалось загрузить рекомендации. Проверьте подключение и попробуйте снова.",
   "feed.quickSave": "Сохранить «{title}»",

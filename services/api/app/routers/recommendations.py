@@ -52,6 +52,7 @@ async def get_recommendations(
                     RecommendationOut(
                         movie=MovieOut.model_validate(item.candidate.movie),
                         match=item.match,
+                        band=item.band,
                         reasons=item.reasons,
                         explanation=texts.get(item.movie_id),
                     )

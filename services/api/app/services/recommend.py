@@ -7,8 +7,9 @@ Embeddings for retrieval, traits for ranking (docs/architecture.md):
    liked, weighted exactly as the taste vector weighs them (taste.rating_weight).
 2. Hard filters in SQL: not adult, has traits, not rated, not watched, not dismissed,
    plus the section's own filter (runtime for "Under 90 minutes").
-3. Score every candidate with matching.match_percentage (docs/TZ.md FR-5) and drop
-   anything below 60%.
+3. Score every candidate with matching.match_percentage (docs/TZ.md FR-5), give it its
+   band (services/bands.py), and drop the user's furthest share of the catalogue
+   (match_floor_share; this replaced a fixed 60% cut, TZ 1.13).
 4. Diversify with MMR over the best 3·k of them (relevance = match / 100, similarity =
    embedding cosine similarity between the two films), allowing at most 2 films per
    director in a section. Not trait closeness: the best match sits next to the user's
@@ -43,13 +44,22 @@ from app.models import (
     User,
     WatchlistItem,
 )
-from app.services.matching import ReasonRule, match_percentage, top_reasons, weights_vector
+from app.services.bands import load_cuts
+from app.services.matching import (
+    BandCuts,
+    MatchBand,
+    ReasonRule,
+    match_band,
+    match_percentage,
+    match_raw,
+    top_reasons,
+    weights_vector,
+)
 from app.services.mmr import mmr
 from app.services.reasons import load_rule
 from app.services.taste import HIGH_RATING, RatedFilm, rating_weight
 
 MIN_RATINGS = 10  # FR-3: no recommendations before 10 ratings
-MIN_MATCH = 60  # FR-5: nothing below 60% is shown
 MAX_PER_DIRECTOR = 2  # FR-5: per section
 CANDIDATES = 300
 SECTION_SIZE = {"for_you": 20, "because_you_loved": 10, "under_90": 10, "outside_usual": 10}
@@ -74,6 +84,7 @@ class Scored:
     candidate: Candidate
     match: int
     reasons: list[str]
+    band: MatchBand | None = None
 
     @property
     def movie_id(self) -> int:
@@ -105,15 +116,25 @@ def score(
     taste: Sequence[float],
     weights: Sequence[float],
     rule: ReasonRule | None,
+    cuts: BandCuts | None = None,
 ) -> list[Scored]:
-    """Match every candidate; keep those at MIN_MATCH or above, best first. Without a
-    reason rule (no catalogue statistics yet) the reasons are empty."""
+    """Match and band every candidate; drop those below the floor cut; best first.
+    Without a reason rule (no catalogue statistics yet) the reasons are empty; without
+    cuts (no film has traits) nothing is dropped and no film has a band."""
     scored = []
     for candidate in candidates:
-        match = match_percentage(taste, weights, candidate.vector)
-        if match >= MIN_MATCH:
-            reasons = top_reasons(taste, candidate.vector, rule, weights=weights) if rule else []
-            scored.append(Scored(candidate, match, reasons))
+        raw = match_raw(taste, weights, candidate.vector)
+        if cuts is not None and raw < cuts.floor:
+            continue
+        reasons = top_reasons(taste, candidate.vector, rule, weights=weights) if rule else []
+        scored.append(
+            Scored(
+                candidate,
+                match_percentage(taste, weights, candidate.vector),
+                reasons,
+                match_band(raw, cuts),
+            )
+        )
     return sorted(scored, key=lambda s: (-s.match, s.movie_id))
 
 
@@ -310,13 +331,14 @@ async def recommend(
 
     exclude = await seen_ids(session, user_id)
     rule = await load_rule(session)
+    cuts = await load_cuts(session, user_id, user.taste_updated_at, taste, weights)
     await tune_index_search(session)
     shown: set[int] = set()
     sections: list[Section] = []
 
     async def add(key: SectionKey, candidates: list[Candidate], seed: Movie | None = None) -> None:
         k = SECTION_SIZE[key]
-        pool = shortlist(score(candidates, taste, weights, rule), k, exclude=shown)
+        pool = shortlist(score(candidates, taste, weights, rule, cuts), k, exclude=shown)
         sims = await embedding_similarities(session, [s.movie_id for s in pool])
         items = pick(pool, k, lambda x, y: sims.get(frozenset((x.movie_id, y.movie_id)), 0.0))
         if items:

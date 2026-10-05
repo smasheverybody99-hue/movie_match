@@ -169,7 +169,7 @@ async def test_invalid_movie_id_in_path_is_422(
 
 
 async def test_rows_carry_the_personal_match(db_session: AsyncSession) -> None:
-    """The same FR-5 number the film page shows; null for a film without traits."""
+    """The same FR-5 number and band the film page shows; null for a film without traits."""
     liked, saved, unscored = 9_200_011, 9_200_012, 9_200_013
     await seed_films(db_session, {liked: [60.0] * 14, saved: [60.0] * 14, unscored: None})
     me = auth(uuid.uuid4())
@@ -183,3 +183,7 @@ async def test_rows_carry_the_personal_match(db_session: AsyncSession) -> None:
     by_id = {row["movie"]["id"]: row["match"] for row in listed}
     assert by_id == {saved: 100, unscored: None}  # identical vectors: a 100% match
     assert detail["match"] == by_id[saved]
+    # A 100% match is at place 1 of any catalogue: always "strong", here and on the page.
+    bands = {row["movie"]["id"]: row["band"] for row in listed}
+    assert bands == {saved: "strong", unscored: None}
+    assert detail["band"] == "strong"

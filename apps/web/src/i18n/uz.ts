@@ -29,10 +29,9 @@ export const uz: Record<MessageKey, Message> = {
   "common.cancel": "Bekor qilish",
   "common.save": "Saqlash",
   "common.minutes": "{n} daq",
-  "common.matchBadge": "{n}%",
-  "common.matchLabel": "{n}% mos",
+  "band.strong": "Kuchli moslik",
+  "band.good": "Yaxshi moslik",
   "common.poster": "{title} posteri",
-  "common.matchWord": "MOSLIK",
   "common.loading": "Yuklanmoqda",
 
   // Welcome / auth
@@ -95,7 +94,7 @@ export const uz: Record<MessageKey, Message> = {
   "feed.section.outside_usual": "Odatdagi ta'mingizdan tashqari",
   "feed.notEnough": "Tavsiya uchun yana {n} ta film baholang.",
   "feed.notEnoughCta": "Baholashni davom ettirish",
-  "feed.empty": "Hozircha sizga 60% dan yuqori mos film topilmadi. Yana bir nechta film baholang.",
+  "feed.empty": "Hozircha sizga tavsiya yo'q. Yana bir nechta film baholang.",
   "feed.emptyCta": "Film qidirish",
   "feed.error": "Tavsiyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urining.",
   "feed.quickSave": "{title} filmini saqlash",

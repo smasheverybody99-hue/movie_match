@@ -73,6 +73,16 @@ class Settings(BaseSettings):
     reason_min_film_z: float = 0.5
     # ...and the user's taste must sit at least this far on the same side of the mean.
     reason_min_taste_z: float = 0.0
+    # Match bands (FR-5, TZ 1.13): the client shows these, not the number. Places are the
+    # film's rank among every film with traits, for this user. "strong": one of the N
+    # closest (an absolute count, so the red badges on Home stay few as the catalogue
+    # grows; 5 gave 2-3 on one account's first screen, 2026-10-05).
+    match_strong_top_n: int = Field(default=5, ge=1)
+    # "good": within this closest share of the catalogue.
+    match_good_share: float = Field(default=0.35, gt=0, le=1)
+    # Never recommended: this furthest share of the catalogue (replaced the 60% cut,
+    # which removed 2 of 473 films).
+    match_floor_share: float = Field(default=0.25, ge=0, lt=1)
     trait_batch_size: int = 200
     # How trait extraction runs (ADR 0006, amendment 2026-09-30). "batch": the provider's
     # batch API, half price, needs an account that allows it. "sync": one film per request

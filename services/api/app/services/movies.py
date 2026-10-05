@@ -3,7 +3,8 @@ caller's personal match for any film.
 
 The personal match is the same formula as recommendations (matching.match_percentage,
 docs/TZ.md FR-5) on the same stored numbers: users.taste_vector, users.taste_weights and
-movie_traits.vector. A film page and the feed can never disagree about a film's match.
+movie_traits.vector, and the same band (services/bands.py). A film page and the feed can
+never disagree about a film's match or its band.
 """
 
 import uuid
@@ -14,7 +15,15 @@ from sqlalchemy import Float, and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Credit, Genre, Movie, MovieGenre, MovieTraits, Person, Rating, User
-from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.bands import load_cuts
+from app.services.matching import (
+    MatchBand,
+    match_band,
+    match_percentage,
+    match_raw,
+    top_reasons,
+    weights_vector,
+)
 from app.services.reasons import load_rule
 from app.traits import TRAIT_KEYS
 
@@ -48,6 +57,7 @@ class SearchFilters:
 class PersonalMatch:
     match: int
     reasons: list[str]
+    band: MatchBand | None = None
 
 
 @dataclass(frozen=True)
@@ -137,6 +147,7 @@ async def personal_matches(
     taste = [float(v) for v in user.taste_vector]
     weights = weights_vector(user.taste_weights)
     rule = await load_rule(session)
+    cuts = await load_cuts(session, user_id, user.taste_updated_at, taste, weights)
     rows = await session.execute(
         select(MovieTraits.movie_id, MovieTraits.vector).where(MovieTraits.movie_id.in_(movie_ids))
     )
@@ -146,6 +157,7 @@ async def personal_matches(
         matches[movie_id] = PersonalMatch(
             match=match_percentage(taste, weights, movie_vector),
             reasons=top_reasons(taste, movie_vector, rule, weights=weights) if rule else [],
+            band=match_band(match_raw(taste, weights, movie_vector), cuts),
         )
     return matches
 

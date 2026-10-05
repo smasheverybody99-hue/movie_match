@@ -1,7 +1,6 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 import { useT, type MessageKey } from "../i18n";
-import { useCountUp, usePrefersReducedMotion } from "../lib/motion";
 import { traitBand, type TraitKey } from "../lib/traits";
 
 export function traitLabelKey(key: TraitKey): MessageKey {
@@ -110,40 +109,6 @@ export function TraitAxis({
         )}
         <i className="axis-dot film" data-value={it} />
         <span className="axis-num film">{it}</span>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Conic ring with the percentage inside. Fills from 0 on first show while the number
- * counts up with it; with reduced motion both show the value at once. Screen readers get
- * the final value from the label, never the count.
- */
-export function MatchRing({ value, size }: { value: number; size?: number }) {
-  const t = useT();
-  const reduce = usePrefersReducedMotion();
-  const counted = useCountUp(value);
-  const [shown, setShown] = useState(reduce ? value : 0);
-  useEffect(() => {
-    if (reduce) {
-      setShown(value);
-      return;
-    }
-    const frame = requestAnimationFrame(() => setShown(value));
-    return () => cancelAnimationFrame(frame);
-  }, [value, reduce]);
-  // Without `size` the stylesheet sets it (the film page's ring is larger on wide screens).
-  const style = { "--p": shown, ...(size ? { "--size": `${size}px` } : {}) } as CSSProperties;
-  return (
-    <div className="ring" style={style} data-p={shown} role="img" aria-label={t("common.matchLabel", { n: value })}>
-      <div className="ring-inner" aria-hidden="true">
-        {/* A hidden copy of the final value fixes the box's width, so the count never moves it. */}
-        <span className="ring-value">
-          <span className="ring-ghost">{value}%</span>
-          <span className="ring-count">{counted}%</span>
-        </span>
-        <span className="ring-label">{t("common.matchWord")}</span>
       </div>
     </div>
   );

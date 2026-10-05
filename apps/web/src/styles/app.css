@@ -1,6 +1,7 @@
 /*
  * Component styles. Colours come only from tokens.css. Design brief v2 (docs/ui.md):
- * - Red means the match and nothing else: the ring, the percentage badge, a match number.
+ * - Red means a strong match and nothing else: the "strong match" band (FR-5, TZ 1.13), on
+ *   a poster or a page. It is kept rare (the user's few closest films). "Good match" is neutral.
  *   Buttons, navigation, chips, focus and progress are neutral (white and greys).
  * - One white-filled pill per screen for the main action; every other button is an
  *   outlined pill.
@@ -228,13 +229,15 @@ select.field { appearance: auto; }
   position: absolute; inset: 0; display: grid; place-items: center;
   font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--muted);
 }
-/* The match percentage on a poster: red, the product's signature. */
-.badge {
-  position: absolute; top: 6px; left: 6px;
-  background: var(--red); color: var(--bg);
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-  padding: 2px 7px; border-radius: 99px;
+/* The match band (FR-5, TZ 1.13): a pill. "Strong" red with --bg text (4.8:1), the
+   product's one red; "good" neutral. On a poster (.badge) only "strong" appears, top-left. */
+.match-band {
+  display: inline-block; padding: 3px 10px; border-radius: 99px; white-space: nowrap;
+  font-size: 12px; font-weight: 700; line-height: 1.5;
 }
+.match-band-strong { background: var(--red); color: var(--bg); }
+.match-band-good { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+.badge { position: absolute; top: 6px; left: 6px; font-size: 11px; padding: 2px 8px; }
 
 .card-link { display: block; text-decoration: none; color: inherit; border-radius: var(--radius-sm); }
 .movie-card { position: relative; width: 100%; }
@@ -319,7 +322,7 @@ select.field { appearance: auto; }
 .panel { background: var(--surface); border-radius: var(--radius); padding: var(--space-3); }
 .panel-elev { background: var(--surface-2); }
 
-/* ---------- trait bars and ring ---------- */
+/* ---------- trait bars ---------- */
 .trait-row { margin-bottom: 10px; }
 .trait-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 13px; margin-bottom: 4px; }
 .trait-value { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
@@ -376,26 +379,6 @@ select.field { appearance: auto; }
 }
 .axis-num.you { top: 0; left: clamp(12px, var(--you), 100% - 12px); }
 .axis-num.film { bottom: 0; left: clamp(12px, var(--film), 100% - 12px); font-weight: 500; }
-
-.ring {
-  --size: 84px;
-  width: var(--size); height: var(--size); flex: none; border-radius: 50%;
-  display: grid; place-items: center;
-  background: conic-gradient(var(--red) calc(var(--p) * 1%), var(--surface-2) 0);
-}
-.ring-inner {
-  width: 80%; height: 80%; border-radius: 50%; background: var(--surface);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.ring-value { display: grid; font-family: var(--font-head); font-weight: 800; font-size: calc(var(--size) * .25); line-height: 1.1; font-variant-numeric: tabular-nums; }
-/* Both in one cell: the hidden final value sets the width, the count is centred in it. */
-.ring-ghost, .ring-count { grid-area: 1 / 1; text-align: center; }
-.ring-ghost { visibility: hidden; }
-.ring-label { font-size: max(9px, calc(var(--size) * .09)); letter-spacing: .08em; color: var(--muted); }
-@supports (transition-property: --p) {
-  @property --p { syntax: "<number>"; inherits: false; initial-value: 0; }
-  .ring { transition: --p 600ms ease-out; }
-}
 
 /* ---------- states ---------- */
 .skeleton { background: var(--surface-2); border-radius: var(--radius-sm); animation: pulse 1.5s ease-in-out infinite; }
@@ -526,22 +509,21 @@ select.field { appearance: auto; }
   .film-page { padding-bottom: 0; }
 }
 
-/* "Why you": ring, sentence and reasons in one panel. Rhythm: --space-4 between the
-   panel's parts, --space-3 between axis rows, --space-2 within a part.
-   Phone: the eyebrow, then the ring on its own row at the left, then the sentence as a
-   plain full-width block, then the axes. No float: the line count depends only on the
-   panel's width, so the space held for the text fits it.
-   >= 640: ring beside the sentence, the axes under the sentence.
-   >= 1100: ring | sentence | axes (40% of the panel), all centred on one line.
+/* "Why you": the match band, the sentence and the reasons in one panel. Rhythm: --space-4
+   between the panel's parts, --space-3 between axis rows, --space-2 within a part.
+   The head row: the eyebrow and, beside it, the band pill (none outside both bands); it is
+   as tall either way, so the sentence starts at the same height.
+   Phone and >= 640: head, sentence, then the axes under it, all full width.
+   >= 1100: sentence | axes (40% of the panel), centred on one line.
    .why-solo (no reason): no axes and no reserved space; the panel is as tall as its content. */
 .why { margin-bottom: var(--space-4); padding: var(--space-4) 20px; }
-.why .ring, .why-ring-skel { grid-area: ring; --size: 72px; }
-.why-ring-skel { width: var(--size); height: var(--size); border-radius: 50%; }
-.why-main { display: contents; }
-.why-eyebrow { grid-area: head; margin: 0; }
+.why-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  min-height: 26px; margin-bottom: var(--space-3);
+}
+.why-eyebrow { margin: 0; }
 /* The sentence: the page's main statement. Playfair, large, white. */
 .why-slot {
-  grid-area: text;
   font-family: var(--font-head); font-weight: 700; font-size: 22px; line-height: 1.3;
 }
 /* While the text can still arrive, its height is held (in lines of its own size). */
@@ -553,36 +535,27 @@ select.field { appearance: auto; }
    the bars' margins add up instead of collapsing: three bars are exactly three lines. */
 .why-skel-lines { display: flex; flex-direction: column; }
 .why-skel { height: .6em; margin: .35em 0; }
-.why-traits { grid-area: traits; display: grid; gap: var(--space-3); }
-/* Phone: one column, in reading order; --space-3 between the rows, --space-4 before the axes. */
-@media (max-width: 639px) {
-  .why { display: grid; row-gap: var(--space-3); grid-template-areas: "head" "ring" "text" "traits"; }
-  .why-solo { grid-template-areas: "head" "ring" "text"; }
-  .why .ring, .why-ring-skel { justify-self: start; }
-  .why-traits { margin-top: calc(var(--space-4) - var(--space-3)); }
-}
+.why-traits { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
 @media (min-width: 640px) {
-  .why {
-    display: grid; gap: var(--space-4); grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "ring main" ". traits"; align-items: center; padding: var(--space-4);
-  }
-  .why-solo { grid-template-areas: "ring main"; }
-  .why .ring, .why-ring-skel { --size: 112px; }
-  .why-main { display: block; grid-area: main; }
-  .why-eyebrow { margin-bottom: var(--space-2); }
+  .why { padding: var(--space-4); }
   .why-slot { font-size: 26px; }
   .why-reserve { min-height: calc(3 * 1.3em); }
 }
 @media (min-width: 1100px) {
-  .why { grid-template-columns: auto minmax(0, 1fr) 40%; grid-template-areas: "ring main traits"; }
-  .why-solo { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ring main"; }
+  .why {
+    display: grid; gap: var(--space-5); align-items: center;
+    grid-template-columns: minmax(0, 1fr) 40%;
+  }
+  .why-solo { grid-template-columns: minmax(0, 1fr); }
+  .why-traits { margin-top: 0; }
   .why-slot { font-size: 30px; max-width: 24em; }
-  /* Here the hold moves up to eyebrow + sentence (25px + four 39px lines), centred as one
-     block: they stay together however long the text is, and the column's height does not
-     change when the text replaces the skeleton. */
+  /* Here the hold moves up to head + sentence (26px + 16px + four 39px lines), centred as
+     one block: they stay together however long the text is, and the column's height does
+     not change when the text replaces the skeleton. */
   .why-reserve { min-height: 0; }
   .why-main:has(> .why-reserve) {
-    min-height: calc(25px + 4 * 39px); display: flex; flex-direction: column; justify-content: center;
+    min-height: calc(26px + var(--space-3) + 4 * 39px);
+    display: flex; flex-direction: column; justify-content: center;
   }
 }
 
@@ -630,7 +603,7 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .list-row .poster { width: 52px; }
 .list-row-meta { flex: 1; min-width: 0; }
 .list-row-title { font-weight: 600; font-size: 14px; text-decoration: none; display: block; overflow-wrap: break-word; }
-.match { font-family: var(--font-head); font-weight: 800; color: var(--red); font-size: 15px; }
+
 .row-actions { display: flex; gap: var(--space-1); flex-wrap: wrap; justify-content: flex-end; }
 /* Narrow screens: the buttons take their own line under the title, aligned with it. */
 @media (max-width: 559px) {

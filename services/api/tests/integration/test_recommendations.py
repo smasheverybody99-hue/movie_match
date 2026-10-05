@@ -11,12 +11,21 @@ from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.models import Dismissal, MovieTraits, Rating, User, WatchlistItem
-from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.services.matching import (
+    band_cuts,
+    match_band,
+    match_percentage,
+    match_raw,
+    top_reasons,
+    weights_vector,
+)
 from app.services.reasons import load_rule
-from app.services.recommend import MAX_PER_DIRECTOR, MIN_MATCH
+from app.services.recommend import MAX_PER_DIRECTOR
 from app.services.taste import recompute_taste
 from app.services.users import ensure_user
 from app.traits import TRAIT_COUNT
@@ -42,7 +51,10 @@ GOOD = [9_520_000 + i for i in range(1, 9)]
 FILLERS = [9_560_000 + i for i in range(1, 31)]
 SHORT = [9_530_000 + i for i in range(1, 7)]
 BAD = [9_540_001, 9_540_002]  # opposite taste: ~30% match
-BELOW_CUT = 9_540_003  # 45 points off everywhere: 55%, just under the 60% cut
+BELOW_CUT = 9_540_003  # 45 points off everywhere: 55%, in the furthest 25% (the floor)
+# The rest of a catalogue, 30-42 points off: they put the floor (furthest 25% of 88 films,
+# place 66 onwards) among themselves, below SHORT and above BELOW_CUT and BAD.
+BACKGROUND = [9_570_000 + i for i in range(1, 26)]
 DISMISSED = 9_550_001
 WATCHED = 9_550_002
 
@@ -57,6 +69,10 @@ CATALOGUE = [
     ),
     *({"id": m, "vector": [15.0] * HALF + [85.0] * HALF, "director": 4_000} for m in BAD),
     {"id": BELOW_CUT, "vector": near(45), "director": 5_000},
+    *(
+        {"id": m, "vector": near(30 + i // 2), "director": 9_000 + i}
+        for i, m in enumerate(BACKGROUND)
+    ),
     {"id": DISMISSED, "vector": near(1), "director": 6_000},
     {"id": WATCHED, "vector": near(1), "director": 6_001},
 ]
@@ -134,10 +150,46 @@ async def test_reasons_are_recomputable_from_stored_numbers(world) -> None:
         assert item["reasons"] == expected, item["movie"]["id"]
 
 
-async def test_nothing_below_the_cut(world) -> None:
-    _, _, body = world
-    assert all(item["match"] >= MIN_MATCH for item in _items(body))
+async def _cuts_by_hand(session: AsyncSession, me: uuid.UUID):
+    """The user's band cuts from the stored vectors of every film with traits."""
+    user = await session.get(User, me, populate_existing=True)
+    assert user is not None and user.taste_vector is not None and user.taste_weights
+    taste = [float(v) for v in user.taste_vector]
+    weights = weights_vector(user.taste_weights)
+    vectors = (await session.scalars(select(MovieTraits.vector))).all()
+    settings = get_settings()
+    cuts = band_cuts(
+        [match_raw(taste, weights, [float(v) for v in vector]) for vector in vectors],
+        strong_top_n=settings.match_strong_top_n,
+        good_share=settings.match_good_share,
+        floor_share=settings.match_floor_share,
+    )
+    assert cuts is not None
+    return taste, weights, cuts
+
+
+async def test_nothing_below_the_floor(world) -> None:
+    session, me, body = world
+    taste, weights, cuts = await _cuts_by_hand(session, me)
+    for item in _items(body):
+        film = await session.get(MovieTraits, item["movie"]["id"])
+        assert film is not None
+        assert match_raw(taste, weights, [float(v) for v in film.vector]) >= cuts.floor
     assert not set(_ids(body)) & {*BAD, BELOW_CUT}
+
+
+async def test_band_is_recomputable_from_stored_numbers(world) -> None:
+    """Each item's band is its raw match against cuts ranked by hand over the catalogue."""
+    session, me, body = world
+    taste, weights, cuts = await _cuts_by_hand(session, me)
+    bands = []
+    for item in _items(body):
+        film = await session.get(MovieTraits, item["movie"]["id"])
+        assert film is not None
+        expected = match_band(match_raw(taste, weights, [float(v) for v in film.vector]), cuts)
+        assert item["band"] == expected, item["movie"]["id"]
+        bands.append(item["band"])
+    assert "good" in bands and None in bands  # the check is not vacuous
 
 
 async def test_rated_watched_and_dismissed_films_are_excluded(world) -> None:

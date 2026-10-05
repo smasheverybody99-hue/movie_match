@@ -165,7 +165,7 @@ export default function Feed() {
                     <li key={item.movie.id}>
                       <MovieCard
                         movie={item.movie}
-                        match={item.match}
+                        band={item.band}
                         quick={{
                           saved: isSaved,
                           onRate: () => setRating(item.movie),

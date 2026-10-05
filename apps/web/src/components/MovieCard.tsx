@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useT } from "../i18n";
 import { movieMeta } from "../lib/format";
-import type { Movie } from "../lib/types";
+import type { MatchBand, Movie } from "../lib/types";
 import { Icon } from "./Icon";
 import { Poster } from "./Poster";
 
@@ -22,11 +22,11 @@ export interface QuickActions {
  */
 export function MovieCard({
   movie,
-  match,
+  band,
   quick,
 }: {
   movie: Movie;
-  match?: number | null;
+  band?: MatchBand | null;
   quick?: QuickActions;
 }) {
   const t = useT();
@@ -34,7 +34,7 @@ export function MovieCard({
   return (
     <div className={quick ? "movie-card has-quick" : "movie-card"}>
       <Link to={`/movie/${movie.id}`} className="card-link">
-        <Poster title={movie.title} path={movie.poster_path} match={match} />
+        <Poster title={movie.title} path={movie.poster_path} band={band} />
         <div className="movie-card-title">{movie.title}</div>
         {meta && <div className="meta">{meta}</div>}
       </Link>

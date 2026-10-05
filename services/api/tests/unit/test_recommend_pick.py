@@ -1,11 +1,12 @@
-"""The pure part of recommend.py: scoring, the 60% cut, the director cap, MMR, the query."""
+"""The pure part of recommend.py: scoring, bands and the floor, the director cap, MMR, the
+query."""
 
 from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from app.models import Movie
-from app.services.matching import ReasonRule, TraitStats
+from app.services.matching import BandCuts, ReasonRule, TraitStats
 from app.services.recommend import (
     MAX_PER_DIRECTOR,
     POOL_FACTOR,
@@ -39,17 +40,31 @@ def film(movie_id: int, vector: list[float], *directors: int) -> Candidate:
     )
 
 
-def test_score_drops_below_60_and_sorts_best_first() -> None:
-    # gaps: 0 -> 100, 30 -> 70, 45 -> 55 (dropped), opposite 70 -> 30 (dropped)
-    candidates = [
-        film(1, near(30)),
-        film(2, near(0)),
-        film(3, near(45)),
-        film(4, [15.0] * HALF + [85.0] * HALF),
-    ]
-    scored = score(candidates, TASTE, UNIFORM, RULE)
-    assert [(s.movie_id, s.match) for s in scored] == [(2, 100), (1, 70)]
+CANDIDATES = [
+    film(1, near(30)),  # raw 70
+    film(2, near(0)),  # raw 100
+    film(3, near(45)),  # raw 55
+    film(4, [15.0] * HALF + [85.0] * HALF),  # opposite: raw 30
+]
+# As if the user's catalogue put place N at 100, its closest 35% at 70 and floor at 50.
+CUTS = BandCuts(strong=100.0, good=70.0, floor=50.0)
+
+
+def test_score_drops_below_the_floor_and_sorts_best_first() -> None:
+    scored = score(CANDIDATES, TASTE, UNIFORM, RULE, CUTS)
+    assert [(s.movie_id, s.match) for s in scored] == [(2, 100), (1, 70), (3, 55)]
     assert scored[0].reasons  # the high half, where the film stands out
+
+
+def test_score_gives_each_film_its_band() -> None:
+    scored = score(CANDIDATES, TASTE, UNIFORM, RULE, CUTS)
+    assert [(s.movie_id, s.band) for s in scored] == [(2, "strong"), (1, "good"), (3, None)]
+
+
+def test_without_cuts_nothing_is_dropped_and_nothing_has_a_band() -> None:
+    scored = score(CANDIDATES, TASTE, UNIFORM, RULE)
+    assert [s.movie_id for s in scored] == [2, 1, 3, 4]
+    assert {s.band for s in scored} == {None}
 
 
 def test_without_a_reason_rule_the_reasons_are_empty() -> None:

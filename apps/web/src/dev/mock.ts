@@ -30,7 +30,7 @@ const RECOMMENDATIONS = {
     ...s,
     seed: s.seed && withImages(s.seed),
     // "For you" carries 12 here (the fixtures have 6), so a row overflows on wide screens.
-    items: (s.key === "for_you" ? PLAIN.slice(0, 12).map((m, i) => rec(m, 94 - i * 2)) : s.items).map((r) => ({
+    items: (s.key === "for_you" ? PLAIN.slice(0, 12).map((m, i) => rec(m, 94 - i * 2, i < 2 ? "strong" : i < 6 ? "good" : null)) : s.items).map((r) => ({
       ...r,
       movie: withImages(r.movie),
     })),
@@ -76,6 +76,8 @@ export function install(): AuthClient {
     return detail(m, {
       backdrop_path: TMDB_PATHS[m.title]?.backdrop ?? null,
       match: ratings.length >= 10 ? 60 + (id % 38) : null,
+      // Every third film strong (The Prestige), the next good (Memento), the next none.
+      band: ratings.length < 10 ? null : (["strong", "good", null] as const)[(id - 1000) % 3] ?? null,
       reasons,
     });
   }
@@ -142,7 +144,7 @@ export function install(): AuthClient {
       const m = byId.get(id);
       if (!m) return json({ detail: "Movie not found" }, 404);
       if (!watchlist.some((i) => i.movie.id === id)) {
-        watchlist = [{ movie: m, added_at: new Date().toISOString(), watched_at: null, match: 80 }, ...watchlist];
+        watchlist = [{ movie: m, added_at: new Date().toISOString(), watched_at: null, match: 80, band: "good" }, ...watchlist];
       }
       return json(watchlist.find((i) => i.movie.id === id));
     }

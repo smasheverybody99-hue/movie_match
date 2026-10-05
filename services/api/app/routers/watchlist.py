@@ -15,12 +15,15 @@ from app.services.ratings import MovieNotFound
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 
 
-def _out(item: WatchlistItem, movie: Movie, match: int | None = None) -> WatchlistItemOut:
+def _out(
+    item: WatchlistItem, movie: Movie, personal: movies.PersonalMatch | None = None
+) -> WatchlistItemOut:
     return WatchlistItemOut(
         movie=MovieOut.model_validate(movie),
         added_at=item.created_at,
         watched_at=item.watched_at,
-        match=match,
+        match=personal.match if personal else None,
+        band=personal.band if personal else None,
     )
 
 
@@ -29,13 +32,10 @@ async def list_watchlist(
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[WatchlistItemOut]:
-    """Unwatched first. Each row carries the caller's match, as the film page shows it."""
+    """Unwatched first. Each row carries the caller's match and band, as on the film page."""
     rows = await watchlist.list_items(session, user_id)
     matches = await movies.personal_matches(session, user_id, [movie.id for _, movie in rows])
-    return [
-        _out(item, movie, matches[movie.id].match if movie.id in matches else None)
-        for item, movie in rows
-    ]
+    return [_out(item, movie, matches.get(movie.id)) for item, movie in rows]
 
 
 @router.post("", response_model=WatchlistItemOut)
@@ -82,4 +82,4 @@ async def _with_movie(session: AsyncSession, item: WatchlistItem) -> WatchlistIt
     movie = await session.get(Movie, item.movie_id)
     assert movie is not None  # the foreign key guarantees it
     matches = await movies.personal_matches(session, item.user_id, [movie.id])
-    return _out(item, movie, matches[movie.id].match if movie.id in matches else None)
+    return _out(item, movie, matches.get(movie.id))

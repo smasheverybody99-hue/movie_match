@@ -5,10 +5,19 @@ from datetime import date
 
 import httpx
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Movie
-from app.services.matching import match_percentage, top_reasons, weights_vector
+from app.config import get_settings
+from app.models import Movie, MovieTraits
+from app.services.matching import (
+    band_cuts,
+    match_band,
+    match_percentage,
+    match_raw,
+    top_reasons,
+    weights_vector,
+)
 from app.services.reasons import load_rule
 from app.traits import TRAIT_KEYS
 from tests.integration.api import api_client, auth, seed_catalogue
@@ -118,6 +127,7 @@ async def test_detail_signed_out_has_everything_but_the_match(seeded: AsyncSessi
     assert body["traits"]["scores"]["darkness"] == 90.0
     assert set(body["traits"]["scores"]) == set(TRAIT_KEYS)
     assert body["match"] is None
+    assert body["band"] is None
     assert body["reasons"] == []
 
 
@@ -132,6 +142,7 @@ async def test_detail_signed_in_without_a_taste_has_no_match(seeded: AsyncSessio
     async with api_client(seeded) as client:
         body = (await client.get(f"/movies/{DARK}", headers=auth(uuid.uuid4()))).json()
     assert body["match"] is None
+    assert body["band"] is None
 
 
 async def test_detail_match_is_recomputable_from_stored_numbers(seeded: AsyncSession) -> None:
@@ -155,6 +166,16 @@ async def test_detail_match_is_recomputable_from_stored_numbers(seeded: AsyncSes
     # By hand: taste is LIGHT's vector (one liked film), weights all equal, so the gap is
     # sqrt(70² / 14) = 18.7 points on the one dimension that differs -> 81%.
     assert expected == 81
+    # The band: DARK's raw match against the cuts ranked over every stored film vector.
+    settings = get_settings()
+    vectors = (await seeded.scalars(select(MovieTraits.vector))).all()
+    cuts = band_cuts(
+        [match_raw(taste, weights, [float(v) for v in vec]) for vec in vectors],
+        strong_top_n=settings.match_strong_top_n,
+        good_share=settings.match_good_share,
+        floor_share=settings.match_floor_share,
+    )
+    assert body["band"] == match_band(match_raw(taste, weights, vector(90.0)), cuts)
 
 
 async def test_detail_not_found_is_404(seeded: AsyncSession) -> None:

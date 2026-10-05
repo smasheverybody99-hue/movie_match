@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
+import { MatchBand } from "../components/MatchBand";
 import { Poster } from "../components/Poster";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { useT, type MessageKey } from "../i18n";
@@ -65,11 +66,7 @@ function Row({ item, onChange }: { item: WatchlistItem; onChange: (change: Chang
         </Link>
         <span className="meta">{movieMeta(movie, t)}</span>
       </div>
-      {item.match !== null && (
-        <span className="match" aria-label={t("common.matchLabel", { n: item.match })}>
-          {item.match}%
-        </span>
-      )}
+      <MatchBand band={item.band} />
       <div className="row-actions">
         {item.watched_at === null && (
           <button
