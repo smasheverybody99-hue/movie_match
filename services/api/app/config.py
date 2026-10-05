@@ -78,8 +78,9 @@ class Settings(BaseSettings):
     # closest (an absolute count, so the red badges on Home stay few as the catalogue
     # grows; 5 gave 2-3 on one account's first screen, 2026-10-05).
     match_strong_top_n: int = Field(default=5, ge=1)
-    # "good": within this closest share of the catalogue.
-    match_good_share: float = Field(default=0.35, gt=0, le=1)
+    # "good": within this closest share of the catalogue. 0.35 put a band on every third
+    # film page (175 of 500), too often to mean much; 0.15 since 2026-10-05.
+    match_good_share: float = Field(default=0.15, gt=0, le=1)
     # Never recommended: this furthest share of the catalogue (replaced the 60% cut,
     # which removed 2 of 473 films).
     match_floor_share: float = Field(default=0.25, ge=0, lt=1)

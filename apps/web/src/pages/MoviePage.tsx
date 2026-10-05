@@ -5,7 +5,6 @@ import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
-import { MatchBand } from "../components/MatchBand";
 import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
@@ -25,7 +24,7 @@ import {
   useWatchlistChange,
 } from "../lib/queries";
 import { isTraitKey, TRAIT_KEYS, type TraitKey } from "../lib/traits";
-import type { MovieDetail } from "../lib/types";
+import type { MatchBand, MovieDetail } from "../lib/types";
 
 /** Two columns of three on wide screens. */
 const COMPARED = 6;
@@ -43,6 +42,14 @@ export function comparedTraits(detail: MovieDetail): TraitKey[] {
     .filter((key) => !shown.includes(key))
     .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
     .slice(0, COMPARED);
+}
+
+/**
+ * The user's taste scores, or null while they load or without a taste profile: the API
+ * sends `scores: {}` then, and a missing score must not be drawn as a "you" dot at 0.
+ */
+function tasteScores(scores: Record<string, number> | undefined): Record<string, number> | null {
+  return scores && Object.keys(scores).length > 0 ? scores : null;
 }
 
 /**
@@ -90,12 +97,27 @@ function Tags({ detail }: { detail: MovieDetail }) {
 }
 
 /**
- * "Why you": the match band, the sentence and up to three reasons on their axes, as one
- * panel. The band is the match as the user sees it (FR-5, TZ 1.13; no number, no ring):
- * the sentence is the main signal.
+ * The panel's heading, which the sentence under it completes: the band itself ("STRONG
+ * MATCH" red, "GOOD MATCH" neutral; FR-5, TZ 1.13), or a neutral kicker without one.
+ */
+function Kicker({ band }: { band: MatchBand | null }) {
+  const t = useT();
+  return (
+    <h2 className={band ? `why-kicker why-kicker-${band}` : "why-kicker"} id="why-title">
+      {band ? t(band === "strong" ? "band.strong" : "band.good") : t("movie.whyKicker")}
+    </h2>
+  );
+}
+
+/**
+ * "Why you": the band as the panel's heading, the sentence and up to three reasons on
+ * their axes, read as one statement ("STRONG MATCH" -> "It keeps you guessing..."). No
+ * number, no ring (FR-5, TZ 1.13): the sentence is the main signal.
  * The sentence's slot is sized before the text arrives, so nothing below it moves; the
- * text then fades in over 200 ms (not with reduced motion). A film with no standout
- * reason gets the "suits you overall" sentence at the same size, without the axes.
+ * text then fades in over 200 ms (not with reduced motion). With at most one reason the
+ * panel is one column (.why-solo): the axis, if any, under the sentence with its key, so
+ * the panel is as tall as its content. No reason: the "suits you overall" sentence at the
+ * same size, without axes.
  */
 function Why({ detail }: { detail: MovieDetail }) {
   const t = useT();
@@ -107,10 +129,8 @@ function Why({ detail }: { detail: MovieDetail }) {
   const explanation = useExplanation(detail.id, asks);
   if (detail.match === null) {
     return (
-      <section className="panel" aria-labelledby="why-title">
-        <h2 className="eyebrow" id="why-title">
-          {t("movie.whyYou")}
-        </h2>
+      <section className="panel why why-solo" aria-labelledby="why-title">
+        <Kicker band={null} />
         <p className="muted" style={{ margin: 0 }}>
           {t("movie.noMatch")}
         </p>
@@ -122,16 +142,11 @@ function Why({ detail }: { detail: MovieDetail }) {
       t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") }))
     : t("movie.whyYouGeneral");
   const film = detail.traits?.scores ?? {};
-  const taste = dna.data?.scores;
+  const taste = tasteScores(dna.data?.scores);
   return (
-    <section className={reasons.length ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
+    <section className={reasons.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
       <div className="why-main">
-        <div className="why-head">
-          <h2 className="eyebrow why-eyebrow" id="why-title">
-            {t("movie.whyYou")}
-          </h2>
-          <MatchBand band={detail.band} />
-        </div>
+        <Kicker band={detail.band} />
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
         <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (
@@ -169,11 +184,12 @@ function Compare({ detail }: { detail: MovieDetail }) {
   const dna = useDna();
   const film = detail.traits?.scores;
   if (!film) return <p className="muted">{t("movie.traitsPending")}</p>;
-  const taste = dna.data?.scores;
+  const taste = tasteScores(dna.data?.scores);
   return (
     <section className="panel compare" aria-labelledby="compare-title">
+      {/* "Other" only when Why you shows reasons: otherwise these are the film's top traits. */}
       <h2 className="eyebrow" id="compare-title">
-        {t("movie.compareTitle")}
+        {whyHasAxes(detail) ? t("movie.compareOther") : t("movie.compareTop")}
       </h2>
       {!whyHasAxes(detail) && <AxisLegend />}
       <div className="compare-axes">
@@ -257,9 +273,7 @@ function MovieSkeleton() {
       </div>
       <div className="panel why why-solo">
         <div className="why-main">
-          <div className="why-head">
-            <Skeleton className="skeleton-line why-eyebrow" style={{ width: 80 }} />
-          </div>
+          <Skeleton className="why-kicker why-kicker-skel" />
           <div className="why-slot">
             <Skeleton className="why-skel" />
             <Skeleton className="why-skel" style={{ width: "60%" }} />

@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -21,14 +21,16 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 
 | | |
 |---|---|
+| CI (`main`, `d90cc6e`, FR-5 darajasi + STATUS) | **Yashil**, 2026-10-05: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37274508333 (`0874314` shu push bilan, alohida run'siz) |
 | CI (`main`, `1033ed9`, dizayn 2-bosqich tuzatishlari) | **Yashil**, 2026-10-05: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37266785192 |
 | CI (`main`, `b28b9da`, F2 yopilishi) | **Yashil**, 2026-10-02: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36989348804. `app/services/` coverage ≥ 85% (`--fail-under=85` qadami o'tgan). **Aniq raqam o'qilmadi** (log GitHub login talab qiladi) — keyingi to'liq mahalliy run'da yoziladi |
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
-| Web testlari | Mahalliy, 2026-10-05 (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
+| Web testlari | Mahalliy, 2026-10-05 (daraja — panel sarlavhasi): 15 fayl, **192 test**, hammasi o'tgan; lint 0, build 0. Avvalgi (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
+| API testlari ("yaxshi" 0.15) | Mahalliy to'liq run, 2026-10-05: **505 o'tgan, 13 yiqilgan**, 48 daqiqa. 13 tasi hammasi `test_auth.py` da: Frankfurt bazasiga ulanish uzildi (`WinError 121 semaphore timeout`, "connection was closed in the middle of operation"), modul sessiyasi buzilib qolgan 12 test "session is in 'prepared' state" bilan yiqildi. `test_auth.py` alohida qayta: **60 / 60 o'tgan**. Coverage `app/services` + `app/pipelines`: **89%** (1 659 statement, 186 miss); `bands.py` 97%, `matching.py` 100%, `recommend.py` 99%. Unit 279 / 279, ruff 0 |
 | API testlari (FR-5 darajasi) | Mahalliy to'liq run, 2026-10-05 (`0874314`): **518 o'tgan**, 0 yiqilgan, 38 daqiqa (Frankfurt test bazasi). Coverage `app/services` + `app/pipelines` birga: **89%** (1 659 statement, 185 miss); `bands.py` 97%, `matching.py` 100%, `recommend.py` 99% |
 | API testlari | Mahalliy to'liq run, 2026-09-30 (`852c767` holatida): 424 o'tgan, 1 yiqilgan — CI'dagi o'sha log testi; tuzatishdan keyin u juftlik (migratsiya + provayder testlari) bilan qayta o'tgan |
 
@@ -66,8 +68,9 @@ secret yo'q (`.github/workflows/gate.yml`).
 ## Keyingi qadam
 
 1. **FR-5: match darajasi joriy qilindi (TZ 1.13, 2026-10-05).** Interfeys foizni emas,
-   darajani ko'rsatadi: "kuchli" (eng yaqin 5 film, qizil), "yaxshi" (eng yaqin 35%,
-   neytral). Foiz API'da ichki qoladi; "60% dan past" o'rniga eng uzoq 25% tavsiya
+   darajani ko'rsatadi: "kuchli" (eng yaqin 5 film, qizil), "yaxshi" (eng yaqin **15%**,
+   neytral; TZ 1.14 gacha 35%). Film sahifasida daraja — "Why you" panelining sarlavhasi,
+   darajasiz — neytral "You and this film" (`docs/ui.md`). Foiz API'da ichki qoladi; "60% dan past" o'rniga eng uzoq 25% tavsiya
    qilinmaydi. Film sahifasida ring yo'q. Asos — pastdagi "FR-5 o'lchovi". Keyingisi:
    **3-bosqich (Home hero, `backdrop_path` API'ga).** Dizayn 2-bosqich tuzatishlari
    (2026-10-05) bajarilgan: `docs/ui.md`.
@@ -123,6 +126,30 @@ tartib o'zgarmasa ham — shuning uchun mezon AUC.
 - Narx: chegaralar har foydalanuvchiga 500 filmda 4 ms, 5 000 da 68 ms (o'lchangan);
   katalog vektorlari 10 daqiqa, chegaralar `taste_updated_at` bo'yicha keshlanadi
   (`services/bands.py`).
+
+## "Yaxshi" 35% → 15% o'lchovi (2026-10-05, TZ 1.14)
+
+O'sha akkaunt (32 baho), 500 traitli film, `READ ONLY` tranzaksiya, LLM yo'q. Daraja
+`matching.band_cuts` bilan, API qanday hisoblasa shunday; Home — `recommend()` ning
+o'zi (5 bo'lim, 50 karta).
+
+| | 0.35 | 0.15 |
+|---|---|---|
+| Katalog: darajali film sahifalari | 175 / 500 (**35%**) | 75 / 500 (**15%**) |
+| Baholanmagan filmlar sahifalari | 153 / 473 (32.3%) | 60 / 473 (12.7%) |
+| Home'dagi filmlar sahifalari (barcha bo'limlar) | 45 / 50 (**90%**; 3 kuchli, 42 yaxshi) | 34 / 50 (**68%**; 3 kuchli, 31 yaxshi) |
+| Home birinchi ikki qatori (2 × 6) | 12 / 12 | 12 / 12 |
+| Watchlist pill'lari | — | — |
+
+- **Watchlist o'lchab bo'lmadi:** bazada bitta ham watchlist yozuvi yo'q (hamma
+  akkauntlarda 0). Agar ro'yxat Home'dan to'ldirilsa, ulush Home'dagidek bo'ladi —
+  bu taxmin, o'lchov emas.
+- **Muhim:** katalog bo'yicha yorliq 3 baravar kamaydi, lekin foydalanuvchi ochadigan
+  sahifalarning asosiy manbai — Home, u esa ta'rifan eng yuqori o'rinlardan tuziladi:
+  u yerda daraja hali ham 3 sahifadan 2 tasida, birinchi qatorlarda hammasida. "Har
+  uchinchi sahifa" muammosi qidiruv va to'g'ridan-to'g'ri havolalarda hal bo'ldi, Home
+  yo'lida emas. Keyingi qaror (ulushni yana kamaytirish, mutlaq N, yoki Home'da
+  "yaxshi" ni ko'rsatmaslik — kartada u allaqachon yo'q) foydalanuvchida.
 
 ## Muhit
 

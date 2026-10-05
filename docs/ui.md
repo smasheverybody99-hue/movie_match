@@ -37,8 +37,8 @@ sarlavhasidagi belgining qizili. Shakl qoladi (pill tugma, nuqtalar, belgi), ran
 
 **Qizil (`--red`) faqat kuchli moslik uchun** (TZ 1.13, 2026-10-05). Interfeys match
 foizini ko'rsatmaydi — uning o'rnida daraja: **"Kuchli moslik"** (foydalanuvchining
-katalogdagi eng yaqin 5 filmi) — qizil pill, **"Yaxshi moslik"** (eng yaqin 35%) —
-neytral pill, qolganida hech narsa. Boshqa hech qayerda qizil yo'q. Sabab: qizil kam
+katalogdagi eng yaqin 5 filmi) — qizil, **"Yaxshi moslik"** (eng yaqin 15%; 2026-10-05
+gacha 35%) — neytral, qolganida hech narsa. Boshqa hech qayerda qizil yo'q. Sabab: qizil kam
 uchrasa, kuchini saqlaydi; 1.13 gacha har kartadagi foiz badge'i bir ekranda 11 ta qizil
 bergan edi. Ekranda qizil ko'rinsa — bu "katalogda sizga eng yaqinlaridan biri" degani.
 
@@ -157,11 +157,12 @@ Hozir backdrop 200px balandlikda va 55% shaffoflikda — deyarli ko'rinmaydi.
   shaffofliksiz; gradient pastga va chapga `--bg` ga o'tadi.
 - Poster hero'ning pastki chetiga ustma-ust tushadi; yonida nom (Playfair, katta),
   chiplar.
-- "Nega sizga?" bloki tavsifdan yuqorida (v1 qoidasi qoladi). **Ring yo'q (TZ 1.13):**
-  sarlavha yonida daraja pill'i (kuchli — qizil, yaxshi — neytral, aks holda hech narsa),
-  jumla asosiy signal.
+- "Why you" bloki tavsifdan yuqorida (v1 qoidasi qoladi). **Ring yo'q (TZ 1.13):**
+  daraja — panelning sarlavhasi (kicker): "STRONG MATCH" qizil, "GOOD MATCH" neytral,
+  darajasiz va ta'm profili yo'q holatda neytral "YOU AND THIS FILM". Jumla uni
+  davom ettiradi. "Why you?" yorlig'i yo'q (2026-10-05, pastda).
 - Amallar: Baholash va Watchlist — neytral kontur pill; mobil'da pastda sticky.
-- "Sizning ta'mingiz va shu film" taqqoslashi neytral: film — oq, siz — kulrang (hozir
+- Pastki taqqoslash ("Other traits" / "Its strongest traits") neytral: film — oq, siz — kulrang (hozir
   qiymatga qarab qizil/oltin).
 - Backdrop yo'q bo'lsa: posterning o'zi kattalashtirilib, xira (blur) fon sifatida.
 - API o'zgarishi kerak emas: film sahifasida `backdrop_path` bor.
@@ -563,6 +564,59 @@ Foiz interfeysdan olindi; o'rnida daraja pill'i (`components/MatchBand.tsx`). Qa
 
 Testlar: 15 fayl, 189 (ring va sanoq testlari o'rniga daraja testlari: kuchli/yaxshi/yo'q,
 Feed'da raqam yo'qligi, Watchlist). Bundle: JS 623.03 kB (gzip 181.23), CSS 23.51 kB.
+
+### Film sahifasi: daraja — panel sarlavhasi (2026-10-05)
+
+Foydalanuvchi ko'rigi: ring ketgach film sahifasi vizual markazini yo'qotdi. To'rt
+tuzatish:
+
+1. **"WHY YOU?" eyebrow'i va kichik pill o'rniga — darajaning o'zi sarlavha.** `h2.why-kicker`:
+   Inter 800, uppercase, `letter-spacing .1em`, **19px**. Kuchli — `--red`, yaxshi —
+   `--text`, darajasiz — `--muted`. Blok bitta gap bo'lib o'qiladi: "STRONG MATCH" →
+   "It keeps you guessing…". Bo'limning nomi (`aria-labelledby`) — shu sarlavha.
+   **Nega 19px, 14–16 emas:** qizil `--surface` (panel foni) ustida 4.37:1 — 4.5 dan
+   past, kichik matn uchun AA dan o'tmaydi. 19px bold — WCAG bo'yicha "katta matn"
+   (14pt bold = 18.67px), unga 3:1 yetadi. Uchala holat bir xil o'lchamda: jumla har
+   doim bir joydan boshlanadi.
+2. **Darajasiz holat ham ishlaydi:** neytral kicker "YOU AND THIS FILM" (uz "SIZ VA BU
+   FILM", ru "ВЫ И ЭТОТ ФИЛЬМ"; foydalanuvchi tasdiqlagan). U moslik va'da qilmaydi —
+   darajasiz filmlar o'rtacha yoki past moslikda. Ta'm profili yo'q holat (`match ===
+   null`) ham shu kicker bilan.
+3. **0 yoki 1 sabab — bir ustun (`.why-solo`), panel kontent balandligida.** O'q va
+   legend jumla ostiga tushdi, o'q eni jumla eni bilan bir xil (720px). Sabab "o'ng
+   ustun" emas edi: chap ustun 4 qatorlik joyni ushlab turardi (1440 da 198px), jumla
+   esa 2–3 qator. ≥ 900 da bir ustunli holatda jumla uchun 2 qator ushlanadi (shu enda
+   odatiy izoh uzunligi), skeleton ham 2 chiziq. Uzunroq izoh panelni o'stiradi.
+   2–3 sabab — ≥ 1100 da avvalgidek jumla | o'qlar.
+4. **Pastki bo'lim sarlavhasi:** "Your taste vs this film" yangi kicker bilan deyarli bir
+   xil gap edi. Endi **"Other traits"** (uz "Boshqa jihatlari", ru "Другие черты") —
+   "Why you" o'qlar ko'rsatganda; aks holda **"Its strongest traits"** ("Eng kuchli
+   jihatlari", "Самые сильные черты"), chunki u holda bu filmning eng kuchli 6 traiti va
+   "boshqa" deyishga asos yo'q.
+
+Qo'shimcha topilgan (brifda yo'q): ta'm profili yo'q foydalanuvchida taqqoslash "siz"
+nuqtalarini 0 da chizardi — API `scores: {}` beradi, sahifa uni `0` deb o'qirdi. Endi
+bo'sh `scores` — "ta'm yo'q", "siz" nuqtasi chizilmaydi (test bilan).
+
+**O'lchovlar** (headless Chrome, CDP, mock API film 250 ms, izoh +900 ms; axe 4.10.2):
+
+| Holat | Panel balandligi | CLS | axe |
+|---|---|---|---|
+| Kuchli, 3 sabab, 1440 / 390 | 258 / 501 px | 0.000001 / 0 | 0 / 0 |
+| Yaxshi, 3 sabab, 1440 / 390 | 258 / 501 px | 0.000002 / 0.000011 | 0 / 0 |
+| Darajasiz, 1 sabab (Zodiac), 1440 / 390 | **272** / 330 px (avval 1440 da ~250, ichida bo'sh joy) | 0 / 0 | 0 / 0 |
+| Ta'm profili yo'q, 1440 / 390 | 111 / 133 px | 0 / 0 | 0 / 0 |
+| Darajasiz, 1 sabab, 1024 / 900 / 768 / 320 | 262 / 262 / 295 / 358 px | 0 / 0 / 0 / 0.0001 | 0 (1024, 320) |
+| Uzun izoh: 1 sabab 1440 / 1024 / 390 | | 0.0059 / 0.0015 / 0.0075 | |
+| Uzun izoh: 3 sabab 1440 / 390 | | 0.0013 / 0.0075 | |
+
+Zodiac 1440 da panel 250 dan 272 ga o'sdi, lekin ichida bo'sh joy yo'q: jumla 78px
+(2 qator) = ushlangan joy 78px, o'q jumla ostida. `scrollWidth` = ekran eni hamma
+holatda. Sahifada `NN%` yo'q. Qizil: faqat "STRONG MATCH" kicker'i.
+
+Testlar: 15 fayl, 192 (yangi: bitta sabab — bir ustun va legend o'q bilan; 2–3 sabab —
+ikki ustun; darajasiz kicker; ta'm yo'q — kicker va "siz" nuqtasi yo'q). Bundle: JS
+623.22 kB (gzip 181.32), CSS 23.82 kB.
 
 ### 10. Mobil paritet
 

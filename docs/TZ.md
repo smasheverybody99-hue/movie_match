@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.13 · 2026-10-05 · Holat: tasdiqlangan
+Versiya 1.14 · 2026-10-05 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -201,15 +201,15 @@ raw[f]   = 100 * (1 - d)   — match foizining yaxlitlanmagan qiymati, katalogda
                              traitli film f uchun shu foydalanuvchiga
 o'rin    = raw bo'yicha kamayish tartibida (1 — eng yaqini); teng qiymat chegarada ichkarida
 kuchli   : o'rin <= N                    N = match_strong_top_n   (standart 5)
-yaxshi   : o'rin <= ceil(0.35 * katalog) match_good_share         (standart 0.35)
+yaxshi   : o'rin <= ceil(0.15 * katalog) match_good_share         (standart 0.15; 1.14 gacha 0.35)
 pastki   : o'rin >  ceil(0.75 * katalog) match_floor_share        (standart 0.25)
 ```
 
 "Kuchli" — mutlaq son (ulush emas): Home'dagi qizil belgilar katalog o'sganda ham kam
 qoladi (5 da bitta akkauntning birinchi ekranida 2–3 ta; 10% bo'lsa 11 ta edi). Qizil —
 faqat "kuchli"; "yaxshi" — neytral. Poster kartasida faqat "kuchli" ko'rinadi; film
-sahifasida va watchlist'da ikkalasi ham. Film sahifasida ring yo'q: daraja "Why you"
-sarlavhasi yonida, jumla asosiy signal. Chegaralar har foydalanuvchi uchun saqlangan
+sahifasida va watchlist'da ikkalasi ham. Film sahifasida ring yo'q: daraja "Why you" panelining
+sarlavhasi (darajasiz — neytral "You and this film"), jumla asosiy signal. Chegaralar har foydalanuvchi uchun saqlangan
 sonlardan qayta hisoblanadi (`users.taste_*`, `movie_traits.vector`).
 
 **Sabab qoidasi** (2026-10-02; match foiziga ta'sir qilmaydi) — qaysi traitlar "sabab"
@@ -394,6 +394,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.14 | 2026-10-05 | FR-5: "yaxshi" darajasi eng yaqin 35% dan 15% ga (`match_good_share` 0.15): 35% da 500 dan 175 film, har uchinchi film sahifasi — yorliq ma'nosini yo'qotardi (foydalanuvchi qarori). O'lchov: `docs/STATUS.md`. Film sahifasida daraja — panel sarlavhasi |
 | 1.13 | 2026-10-05 | FR-5: interfeys match foizini emas, match darajasini ko'rsatadi (kuchli — eng yaqin N=5 film, qizil; yaxshi — eng yaqin 35%, neytral); foiz API'da ichki qoladi; "60% dan past" o'rniga eng uzoq 25% tavsiya qilinmaydi. Asos: foiz 8+ va ≤ 5 baholarni ajratmadi (AUC 0.52). Backlog — ta'm yoqmagan filmlardan ham o'rgansin |
 | 1.12 | 2026-10-02 | FR-5: sabab traitlari katalogga nisbatan tanlanadi (formula yuqorida), ro'yxat bo'sh bo'lishi mumkin; backlog — izoh keshi kalitiga sabablar, traitlarni qayta baholash (arzon, jarayon qimmat) |
 | 1.11 | 2026-10-02 | Backlog FR-7: ulashish rasmi brauzerda, server varianti link preview uchun qoladi |

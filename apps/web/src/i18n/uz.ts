@@ -102,11 +102,12 @@ export const uz: Record<MessageKey, Message> = {
   "feed.scrollNext": "Keyingi filmlar",
 
   // Film page
-  "movie.whyYou": "Nega sizga?",
+  "movie.whyKicker": "Siz va bu film",
   "movie.whyYouFallback": "Siz bilan umumiy jihatlari: {traits}.",
   "movie.whyYouGeneral": "Ta'mingizga umuman mos — bitta yaqqol jihati bilan emas.",
   "movie.noMatch": "Mosligini hisoblash uchun avval 10 ta film baholang.",
-  "movie.compareTitle": "Sizning ta'mingiz va shu film",
+  "movie.compareOther": "Boshqa jihatlari",
+  "movie.compareTop": "Eng kuchli jihatlari",
   "movie.compareYou": "siz",
   "movie.compareFilm": "film",
   "movie.traitsPending": "Bu filmning DNA'si hali hisoblanmagan.",

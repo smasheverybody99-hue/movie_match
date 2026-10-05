@@ -64,12 +64,13 @@ describe("MoviePage", () => {
   it("renders the film from the API: match band, why, comparison, facts", async () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
-    // the band beside "Why you?", no number and no ring (FR-5, TZ 1.13)
-    const why = screen.getByRole("region", { name: "Why you?" });
-    expect(within(why).getByText("Strong match")).toHaveClass("match-band-strong");
+    // the band is the panel's heading, red; no "Why you?" label, no number, no ring (FR-5, TZ 1.13)
+    const why = screen.getByRole("region", { name: "Strong match" });
+    expect(within(why).getByRole("heading", { level: 2, name: "Strong match" })).toHaveClass("why-kicker-strong");
+    expect(screen.queryByText("Why you?")).not.toBeInTheDocument();
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
     expect(await screen.findByText("Twisty and cerebral, like your favourites.")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Your taste vs this film" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Other traits" })).toBeInTheDocument();
     expect(screen.getByText("Christopher Nolan")).toBeInTheDocument();
     const head = screen.getByRole("heading", { level: 1 }).parentElement!;
     const tags = within(head).getAllByRole("listitem").map((li) => li.textContent);
@@ -136,7 +137,8 @@ describe("MoviePage", () => {
 
     getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
     renderWithProviders(<MoviePage />, ROUTE);
-    const compare = await screen.findByRole("region", { name: "Your taste vs this film" });
+    // no axes above, so these are the film's top traits, not "other" ones
+    const compare = await screen.findByRole("region", { name: "Its strongest traits" });
     expect(document.querySelectorAll(".axis-legend")).toHaveLength(1);
     expect(compare).toContainElement(document.querySelector(".axis-legend"));
   });
@@ -146,7 +148,7 @@ describe("MoviePage", () => {
     const about = await screen.findByRole("region", { name: "Overview" });
     expect(within(about).getByText("The Prestige: a hand-written overview for the fixtures.")).toBeInTheDocument();
     expect(within(about).getByText("Christopher Nolan")).toBeInTheDocument();
-    const compare = screen.getByRole("region", { name: "Your taste vs this film" });
+    const compare = screen.getByRole("region", { name: "Other traits" });
     expect(within(compare).getAllByTestId(/^axis-/)).toHaveLength(6);
     // shown in Why you, so not repeated here
     expect(within(compare).queryByTestId("axis-psychological_complexity")).not.toBeInTheDocument();
@@ -197,11 +199,44 @@ describe("MoviePage", () => {
     expect(screen.queryByText(/What you share with it/)).not.toBeInTheDocument();
   });
 
-  it("does not ask for an explanation without a match", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { match: null, reasons: [] }));
+  it("does not ask for an explanation without a match, and heads the panel with the neutral kicker", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, reasons: [] }));
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText(/Rate 10 films first/)).toBeInTheDocument();
     expect(explanation).not.toHaveBeenCalled();
+    const why = screen.getByRole("region", { name: "You and this film" });
+    expect(why).toHaveClass("why-solo");
+    expect(screen.queryByText("Why you?")).not.toBeInTheDocument();
+  });
+
+  it("without a taste profile draws no dots of yours in the comparison, rather than at 0", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, reasons: [] }));
+    dna.mockResolvedValue({ ...DNA, scores: {}, rating_count: 0, ratings_needed: 10 });
+    renderWithProviders(<MoviePage />, ROUTE);
+    const compare = await screen.findByRole("region", { name: "Its strongest traits" });
+    await waitFor(() => expect(dna).toHaveBeenCalled());
+    expect(compare.querySelectorAll(".axis-dot.film")).toHaveLength(6);
+    expect(compare.querySelector(".axis-dot.you")).toBeNull();
+    expect(compare.querySelector(".axis-num.you")).toBeNull();
+  });
+
+  it("with one reason: one column, the axis and its key under the sentence", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { reasons: ["darkness"] }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    const why = await screen.findByRole("region", { name: "Strong match" });
+    expect(why).toHaveClass("why-solo");
+    const traits = screen.getByTestId("why-traits");
+    expect(within(traits).getAllByTestId(/^axis-/)).toHaveLength(1);
+    expect(traits).toContainElement(document.querySelector(".axis-legend"));
+    // the key comes after the sentence in the panel, not beside it
+    expect(screen.getByTestId("why-slot").compareDocumentPosition(traits) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("with two or three reasons: two columns on wide screens", async () => {
+    getMovie.mockResolvedValue(detail(movie(0), { reasons: ["mystery", "darkness"] }));
+    renderWithProviders(<MoviePage />, ROUTE);
+    const why = await screen.findByRole("region", { name: "Strong match" });
+    expect(why).not.toHaveClass("why-solo");
   });
 
   it("puts the backdrop in the hero as the page's priority image", async () => {
@@ -370,7 +405,7 @@ describe("comparedTraits", () => {
   });
 });
 
-describe("match band in Why you", () => {
+describe("match band as the Why you heading", () => {
   beforeEach(() => {
     for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
     explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty." });
@@ -379,18 +414,23 @@ describe("match band in Why you", () => {
     watchlist.mockResolvedValue([]);
   });
 
-  it("shows a good match in the neutral pill, never red", async () => {
+  it("heads the panel with a good match, neutral, never red", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { band: "good" }));
     renderWithProviders(<MoviePage />, ROUTE);
-    const pill = await screen.findByText("Good match");
-    expect(pill).toHaveClass("match-band-good");
-    expect(pill).not.toHaveClass("match-band-strong");
+    const kicker = await screen.findByRole("heading", { level: 2, name: "Good match" });
+    expect(kicker).toHaveClass("why-kicker-good");
+    expect(kicker).not.toHaveClass("why-kicker-strong");
+    expect(screen.getByRole("region", { name: "Good match" })).toBeInTheDocument();
   });
 
-  it("shows no pill outside both bands, and the sentence still explains", async () => {
+  it("outside both bands: the neutral kicker heads the panel, and the sentence still explains", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { band: null }));
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText("Twisty.")).toBeInTheDocument();
+    const kicker = screen.getByRole("heading", { level: 2, name: "You and this film" });
+    expect(kicker).toHaveClass("why-kicker");
+    expect(kicker).not.toHaveClass("why-kicker-strong");
+    expect(kicker).not.toHaveClass("why-kicker-good");
     expect(screen.queryByText(/Strong match|Good match/)).not.toBeInTheDocument();
   });
 });
