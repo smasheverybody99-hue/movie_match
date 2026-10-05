@@ -29,6 +29,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | Web testlari | Mahalliy, 2026-10-05 (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
+| API testlari (FR-5 darajasi) | Mahalliy to'liq run, 2026-10-05 (`0874314`): **518 o'tgan**, 0 yiqilgan, 38 daqiqa (Frankfurt test bazasi). Coverage `app/services` + `app/pipelines` birga: **89%** (1 659 statement, 185 miss); `bands.py` 97%, `matching.py` 100%, `recommend.py` 99% |
 | API testlari | Mahalliy to'liq run, 2026-09-30 (`852c767` holatida): 424 o'tgan, 1 yiqilgan — CI'dagi o'sha log testi; tuzatishdan keyin u juftlik (migratsiya + provayder testlari) bilan qayta o'tgan |
 
 CI Supabase'ga ulanmaydi: runner'dagi Postgres 17 + pgvector konteyneri ishlatiladi,
