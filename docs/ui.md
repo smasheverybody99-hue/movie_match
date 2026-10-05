@@ -137,7 +137,7 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
 - Posterlar kattaroq: desktop ~180px eni, mobil'da ekranda 2.4 ta (keyingisining chekkasi
   scroll borligini bildiradi). Nisbat 2:3. Nom poster ostida, kichik, 2 qatorgacha.
 - **Match badge doim ko'rinadi** (qizil) — bu imzo.
-- **Hover** (sichqoncha, `pointer: fine`): poster 1.05 ga kattalashadi, ustida qorong'u
+- **Hover** (sichqoncha, `pointer: fine`): poster 1.08 ga kattalashadi va yumshoq soya oladi, ustida qorong'u
   qatlam va tez tugmalar — **Baholash** (mavjud baho dialogini ochadi) va **Watchlist**.
   Klaviatura: `:focus-within` da xuddi shu. Sensorli ekran: hover yo'q, bosish film
   sahifasini ochadi.
@@ -220,7 +220,7 @@ Ish: **2–3 kun** (testlari bilan).
 | Joy | Harakat | Davomiyligi |
 |---|---|---|
 | Sahifa o'tishlari | View Transitions API: React Router 7.18 dagi `viewTransition` (`Link`/`NavLink`). Qo'llamaydigan brauzer — oddiy o'tish | 200–250 ms |
-| Poster hover | `transform: scale(1.05)` + qatlam paydo bo'lishi | 200 ms |
+| Poster hover | `transform: scale(1.08)` + soya + qatlam paydo bo'lishi | 200 ms |
 | Match foizi | 0 dan qiymatgacha sanaladi (`useCountUp`, `requestAnimationFrame`) | 600 ms |
 | Ring | Hozir bor (CSS `@property --p`) | 600 ms |
 | DNA guli | Nurlar markazdan ketma-ket o'sadi | 40 ms oraliq, jami ~900 ms |
@@ -427,6 +427,107 @@ qator qolardi. axe 0 (1440, 390, 320). Testlar: 15 fayl, 181; lint 0; build 0.
   Onboarding'ning bir nechta testi 1–5 s chegarasiga yetib yiqilgan (har safar boshqasi);
   server to'xtatilgach ikki marta alohida va bir marta to'liq run'da hammasi o'tdi.
   Onboarding bu bosqichda o'zgarmagan. Kuzatiladi.
+
+### 2-bosqich, ko'rikdan keyingi tuzatishlar (2026-10-05)
+
+Foydalanuvchi ko'rigi: beshta tuzatish, 3-bosqichdan oldin. Yuqoridagi natijalardan farqi:
+
+1. **Mobil "Why you" — float yo'q.** Eyebrow tepada to'liq enda, ostida ring o'z qatorida
+   chapda, keyin jumla toza, chapga tekislangan blok, keyin o'qlar (< 640px: bitta ustunli
+   grid, qatorlar orasi `--space-3`, o'qlardan oldin `--space-4`). `float` va
+   `shape-outside` olib tashlandi: qatorlar soni endi faqat panel eniga bog'liq.
+2. **Hero scrim tepadan gradient:** `--bg` ning 45% i (≈ rgba(0, 0, 0, .45)) tepada,
+   balandlikning 45% ida shaffof. Bir tekis 25% li qatlam olib tashlandi.
+3. **Legend o'qlar ustunida:** legend endi bo'sh nom katagi bor `axis-row` — birinchi o'q
+   ustida, o'q chizig'i bilan bir vertikalda boshlanadi (o'lchangan: farq 0px; 1440, 1024,
+   390, 320, taqqoslash bo'limida ham). Mobil'da nom o'q ustida bo'lgani uchun bo'sh katak
+   yashirin.
+4. **Home hover kuchliroq:** poster va qatlam `scale(1.08)` (avval 1.05), poster ostida
+   yumshoq soya, ko'tarilgan karta qo'shnilari ustida chiziladi (`z-index: 2`). Tez
+   tugmalar 44 → 52px, ikonka 20 → 24px. Qator padding'i 8/6 → 12/8px (180 × 270 poster
+   8% da yon tomonga 7.2px, tepaga 10.8px o'sadi; scroll qatori padding'dan chiqqanini
+   kesadi). Nom va yil soyadan yuqorida (`z-index: 3`, har sticky panel ≥ 10 dan past) —
+   aks holda soya o'z nomini ham, qo'shnining nomini ham xiralashtirardi (skrinshotda
+   ko'rindi, tuzatildi).
+5. **Onboarding testlarining beqarorligi** — sabab topildi, pastda.
+
+Qo'shimcha topilgan (brifda yo'q): 1024px da film sahifasi gorizontal scroll berardi
+(`scrollWidth` 1030): Overview qatoridagi rejissyor/aktyorlar ustuni 65ch matndan keyin
+qolgan joyga siqilib, "Christopher Nolan" sig'mas edi (1-bosqich yakuniy ishidan,
+`3c8f2a0`). Endi ustun kamida 14em, matn ustuni torayadi; 1024 da `scrollWidth` = 1024.
+
+**CLS (o'sha usul: headless Chrome, CDP, mock API film 250 ms, izoh +900 ms):**
+
+| Holat | Float bilan (oldin) | Float'siz (hozir) | Float'dan ham oldin |
+|---|---|---|---|
+| 390, uzun izoh (6 qator, 4 band) | 0.0154 | **0.0024** | 0.0038 |
+| 390, o'rtacha izoh | 0.000009 | 0.000014 | 0.000000 |
+| 320, o'rtacha izoh (5 qator) | 0.0049 (hujjatda 0.0071) | **0.000019** | 0.000016 |
+| 320, uzun izoh (8 qator) | 0.0146 | 0.000000 | — |
+| 390, uzun, reduced motion | — | 0.0024 | — |
+| 1440 o'rtacha / 1024 | 0.000006 / — | 0.000010 / 0.000016 | — |
+
+"Oldin" ustuni shu kod bilan shu sessiyada qayta o'lchangan (390 uzun 0.0154 hujjatdagi
+bilan bir xil chiqdi). 320 × 640 da uzun izoh ostidagi o'qlar ekrandan tashqarida, shuning
+uchun ularning siljishi CLS'ga kirmaydi.
+
+**Hero yorqinligi** (o'rtacha yorqinlik 0–255, Rec. 709, oq qidiruv pikselisiz; 1440 × 900,
+hero 440px, 45% = 198px):
+
+| Mintaqa | Scrim yo'q | Tekis 25% | Tepadan gradient |
+|---|---|---|---|
+| Prestige — qidiruv atrofi (y 0–80) | 105.0 | 83.0 | **74.0** |
+| Prestige — tepa 45% | 46.9 | 37.6 | 39.8 |
+| Prestige — 45% dan past | 32.6 | 28.0 | **32.6** |
+| Prisoners — qidiruv atrofi | 72.0 | 58.2 | **52.9** |
+| Prisoners — tepa 45% | 41.6 | 33.7 | 35.9 |
+| Prisoners — 45% dan past | 34.3 | 29.5 | **34.3** |
+
+Qidiruv atrofi tekis scrim'dagidan ham qorong'iroq; o'rta va past qism scrim'siz holat
+bilan aynan bir xil (gradient u yerga yetmaydi). Tepa 45% o'rtacha biroz yorug'roq, chunki
+gradient pastga qarab kamayadi — qidiruv turgan eng yuqori qism esa eng qorong'i.
+
+**Hover soyasi:** fon deyarli qora (#0a0a0a), shuning uchun soya fonda ko'rinmaydi (poster
+ostidagi bo'sh joy 10 → 10). Ko'tarilish qo'shni poster ustida ko'rinadi: Memento'ning chap
+30px i hover'da 116.5 → 101. Nomlar o'zgarmaydi (Memento 49.7 → 49.7, Prestige 53.3 → 53.6).
+
+**Onboarding testlari — sabab (o'lchangan):**
+
+- **Kutish shartlari aniq** (`findByRole`/`findByText`, aniq rol va nom bilan) — bo'sh
+  mashinada birinchi tekshiruvdayoq bajariladi. Har qadam CPU ishi: tile grid'idagi
+  `*ByRole` so'rovi 15–60 ms, `userEvent.click` ~50 ms. 10 dan ko'p tap qiladigan test
+  (9 + 10 tanlash) bo'sh mashinada 1.9 s — 5 s chegarasigacha atigi 2.6 baravar zaxira.
+- **Ishchi vaqti-vaqti bilan to'xtab qoladi:** 10 ms lag-monitor bo'sh mashinada 150–630 ms
+  bloklarni ko'rsatdi; sun'iy CPU yuki ostida bitta click 2.2 s, bitta `findByRole` 1.7 s.
+  Bir run'da `findByText` ning 1000 ms taymeri **1373 ms kech** otildi, mock javob esa
+  allaqachon tayyor edi. Kutubxonada (`@testing-library/dom` `waitFor`) muddat tugaganda
+  oxirgi tekshiruv qilinmaydi: kechikkan taymer navbatdagi render'dan oldin yutadi.
+- **"Har safar boshqa joyda" sababi:** Vitest muddati o'tgan testni to'xtatmaydi. Uning
+  qolgan `pick()` taplari global `screen` orqali **keyingi testning** DOM'ida ishlagan
+  (log'da: "unpicks" testi ichida oldingi testning "The Machinist", "Enemy" taplari) —
+  keyingi testlar o'zlariga tegishli bo'lmagan sabab bilan yiqilgan.
+- **Yuk ostida topilgan to'rtinchi sabab — ilova kodida:** baholash qadami har film uchun
+  bahoni `useEffect` da 7 ga qaytarardi. Effekt birinchi chizishdan keyin ishlaydi; test
+  shu oraliqda 9.5 qo'ysa, effekt uni 7 ga qaytarardi. Brauzerda oraliq bitta kadr, lekin
+  bu haqiqiy poyga.
+
+Tuzatish: (1) chegara testlari tanlovlarning 8 tasini `saveProgress` bilan tayyor qo'yadi
+va faqat chegarani kesib o'tadigan taplarni qiladi (19 tap → 2; "baholanganlar ham
+sanaladi" testi 6 → 2); (2) `pick()` testning `signal` ini tekshiradi — muddati o'tgan
+test endi boshqa testning ekraniga tegmaydi; (3) `asyncUtilTimeout` 1000 → 3000 ms
+(`src/test/setup.ts`, sabab izohda) — sekinlik yuqorida isbotlangan, o'tadigan kutish
+shart bajarilishi bilan qaytadi; (4) baholash qadami film bo'yicha `key` oladi, effekt
+olib tashlandi; keyingi film standart baho bilan boshlanishi testga qo'shildi.
+
+Natija: tuzatishdan oldin sun'iy yuk ostida (ikkita band CPU yadro, 2 yadroli mashina)
+Onboarding fayli 5 run'dan 2 tasida yiqildi; keyin 8 / 8 yashil, bo'sh holatda 2 / 2.
+To'liq web to'plami yuk ostida 3 / 3 yashil (189 test, ~90 s), dev server fonda ishlab
+turganda 2 / 2.
+
+axe 4.10.2: 0 buzilish (1440, 1024, 390, 320 film; 1440, 390 Home). `scrollWidth` = ekran
+eni (1440, 1024, 390, 320; Home ham). Qizil: film sahifasida faqat ring, Home'da faqat
+badge'lar. Testlar: 15 fayl, 189; lint 0; build 0. Bundle: JS 624.11 kB (gzip 181.53),
+CSS 24.81 kB.
 
 ### 10. Mobil paritet
 

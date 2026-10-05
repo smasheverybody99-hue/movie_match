@@ -32,14 +32,21 @@ export function TraitBar({ trait, value }: { trait: TraitKey; value: number }) {
   );
 }
 
-/** The key to the two dots on a TraitAxis: you a filled circle, the film an outlined one. */
+/**
+ * The key to the two dots on a TraitAxis: you a filled circle, the film an outlined one.
+ * Laid out as an axis row with an empty name cell, so it sits directly above the first
+ * axis and starts where the axes start.
+ */
 export function AxisLegend() {
   const t = useT();
   return (
-    <p className="axis-legend" aria-hidden="true">
-      <span className="key-you">{t("movie.compareYou")}</span>
-      <span className="key-film">{t("movie.compareFilm")}</span>
-    </p>
+    <div className="axis-row axis-legend-row" aria-hidden="true">
+      <span className="axis-name" />
+      <p className="axis-legend">
+        <span className="key-you">{t("movie.compareYou")}</span>
+        <span className="key-film">{t("movie.compareFilm")}</span>
+      </p>
+    </div>
   );
 }
 

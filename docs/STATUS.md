@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-05 (dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -25,7 +25,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
-| Web testlari | Mahalliy, 2026-10-04 (dizayn 2-bosqich): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Kompyuter band bo'lganda (fonda dev server va headless Chrome) Onboarding testlari ikki marta vaqt chegarasida yiqildi; server to'xtatilgach o'tdi — kuzatib boriladi |
+| Web testlari | Mahalliy, 2026-10-05 (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
 | API testlari | Mahalliy to'liq run, 2026-09-30 (`852c767` holatida): 424 o'tgan, 1 yiqilgan — CI'dagi o'sha log testi; tuzatishdan keyin u juftlik (migratsiya + provayder testlari) bilan qayta o'tgan |
@@ -63,11 +63,12 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Dizayn v2: 1-bosqich tasdiqlandi, 2-bosqich bajarildi (2026-10-04), ko'rik kutmoqda.**
-   Film sahifasi (1-bosqich, yakuniy to'rt ish bilan) va Home: gorizontal poster qatorlari,
-   hover'da Baholash / Watchlist, desktop'da ←/→. Home CLS 0, axe 0. Natijalar: `docs/ui.md`,
-   "1-bosqich ..." va "2-bosqich natijasi". Keyingisi: 3-bosqich (Home hero,
-   `backdrop_path` API'ga). Tasdiqdan keyin — 2-bosqich (Home: poster qatorlari).
+1. **Dizayn v2: 2-bosqich ko'rigidagi beshta tuzatish bajarildi (2026-10-05).** Mobil
+   "Why you" float'siz, scrim tepadan gradient, legend o'qlar ustunida, Home hover 8% +
+   soya, Onboarding testlari barqaror. Natijalar: `docs/ui.md`, "2-bosqich, ko'rikdan
+   keyingi tuzatishlar". **3-bosqich (Home hero, `backdrop_path` API'ga) FR-5 qaroridan
+   keyin** — unda ham match foizi ko'rsatiladi (foydalanuvchi, 2026-10-05). FR-5 variantlari
+   (Z, P) o'lchandi, natija foydalanuvchiga ko'rsatildi, qaror kutilmoqda (kod o'zgarmagan).
    Match foizi (FR-5) bo'yicha qaror hali ochiq. Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
    foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
    izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan

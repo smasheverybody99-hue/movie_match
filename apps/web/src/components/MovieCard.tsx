@@ -16,7 +16,7 @@ export interface QuickActions {
 
 /**
  * Poster, title (two lines at most), year · runtime. Links to the film page.
- * With `quick`: on hover (a fine pointer only) or keyboard focus the poster grows a little
+ * With `quick`: on hover (a fine pointer only) or keyboard focus the poster lifts (8%, shadow)
  * and two icon buttons appear over it. They sit beside the link, not inside it (no button
  * in a link). On touch there is no hover: a tap opens the film page.
  */
@@ -47,7 +47,7 @@ export function MovieCard({
             title={t("movie.rate")}
             onClick={quick.onRate}
           >
-            <Icon as={Gauge} />
+            <Icon as={Gauge} size={24} />
           </button>
           <button
             type="button"
@@ -57,7 +57,7 @@ export function MovieCard({
             title={quick.saved ? t("movie.onList") : t("movie.saveToList")}
             onClick={quick.onToggleSave}
           >
-            <Icon as={quick.saved ? BookmarkCheck : Bookmark} />
+            <Icon as={quick.saved ? BookmarkCheck : Bookmark} size={24} />
           </button>
         </div>
       )}
