@@ -23,10 +23,18 @@ const search = vi.mocked(api.searchMovies);
 
 const ROUTE = { route: "/onboarding", path: "/onboarding" };
 
-/** Pick MOVIES[from..to) by tapping their tiles. */
-async function pick(to: number, from = 0) {
+/**
+ * Pick MOVIES[from..to) by tapping their tiles. Each tap costs ~100 ms in jsdom (a role
+ * query over the whole grid, then a click), so keep the count low. `signal` is the test's:
+ * Vitest does not stop a test that times out, and without the check its remaining taps
+ * would land on the next test's screen and fail that test instead.
+ */
+async function pick(signal: AbortSignal, to: number, from = 0) {
   for (const movie of MOVIES.slice(from, to)) {
-    await userEvent.click(await screen.findByRole("button", { name: movie.title }));
+    signal.throwIfAborted();
+    const tile = await screen.findByRole("button", { name: movie.title });
+    signal.throwIfAborted();
+    await userEvent.click(tile);
   }
 }
 
@@ -76,32 +84,36 @@ describe("Onboarding", () => {
     expect(films).toHaveBeenCalledWith(60, 0);
   });
 
-  it("keeps continue disabled below 10 picks and enables it at 10", async () => {
+  it("keeps continue disabled below 10 picks and enables it at 10", async ({ signal }) => {
+    // Eight picks already made; the taps that cross the threshold are the ones under test.
+    saveProgress(TEST_SESSION.userId, { step: "pick", picks: MOVIES.slice(0, 8), index: 0, offset: 0 });
     renderWithProviders(<Onboarding />, ROUTE);
-    await pick(9);
+    await screen.findByText("8 / 10 picked");
+    await pick(signal, 9, 8);
     expect(screen.getByText("9 / 10 picked")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Pick 1 more" })).toBeDisabled();
 
-    await pick(10, 9);
+    await pick(signal, 10, 9);
     expect(screen.getByText("10 / 10 picked")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
   });
 
-  it("unpicks a film on a second tap", async () => {
+  it("unpicks a film on a second tap", async ({ signal }) => {
     renderWithProviders(<Onboarding />, ROUTE);
-    await pick(1);
+    await pick(signal, 1);
     await userEvent.click(screen.getByRole("button", { name: "The Prestige, selected" }));
     expect(screen.getByRole("button", { name: "The Prestige" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByText("0 / 10 picked")).toBeInTheDocument();
   });
 
-  it("counts films already rated towards the 10", async () => {
+  it("counts films already rated towards the 10", async ({ signal }) => {
     ratings.mockResolvedValue([rating(1, 8), rating(2, 7), rating(3, 9), rating(4, 6)]);
+    saveProgress(TEST_SESSION.userId, { step: "pick", picks: MOVIES.slice(0, 4), index: 0, offset: 0 });
     renderWithProviders(<Onboarding />, ROUTE);
-    await screen.findByText("4 / 10 picked");
-    await pick(5);
+    await screen.findByText("8 / 10 picked");
+    await pick(signal, 5, 4);
     expect(screen.getByRole("button", { name: "Pick 1 more" })).toBeDisabled();
-    await pick(6, 5);
+    await pick(signal, 6, 5);
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
   });
 
@@ -139,6 +151,9 @@ describe("Onboarding", () => {
     expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 9.5, liked_aspects: ["plot_twist"] });
     expect(await screen.findByRole("heading", { name: "Memento" })).toBeInTheDocument();
     expect(screen.getByText("2 / 10")).toBeInTheDocument();
+    // The next film starts afresh: default score, no aspects.
+    expect(slider().value).toBe("7");
+    expect(screen.queryByTestId("liked-aspects")).not.toBeInTheDocument();
   });
 
   it("takes whole-number scores from the keyboard", async () => {
@@ -160,9 +175,9 @@ describe("Onboarding", () => {
     expect(screen.getByRole("heading", { name: "The Prestige" })).toBeInTheDocument();
   });
 
-  it("restores progress after a remount", async () => {
+  it("restores progress after a remount", async ({ signal }) => {
     const first = renderWithProviders(<Onboarding />, ROUTE);
-    await pick(3);
+    await pick(signal, 3);
     expect(screen.getByText("3 / 10 picked")).toBeInTheDocument();
     first.unmount();
 

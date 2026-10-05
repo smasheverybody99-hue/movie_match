@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -202,13 +202,6 @@ function RateStep({
   const [aspects, setAspects] = useState<TraitKey[]>([]);
   const movie = progress.picks[progress.index];
 
-  useEffect(() => {
-    setValue(DEFAULT_SCORE);
-    setAspects([]);
-    rate.reset();
-    // A new film starts from the default score and a clean error state.
-  }, [movie?.id]);
-
   const onChange = useCallback((next: number) => setValue(next), []);
 
   if (!movie) {
@@ -322,7 +315,17 @@ function Flow({ userId }: { userId: string }) {
       <OfflineBanner />
       <main className="onboarding" id="main">
         {progress.step === "pick" && <PickStep progress={progress} update={update} ratedCount={ratedCount} />}
-        {progress.step === "rate" && <RateStep progress={progress} update={update} ratedCount={ratedCount} />}
+        {progress.step === "rate" && (
+          // Keyed by film: each film starts from the default score and a clean error state.
+          // (An effect that reset them ran after the first paint and could undo a score
+          // given in between.)
+          <RateStep
+            key={progress.picks[progress.index]?.id ?? "none"}
+            progress={progress}
+            update={update}
+            ratedCount={ratedCount}
+          />
+        )}
         {progress.step === "done" && (
           <>
             <Progress step={3} />
