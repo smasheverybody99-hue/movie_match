@@ -199,6 +199,9 @@ Fayllar: `MoviePage.tsx`, `Traits.tsx`, `app.css`. Ish: **1 kun.**
 monoxrom (qaror 1): qora fonda oq nurlar, lekin **yassi oq emas** — har nurning
 yorqinligi qiymatiga qarab o'zgaradi. Ekranning kuchi harakat va yirik tipografikadan.
 
+> **2026-10-06:** 4-bosqichda faqat radial gul quriladi. Quyidagi Wrapped tuzilmasi va
+> ulashish rasmi TZ backlog'iga ko'chdi — tavsif keyinga saqlanadi.
+
 **Wrapped tuzilmasi:** sahifa vertikal "hikoya" bloklari, har biri scroll'da paydo bo'ladi:
 1. "Siz N ta film baholadingiz" — raqam sanalib chiqadi.
 2. "Eng kuchli tomoningiz: {trait}" — juda yirik matn.
@@ -263,7 +266,7 @@ keyingina keyingi qadam.
 | 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi va tasdiqlandi** (2026-10-04) |
 | 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
 | 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
-| 4 | Movie DNA: gul, Wrapped tuzilmasi, ulashish rasmi | 2–3 kun |
+| 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun |
 | 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun |
 
 Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinadigan
