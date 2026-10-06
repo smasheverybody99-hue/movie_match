@@ -6,7 +6,7 @@ import type { Recommendation } from "../lib/types";
 import { renderWithProviders } from "../test/utils";
 import { Hero, HERO_INTERVAL_MS } from "./Hero";
 
-/** Five top picks: the first with a backdrop, a strong band and a cached sentence. */
+/** Five top picks with backdrops: the first strong with a cached sentence, the second "good". */
 function picks(): Recommendation[] {
   return [0, 1, 2, 3, 4].map((i) => ({
     ...rec(movie(i, { backdrop_path: `/b${i}.jpg` }), 94 - i, i === 0 ? "strong" : i === 1 ? "good" : null),
@@ -34,12 +34,12 @@ afterEach(() => {
 });
 
 describe("Hero", () => {
-  it("shows the first pick: title, year and runtime, band, and its backdrop as the priority image", () => {
+  it("shows the first pick: kicker, title, year and runtime, and its backdrop as the priority image", () => {
     const { hero } = renderHero();
     expect(hero).toHaveAttribute("aria-roledescription", "carousel");
     expect(within(hero).getByRole("link", { name: "The Prestige" })).toHaveAttribute("href", "/movie/1000");
     expect(within(hero).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["2006", "130m"]);
-    expect(within(hero).getByText("Strong match")).toHaveClass("match-band-strong");
+    expect(within(hero).getByText("Strong match")).toHaveClass("kicker", "kicker-strong");
     const first = hero.querySelector<HTMLImageElement>(".home-hero-img.is-active")!;
     expect(first).toHaveAttribute("src", "https://image.tmdb.org/t/p/w1280/b0.jpg");
     expect(first).toHaveAttribute("fetchpriority", "high");
@@ -54,21 +54,26 @@ describe("Hero", () => {
     expect(hero.querySelectorAll(".home-hero-img")[1]).not.toHaveAttribute("fetchpriority", "high");
   });
 
-  it("opens the cached sentence in place; never asks the API for one", () => {
+  it("shows the cached sentence, and See why opens the film page", () => {
     renderHero();
-    const why = screen.getByRole("button", { name: "Why it suits me?" });
-    expect(why).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByText("Twisty, like your favourites.")).not.toBeInTheDocument();
-    fireEvent.click(why);
-    expect(why).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Twisty, like your favourites.")).toHaveAttribute("id", why.getAttribute("aria-controls"));
+    expect(screen.getByText("Twisty, like your favourites.")).toHaveClass("home-hero-why");
+    expect(screen.getByRole("link", { name: "See why" })).toHaveAttribute("href", "/movie/1000");
+    expect(screen.queryByRole("button", { name: /Rate/ })).not.toBeInTheDocument();
   });
 
-  it("without a cached sentence, Why links to the film page", () => {
+  it("without a cached sentence: the free fallback from the reasons, and 'good' is not shown", () => {
     renderHero();
     fireEvent.click(screen.getByRole("button", { name: "Next film" }));
-    expect(screen.getByRole("link", { name: "Why it suits me?" })).toHaveAttribute("href", "/movie/1001");
-    expect(screen.getByText("Good match")).toHaveClass("match-band-good");
+    // rec() gives ["mystery", "plot_twist"]
+    expect(screen.getByText("What you share with it: Mystery, Plot twists.")).toBeInTheDocument();
+    expect(screen.getByText("You and this film")).not.toHaveClass("kicker-strong");
+    expect(screen.queryByText("Good match")).not.toBeInTheDocument();
+  });
+
+  it("without reasons either: the 'suits you overall' sentence", () => {
+    const one = [{ ...rec(movie(3), 80, null), reasons: [] }];
+    renderHero(one);
+    expect(screen.getByText("It suits your taste overall rather than through one standout quality.")).toBeInTheDocument();
   });
 
   it("moves with prev / next, the dots and the arrow keys, wrapping at both ends", () => {
@@ -147,7 +152,7 @@ describe("Hero", () => {
     const one = [rec(movie(0, { poster_path: "/p.jpg" }), 90, null)];
     const { hero } = renderHero(one);
     expect(screen.queryByRole("button", { name: "Next film" })).not.toBeInTheDocument();
-    expect(within(hero).queryByText(/match/)).not.toBeInTheDocument();
+    expect(within(hero).queryByText("Strong match")).not.toBeInTheDocument();
     expect(hero.querySelector(".home-hero-img")).toHaveClass("film-hero-blur");
   });
 });

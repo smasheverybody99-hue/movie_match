@@ -5,6 +5,7 @@ import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
+import { Kicker } from "../components/Kicker";
 import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
@@ -24,7 +25,7 @@ import {
   useWatchlistChange,
 } from "../lib/queries";
 import { isTraitKey, TRAIT_KEYS, type TraitKey } from "../lib/traits";
-import type { MatchBand, MovieDetail } from "../lib/types";
+import type { MovieDetail } from "../lib/types";
 
 /** Two columns of three on wide screens. */
 const COMPARED = 6;
@@ -97,19 +98,6 @@ function Tags({ detail }: { detail: MovieDetail }) {
 }
 
 /**
- * The panel's heading, which the sentence under it completes: the band itself ("STRONG
- * MATCH" red, "GOOD MATCH" neutral; FR-5, TZ 1.13), or a neutral kicker without one.
- */
-function Kicker({ band }: { band: MatchBand | null }) {
-  const t = useT();
-  return (
-    <h2 className={band ? `why-kicker why-kicker-${band}` : "why-kicker"} id="why-title">
-      {band ? t(band === "strong" ? "band.strong" : "band.good") : t("movie.whyKicker")}
-    </h2>
-  );
-}
-
-/**
  * "Why you": the band as the panel's heading, the sentence and up to three reasons on
  * their axes, read as one statement ("STRONG MATCH" -> "It keeps you guessing..."). No
  * number, no ring (FR-5, TZ 1.13): the sentence is the main signal.
@@ -130,7 +118,7 @@ function Why({ detail }: { detail: MovieDetail }) {
   if (detail.match === null) {
     return (
       <section className="panel why why-solo" aria-labelledby="why-title">
-        <Kicker band={null} />
+        <Kicker band={null} id="why-title" />
         <p className="muted" style={{ margin: 0 }}>
           {t("movie.noMatch")}
         </p>
@@ -146,7 +134,7 @@ function Why({ detail }: { detail: MovieDetail }) {
   return (
     <section className={reasons.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
       <div className="why-main">
-        <Kicker band={detail.band} />
+        <Kicker band={detail.band} id="why-title" />
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
         <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (
@@ -273,7 +261,7 @@ function MovieSkeleton() {
       </div>
       <div className="panel why why-solo">
         <div className="why-main">
-          <Skeleton className="why-kicker why-kicker-skel" />
+          <Skeleton className="kicker kicker-skel" />
           <div className="why-slot">
             <Skeleton className="why-skel" />
             <Skeleton className="why-skel" style={{ width: "60%" }} />

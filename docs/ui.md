@@ -37,8 +37,9 @@ sarlavhasidagi belgining qizili. Shakl qoladi (pill tugma, nuqtalar, belgi), ran
 
 **Qizil (`--red`) faqat kuchli moslik uchun** (TZ 1.13, 2026-10-05). Interfeys match
 foizini ko'rsatmaydi — uning o'rnida daraja: **"Kuchli moslik"** (foydalanuvchining
-katalogdagi eng yaqin 5 filmi) — qizil, **"Yaxshi moslik"** (eng yaqin 15%; 2026-10-05
-gacha 35%) — neytral, qolganida hech narsa. Boshqa hech qayerda qizil yo'q. Sabab: qizil kam
+katalogdagi eng yaqin 5 filmi) — qizil; qolganida pill yo'q (film sahifasi va hero'da
+neytral kicker). "Yaxshi moslik" API'da hisoblanadi, lekin 2026-10-06 dan ko'rsatilmaydi
+(TZ 1.16: Home'dagi sahifalarning 68% ida chiqardi). Boshqa hech qayerda qizil yo'q. Sabab: qizil kam
 uchrasa, kuchini saqlaydi; 1.13 gacha har kartadagi foiz badge'i bir ekranda 11 ta qizil
 bergan edi. Ekranda qizil ko'rinsa — bu "katalogda sizga eng yaqinlaridan biri" degani.
 
@@ -112,25 +113,33 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
 
 ### 4. Home
 
-**4a. Hero (AZM'dan yagona olinadigan narsa)**
+**4a. Hero** (2026-10-06 holati; 3-bosqich, `components/Hero.tsx`)
 
-- "For you" ning eng yuqori 3–5 ta filmi; backdrop butun kenglikda, desktop'da ~70vh,
-  mobil'da ~55vh.
-- Gradient: chapdan `--bg` dan shaffofga (matn o'qilishi uchun) va pastdan `--bg` ga
-  (qatorlarga silliq o'tish).
-- Chapda: film nomi (Playfair, katta), chiplar (yil · davomiylik · janr), **match darajasi**
-  (kuchli — qizil pill, yaxshi — neytral; raqam yo'q, TZ 1.13), ikki tugma — **"Nega menga mos?"** va **Watchlist**,
-  ikkalasi neytral kontur. "Watch Now" yo'q.
-- "Nega menga mos?": tavsiya javobida kesh'langan izoh bo'lsa — hero ichida ochiladi; yo'q
-  bo'lsa — film sahifasining "Nega sizga?" qismiga o'tadi. **Hero o'zi LLM chaqirmaydi:**
-  aylanish izoh so'ramaydi, aks holda har slayd pul va kunlik limit sarflaydi.
-- Pastda nuqtalar: faol — oq, qolganlari — kulrang (qizil emas). Har 7 s da almashadi;
-  hover va fokusda to'xtaydi; alohida pauza tugmasi (WCAG 2.2.2: 5 s dan uzoq harakat
-  to'xtatilishi kerak); ← → tugmalari. Reduced motion: avtomatik aylanish yo'q.
-- Unumdorlik: birinchi backdrop — `fetchpriority="high"` (bu sahifaning LCP elementi),
-  qolganlari kerak bo'lganda yuklanadi. TMDB `w1280`.
-- **API o'zgarishi:** tavsiyalardagi `MovieOut` da `backdrop_path` yo'q (faqat film
-  sahifasida bor). `schemas.py` va `types.ts` ga qo'shiladi — bitta commit'da (CLAUDE.md).
+- **Nima:** "For you" ning birinchi 5 filmi, bittadan, karusel. Backdrop `.main` ning
+  to'liq enida (w780 / w1280 `srcset`); backdrop yo'q — poster xira; ikkalasi ham yo'q —
+  `--surface`. Scrim va gradientlar film sahifasidagi bilan bir xil.
+- **Balandlik — qat'iy, minimal emas:** desktop (≥ 640) `clamp(360px, 56vh, 520px)`,
+  mobil `max(280px, 48svh)`. 1440 × 900 da birinchi poster qatori ko'rinadi. Qat'iy
+  bo'lgani uchun slayd almashganda pastdagi qatorlar surilmaydi; nom va jumla shuning
+  uchun 2 qatorda to'xtaydi (to'liq matn film sahifasida).
+- **Har slayd film sahifasining "Why you" bloki kabi o'qiladi:** tepada kicker (film
+  sahifasidagi uslub: 19px uppercase) — "STRONG MATCH" qizil yoki neytral "YOU AND THIS
+  FILM" ("good" ko'rsatilmaydi, TZ 1.16); keyin nom (Playfair, film sahifasiga havola),
+  yil va davomiylik chiplari, ostida qisqa jumla.
+- **Jumla:** tavsiyalar javobidagi keshlangan izoh; yo'q bo'lsa — film sahifasidagi
+  bepul zaxira ("What you share with it: …", sabab yo'q bo'lsa "It suits your taste
+  overall…"). **Hero LLM chaqirmaydi:** aylanish izoh so'rasa, har slayd pul va kunlik
+  limit sarflardi.
+- **Tugmalar,** ikkalasi neytral kontur: **"See why"** (uz "Nega mos", ru "Почему
+  подходит") — film sahifasini ochadi; **Save**. Rate hero'da yo'q — u karta hover'ida va
+  film sahifasida bor.
+- **Aylanish:** har 7 s; sichqoncha yoki fokus ichida bo'lsa va Pause bosilsa to'xtaydi
+  (WCAG 2.2.2). `prefers-reduced-motion` — o'zi aylanmaydi, faqat nuqtalar, ← → tugmalari
+  va klaviatura; Pause tugmasi bu holatda yo'q. Nuqtalar: joriy — oq va kengroq, qolgani
+  kulrang, har biri 24px nishon. Aylanayotganda `aria-live="off"`, to'xtaganda `polite`.
+- **Unumdorlik:** birinchi backdrop `fetchpriority="high"` (LCP); qolganlari faqat
+  navbati kelganda (ko'rsatilganlar va keyingisi).
+- **API:** `backdrop_path` har `MovieOut` da (`schemas.py`, `types.ts` — `963404b`).
 
 **4b. Poster qatorlari (Netflix/IVI tuzilmasi, NOXX ko'rinishi)**
 
@@ -158,8 +167,8 @@ Hozir backdrop 200px balandlikda va 55% shaffoflikda — deyarli ko'rinmaydi.
 - Poster hero'ning pastki chetiga ustma-ust tushadi; yonida nom (Playfair, katta),
   chiplar.
 - "Why you" bloki tavsifdan yuqorida (v1 qoidasi qoladi). **Ring yo'q (TZ 1.13):**
-  daraja — panelning sarlavhasi (kicker): "STRONG MATCH" qizil, "GOOD MATCH" neytral,
-  darajasiz va ta'm profili yo'q holatda neytral "YOU AND THIS FILM". Jumla uni
+  daraja — panelning sarlavhasi (kicker): "STRONG MATCH" qizil, qolgan hammasida va ta'm
+  profili yo'q holatda neytral "YOU AND THIS FILM" ("good" ko'rsatilmaydi, TZ 1.16). Jumla uni
   davom ettiradi. "Why you?" yorlig'i yo'q (2026-10-05, pastda).
 - Amallar: Baholash va Watchlist — neytral kontur pill; mobil'da pastda sticky.
 - Pastki taqqoslash ("Other traits" / "Its strongest traits") neytral: film — oq, siz — kulrang (hozir

@@ -32,7 +32,6 @@ export const ru: Record<MessageKey, Message> = {
   "common.save": "Сохранить",
   "common.minutes": "{n} мин",
   "band.strong": "Очень близко",
-  "band.good": "Близко",
   "common.poster": "Постер фильма «{title}»",
   "common.loading": "Загрузка",
 
@@ -113,7 +112,7 @@ export const ru: Record<MessageKey, Message> = {
   "feed.scrollNext": "Следующие фильмы",
   "hero.label": "Лучшее для вас",
   "hero.slide": "{n} из {total}",
-  "hero.why": "Почему мне подойдёт?",
+  "hero.why": "Почему подходит",
   "hero.prev": "Предыдущий фильм",
   "hero.next": "Следующий фильм",
   "hero.goTo": "Фильм {n} из {total}",

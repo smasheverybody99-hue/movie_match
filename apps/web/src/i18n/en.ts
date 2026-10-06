@@ -41,7 +41,6 @@ export const en = {
   "common.save": "Save",
   "common.minutes": "{n}m",
   "band.strong": "Strong match",
-  "band.good": "Good match",
   "common.poster": "Poster for {title}",
   "common.loading": "Loading",
 
@@ -116,7 +115,7 @@ export const en = {
   "feed.scrollNext": "Next films",
   "hero.label": "Top picks for you",
   "hero.slide": "{n} of {total}",
-  "hero.why": "Why it suits me?",
+  "hero.why": "See why",
   "hero.prev": "Previous film",
   "hero.next": "Next film",
   "hero.goTo": "Film {n} of {total}",

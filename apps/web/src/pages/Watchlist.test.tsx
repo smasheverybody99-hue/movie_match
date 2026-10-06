@@ -57,7 +57,8 @@ describe("Watchlist", () => {
     await screen.findByText("The Machinist");
     expect(rowTitles()).toEqual(["The Machinist", "Wind River", "The Guilty", "Enemy"]);
     expect(screen.getAllByText("Strong match")).toHaveLength(1);
-    expect(screen.getAllByText("Good match")).toHaveLength(2);
+    // "good" comes from the API but is not drawn (TZ 1.16)
+    expect(screen.queryByText("Good match")).not.toBeInTheDocument();
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Watch next" })).toHaveAttribute("aria-pressed", "true");
   });

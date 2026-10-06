@@ -66,7 +66,7 @@ describe("MoviePage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
     // the band is the panel's heading, red; no "Why you?" label, no number, no ring (FR-5, TZ 1.13)
     const why = screen.getByRole("region", { name: "Strong match" });
-    expect(within(why).getByRole("heading", { level: 2, name: "Strong match" })).toHaveClass("why-kicker-strong");
+    expect(within(why).getByRole("heading", { level: 2, name: "Strong match" })).toHaveClass("kicker-strong");
     expect(screen.queryByText("Why you?")).not.toBeInTheDocument();
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
     expect(await screen.findByText("Twisty and cerebral, like your favourites.")).toBeInTheDocument();
@@ -414,13 +414,12 @@ describe("match band as the Why you heading", () => {
     watchlist.mockResolvedValue([]);
   });
 
-  it("heads the panel with a good match, neutral, never red", async () => {
+  it("does not show a good match: the API's 'good' gets the neutral kicker (TZ 1.16)", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { band: "good" }));
     renderWithProviders(<MoviePage />, ROUTE);
-    const kicker = await screen.findByRole("heading", { level: 2, name: "Good match" });
-    expect(kicker).toHaveClass("why-kicker-good");
-    expect(kicker).not.toHaveClass("why-kicker-strong");
-    expect(screen.getByRole("region", { name: "Good match" })).toBeInTheDocument();
+    const kicker = await screen.findByRole("heading", { level: 2, name: "You and this film" });
+    expect(kicker).not.toHaveClass("kicker-strong");
+    expect(screen.queryByText("Good match")).not.toBeInTheDocument();
   });
 
   it("outside both bands: the neutral kicker heads the panel, and the sentence still explains", async () => {
@@ -428,9 +427,8 @@ describe("match band as the Why you heading", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText("Twisty.")).toBeInTheDocument();
     const kicker = screen.getByRole("heading", { level: 2, name: "You and this film" });
-    expect(kicker).toHaveClass("why-kicker");
-    expect(kicker).not.toHaveClass("why-kicker-strong");
-    expect(kicker).not.toHaveClass("why-kicker-good");
+    expect(kicker).toHaveClass("kicker");
+    expect(kicker).not.toHaveClass("kicker-strong");
     expect(screen.queryByText(/Strong match|Good match/)).not.toBeInTheDocument();
   });
 });

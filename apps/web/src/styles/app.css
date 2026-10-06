@@ -1,7 +1,8 @@
 /*
  * Component styles. Colours come only from tokens.css. Design brief v2 (docs/ui.md):
  * - Red means a strong match and nothing else: the "strong match" band (FR-5, TZ 1.13), on
- *   a poster or a page. It is kept rare (the user's few closest films). "Good match" is neutral.
+ *   a poster or a page. It is kept rare (the user's few closest films). "Good" is not shown
+ *   (TZ 1.16): every other film gets the neutral kicker.
  *   Buttons, navigation, chips, focus and progress are neutral (white and greys).
  * - One white-filled pill per screen for the main action; every other button is an
  *   outlined pill.
@@ -229,14 +230,13 @@ select.field { appearance: auto; }
   position: absolute; inset: 0; display: grid; place-items: center;
   font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--muted);
 }
-/* The match band (FR-5, TZ 1.13): a pill. "Strong" red with --bg text (4.8:1), the
-   product's one red; "good" neutral. On a poster (.badge) only "strong" appears, top-left. */
+/* The match band (FR-5, TZ 1.16): only "strong", a red pill with --bg text (4.8:1), the
+   product's one red. On a poster (.badge) top-left; on a watchlist row beside the title. */
 .match-band {
   display: inline-block; padding: 3px 10px; border-radius: 99px; white-space: nowrap;
   font-size: 12px; font-weight: 700; line-height: 1.5;
 }
 .match-band-strong { background: var(--red); color: var(--bg); }
-.match-band-good { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
 .badge { position: absolute; top: 6px; left: 6px; font-size: 11px; padding: 2px 8px; }
 
 .card-link { display: block; text-decoration: none; color: inherit; border-radius: var(--radius-sm); }
@@ -438,25 +438,25 @@ select.field { appearance: auto; }
 .foot-actions .btn:first-child { flex: 1; }
 
 /* ---------- home hero (docs/ui.md, 4a) ---------- */
-/* The top of "For you", one film at a time: its backdrop across .main's full width,
-   ~55vh on a phone, ~70vh wider (440-720px), under the search row. A fixed height, not a
-   minimum: a longer title or the opened sentence must not move the rows below at each
-   slide (layout shift); the text grows upwards inside it. The same gradients as
-   the film page: into --bg at the bottom and on the left, a scrim from the top. Slides
-   cross-fade (600 ms; none with reduced motion). The text sits at the bottom left. */
+/* The top of "For you", one film at a time: its backdrop across .main's full width, under
+   the search row; the same scrim and gradients as the film page. A fixed height, not a
+   minimum, so a slide never moves the rows below: phone max(280px, 48svh), >= 640
+   clamp(360px, 56vh, 520px), low enough that the first poster row shows on 1440 x 900.
+   To fit, the title and the sentence stop at two lines (the film page has the rest).
+   Slides cross-fade (600 ms; none with reduced motion). Text at the bottom left. */
 .home-hero {
   position: relative; overflow: hidden; background: var(--surface);
   width: 100cqw; margin-left: calc(50% - 50cqw);
   margin-top: calc(-1 * var(--space-3)); margin-bottom: var(--space-4);
-  height: max(440px, 55vh); height: max(440px, 55svh);
+  height: max(280px, 48vh); height: max(280px, 48svh);
   display: flex; align-items: flex-end;
 }
 .home-hero-media { position: absolute; inset: 0; }
 .home-hero-media::after {
   content: ""; position: absolute; inset: 0;
   background:
-    linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 35%, transparent 65%),
-    linear-gradient(to right, color-mix(in srgb, var(--bg) 85%, transparent) 0%, transparent 60%),
+    linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 30%, transparent 60%),
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 80%, transparent) 0%, transparent 50%),
     linear-gradient(to bottom, color-mix(in srgb, var(--bg) 45%, transparent) 0%, transparent 45%);
 }
 .home-hero-img {
@@ -465,21 +465,29 @@ select.field { appearance: auto; }
 }
 .home-hero-img.is-active { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .home-hero-img { transition: none; } }
+/* The body fills the hero and stacks its content at the bottom: its own box never moves
+   when a slide's text is shorter or longer (only the keyed slide inside changes). */
 .home-hero-body {
   position: relative; z-index: 1; width: 100%; max-width: 1200px; margin: 0 auto;
-  padding: 96px var(--space-3) var(--space-4);
+  align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 var(--space-3) var(--space-3);
 }
 .home-hero-slide { max-width: 36rem; }
-.home-hero-title { font-size: 32px; line-height: 1.1; overflow-wrap: break-word; }
+.home-hero .kicker { margin-bottom: var(--space-2); }
+.home-hero-title {
+  font-size: 26px; line-height: 1.1; overflow-wrap: break-word;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
 .home-hero-title a { color: inherit; text-decoration: none; }
 .home-hero-title a:hover { text-decoration: underline; text-underline-offset: 4px; }
-.home-hero-band { margin: 12px 0 0; }
+.home-hero .tags { margin-top: var(--space-2); }
 .home-hero-why {
-  margin: var(--space-3) 0 0; max-width: 32rem;
-  font-family: var(--font-head); font-weight: 700; font-size: 20px; line-height: 1.35;
+  margin: var(--space-2) 0 0; max-width: 32rem;
+  font-family: var(--font-head); font-weight: 700; font-size: 15px; line-height: 1.35;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
 }
-.home-hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
-.home-hero-controls { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); }
+.home-hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 12px; }
+.home-hero-controls { display: flex; align-items: center; gap: var(--space-2); margin-top: 12px; }
 .hero-ctl {
   display: grid; place-items: center; width: var(--touch); height: var(--touch); padding: 0;
   border-radius: 50%; border: 1px solid var(--muted); cursor: pointer;
@@ -497,15 +505,27 @@ select.field { appearance: auto; }
   transition: width var(--ease), background-color var(--ease);
 }
 .home-hero-dot[aria-current="true"]::before { width: 18px; background: var(--text); }
+/* Narrow phones: both buttons on one row in every language (ru "Почему подходит" +
+   "Сохранить" took two rows at 320 and pushed the title out of the fixed height): the
+   .btn-sm size, without the icons. */
+@media (max-width: 399px) {
+  .home-hero .btn { padding: 0 14px; font-size: 13px; }
+  .home-hero .btn .icon { display: none; }
+}
 @media (min-width: 640px) {
   .home-hero {
-    height: clamp(440px, 70vh, 720px);
+    height: clamp(360px, 56vh, 520px);
     margin-top: calc(-1 * (var(--space-4) + var(--page-top-h)));
   }
-  .home-hero-body { padding: 120px var(--space-4) var(--space-5); }
+  .home-hero-body { padding: 0 var(--space-4) var(--space-4); }
+  .home-hero-title { font-size: 36px; }
+  .home-hero-why { font-size: 18px; }
+  .home-hero .kicker { margin-bottom: 12px; }
+  .home-hero-actions, .home-hero-controls { margin-top: var(--space-3); }
 }
 @media (min-width: 900px) {
-  .home-hero-title { font-size: 56px; }
+  .home-hero-title { font-size: 44px; }
+  .home-hero-why { font-size: 20px; }
 }
 
 /* ---------- film page ---------- */
@@ -591,13 +611,12 @@ select.field { appearance: auto; }
    .why-solo (at most one reason): one column at every width; the one axis and its key sit
    under the sentence, so the panel is as tall as its content. */
 .why { margin-bottom: var(--space-4); padding: var(--space-4) 20px; }
-.why-kicker {
+.kicker {
   margin: 0 0 var(--space-3); font-family: var(--font-body); font-size: 19px; font-weight: 800;
   line-height: 24px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
-.why-kicker-strong { color: var(--red); }
-.why-kicker-good { color: var(--text); }
-.why-kicker-skel { height: 24px; width: 10em; }
+.kicker-strong { color: var(--red); }
+.kicker-skel { height: 24px; width: 10em; }
 /* The sentence: the page's main statement. Playfair, large, white. */
 .why-slot {
   font-family: var(--font-head); font-weight: 700; font-size: 22px; line-height: 1.3;

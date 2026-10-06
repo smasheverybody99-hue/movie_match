@@ -81,8 +81,8 @@ describe("Feed", () => {
     const row = screen.getByRole("region", { name: "For you" });
     expect(within(row).getAllByText("Strong match")).toHaveLength(1);
     expect(within(row).queryByText("Good match")).not.toBeInTheDocument();
-    // the hero shows the first pick's band, whichever it is
-    expect(within(screen.getByTestId("home-hero")).getByText("Strong match")).toHaveClass("match-band-strong");
+    // the hero's kicker for the first pick: the same red kicker as the film page
+    expect(within(screen.getByTestId("home-hero")).getByText("Strong match")).toHaveClass("kicker-strong");
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument();
   });
 

@@ -30,7 +30,6 @@ export const uz: Record<MessageKey, Message> = {
   "common.save": "Saqlash",
   "common.minutes": "{n} daq",
   "band.strong": "Kuchli moslik",
-  "band.good": "Yaxshi moslik",
   "common.poster": "{title} posteri",
   "common.loading": "Yuklanmoqda",
 
@@ -102,7 +101,7 @@ export const uz: Record<MessageKey, Message> = {
   "feed.scrollNext": "Keyingi filmlar",
   "hero.label": "Siz uchun eng yaxshilari",
   "hero.slide": "{n} / {total}",
-  "hero.why": "Nega menga mos?",
+  "hero.why": "Nega mos",
   "hero.prev": "Oldingi film",
   "hero.next": "Keyingi film",
   "hero.goTo": "{total} tadan {n}-film",

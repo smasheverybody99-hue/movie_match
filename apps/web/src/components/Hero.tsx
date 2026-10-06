@@ -1,13 +1,15 @@
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
-import { useEffect, useId, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { useT } from "../i18n";
 import { imageUrl, releaseYear } from "../lib/format";
 import { usePrefersReducedMotion } from "../lib/motion";
 import type { Movie, Recommendation } from "../lib/types";
+import { isTraitKey } from "../lib/traits";
 import { Icon } from "./Icon";
-import { MatchBand } from "./MatchBand";
+import { Kicker } from "./Kicker";
+import { traitLabelKey } from "./Traits";
 
 /** How long one film stays before the next (docs/ui.md, 4a). */
 export const HERO_INTERVAL_MS = 7000;
@@ -40,14 +42,14 @@ function HeroImage({ movie, active, first }: { movie: Movie; active: boolean; fi
 
 /**
  * Home's hero: the top of "For you", one film at a time, its backdrop across the full
- * width. Title, year and runtime, the match band, and two neutral buttons: "Why it suits
- * me?" (the cached sentence from the recommendations response, opened in place; without
- * one, a link to the film page) and Save. The hero never asks for an explanation: a
- * rotation must not spend money or the daily cap.
- * Rotation: every 7 s; it holds while the pointer or focus is inside, while the sentence
- * is open, and after Pause (WCAG 2.2.2). With reduced motion it never moves on its own
- * and there is no Pause. Prev / next buttons, dots (white for the current film, grey
- * otherwise), and the arrow keys.
+ * width. Read like the film page's "Why you": the kicker (STRONG MATCH or the neutral
+ * one), the title, year and runtime, then a short sentence: the cached explanation from
+ * the recommendations response, else the same free fallback as the film page. The hero
+ * never asks for an explanation: a rotation must not spend money or the daily cap.
+ * Two neutral buttons: "See why" (the film page) and Save.
+ * Rotation: every 7 s; it holds while the pointer or focus is inside and after Pause
+ * (WCAG 2.2.2). With reduced motion it never moves on its own and there is no Pause.
+ * Prev / next buttons, dots (white for the current film, grey otherwise), arrow keys.
  */
 export function Hero({
   items,
@@ -60,20 +62,17 @@ export function Hero({
 }) {
   const t = useT();
   const reduce = usePrefersReducedMotion();
-  const whyId = useId();
   const count = items.length;
   const [index, setIndex] = useState(0);
   const [reached, setReached] = useState(0); // the furthest slide shown, for image loading
   const [paused, setPaused] = useState(false);
   const [held, setHeld] = useState(false);
-  const [whyOpen, setWhyOpen] = useState(false);
-  const playing = !reduce && !paused && !held && !whyOpen && count > 1;
+  const playing = !reduce && !paused && !held && count > 1;
 
   const go = (next: number) => {
     const i = (next + count) % count;
     setIndex(i);
     setReached((r) => Math.max(r, i));
-    setWhyOpen(false);
   };
 
   useEffect(() => {
@@ -91,6 +90,12 @@ export function Hero({
   const movie = item.movie;
   const isSaved = saved.has(movie.id);
   const year = releaseYear(movie);
+  const reasons = item.reasons.filter(isTraitKey).slice(0, 3);
+  const sentence =
+    item.explanation ??
+    (reasons.length
+      ? t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") })
+      : t("movie.whyYouGeneral"));
   const tags = [...(year ? [year] : []), ...(movie.runtime_minutes ? [t("common.minutes", { n: movie.runtime_minutes })] : [])];
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -121,12 +126,15 @@ export function Hero({
       </div>
       {/* While it rotates the change is not announced; once it holds, it is. */}
       <div className="home-hero-body" aria-live={playing ? "off" : "polite"}>
+        {/* Keyed by film: each slide is new content, not the last one's text moving (CLS). */}
         <div
+          key={movie.id}
           className="home-hero-slide"
           role="group"
           aria-roledescription="slide"
           aria-label={t("hero.slide", { n: index + 1, total: count })}
         >
+          <Kicker band={item.band} as="p" />
           <h2 className="home-hero-title">
             <Link to={`/movie/${movie.id}`}>{movie.title}</Link>
           </h2>
@@ -137,32 +145,11 @@ export function Hero({
               ))}
             </ul>
           )}
-          {item.band && (
-            <p className="home-hero-band">
-              <MatchBand band={item.band} />
-            </p>
-          )}
-          {whyOpen && item.explanation && (
-            <p className="home-hero-why" id={whyId}>
-              {item.explanation}
-            </p>
-          )}
+          <p className="home-hero-why">{sentence}</p>
           <div className="home-hero-actions">
-            {item.explanation ? (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                aria-expanded={whyOpen}
-                aria-controls={whyOpen ? whyId : undefined}
-                onClick={() => setWhyOpen((open) => !open)}
-              >
-                <Icon as={Sparkles} /> {t("hero.why")}
-              </button>
-            ) : (
-              <Link className="btn btn-secondary" to={`/movie/${movie.id}`}>
-                <Icon as={Sparkles} /> {t("hero.why")}
-              </Link>
-            )}
+            <Link className="btn btn-secondary" to={`/movie/${movie.id}`}>
+              <Icon as={Sparkles} /> {t("hero.why")}
+            </Link>
             <button
               type="button"
               className="btn btn-secondary"
