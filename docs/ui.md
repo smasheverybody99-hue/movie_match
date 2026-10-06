@@ -274,9 +274,9 @@ keyingina keyingi qadam.
 | 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), skrinshot ko'rigini kutmoqda |
 | 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi va tasdiqlandi** (2026-10-04) |
 | 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
-| 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun |
+| 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun. **Bajarildi** (2026-10-06) |
 | 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun |
-| 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun |
+| 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun. **Bajarildi** (2026-10-06; Welcome ko'rib chiqilmadi — brifda yo'q edi) |
 
 Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinadigan
 o'zgarish (backdrop hozir eng katta isrof) — yangi qoidalarni bitta ekranda sinab
@@ -675,6 +675,24 @@ Aylanish brauzerda: 1.1 s Prestige → 8.1 s Memento → 14.8 Zodiac → 21.9 Pr
 Wind River (~7 s). Reduced motion'da 16 s da ham birinchi film, `aria-live="polite"`.
 Yuklanmagan rasmlar: boshida 2 ta `img` (joriy + keyingi). Testlar: 16 fayl, 205
 (Hero 10, Feed +2). Bundle: JS 628.33 kB (gzip 182.71), CSS 26.41 kB.
+
+### 5-bosqich: qolgan ekranlar (2026-10-06)
+
+Qoida: mavjud komponentlar, yangi narsa yo'q. To'rt ekran hozirgi qoidalar bilan
+solishtirildi (qizil faqat "Strong match", neytral tugma va chiplar, kicker faqat daraja
+bor joyda, oddiy yorliqlar — eyebrow / section-title):
+
+- **Qidiruv:** natijalar Home bilan bir xil kartalar — endi Home'dagi hover tez
+  tugmalari ham (Rate, Save). Mantiq umumiy hook'da: `components/QuickActions.tsx`
+  (`useQuickActions`), Feed ham shuni ishlatadi.
+- **Watchlist:** ro'yxat qoladi (foydalanuvchi qarori). Qatorda faqat "Strong match"
+  pill'i ("good" ko'rsatilmaydi, TZ 1.16), tugmalar neytral — o'zgarish kerak emas edi.
+- **Onboarding:** tanlash plitkalari (toggle, karta emas), oq belgi va progress, bitta
+  oq asosiy tugma — qoidalarga mos, o'zgarishsiz.
+- **Profil:** chiplar, neytral tugmalar, kichik sarlavhalar — mos, o'zgarishsiz.
+
+O'lchov (bir marta): CLS eng yomoni 0 (chegara 0.1); axe 0 (to'rt ekran, 1440 va 320 ru);
+320 da gorizontal scroll yo'q, rus tilidagi yozuvlar sig'adi (kesilgan element yo'q).
 
 ### 10. Mobil paritet
 

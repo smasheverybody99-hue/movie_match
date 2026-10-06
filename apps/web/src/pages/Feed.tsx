@@ -5,13 +5,12 @@ import { Navigate } from "react-router-dom";
 import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
-import { RateDialog } from "../components/RateDialog";
-import { showsLikedAspects } from "../components/RatingInput";
+import { useQuickActions } from "../components/QuickActions";
 import { CardRowSkeleton, EmptyState, QueryView, Skeleton } from "../components/States";
 import { useT } from "../i18n";
 import { usePrefersReducedMotion } from "../lib/motion";
-import { useRate, useRatings, useRecommendations, useWatchlist, useWatchlistChange } from "../lib/queries";
-import type { Movie, Section, SectionKey } from "../lib/types";
+import { useRecommendations } from "../lib/queries";
+import type { Section, SectionKey } from "../lib/types";
 
 /** A neutral icon before each row's title (docs/ui.md, 2). */
 const SECTION_ICONS: Record<SectionKey, LucideIcon> = {
@@ -93,17 +92,6 @@ function Row({ children }: { children: ReactNode }) {
   );
 }
 
-/** The rating dialog for a card's quick Rate; it asks for the current score only when open. */
-function QuickRate({ movie, onSave, onClose }: {
-  movie: Movie;
-  onSave: (value: number, liked: string[]) => void;
-  onClose: () => void;
-}) {
-  const ratings = useRatings();
-  const current = ratings.data?.find((r) => r.movie_id === movie.id)?.score ?? null;
-  return <RateDialog key={current ?? "none"} title={movie.title} current={current} onSave={onSave} onClose={onClose} />;
-}
-
 function FeedSkeleton() {
   return (
     <>
@@ -127,11 +115,7 @@ function FeedSkeleton() {
 export default function Feed() {
   const t = useT();
   const query = useRecommendations();
-  const watchlist = useWatchlist();
-  const change = useWatchlistChange();
-  const rate = useRate();
-  const [rating, setRating] = useState<Movie | null>(null);
-  const saved = new Set(watchlist.data?.map((item) => item.movie.id) ?? []);
+  const { saved, toggleSave, quickFor, overlay } = useQuickActions();
 
   return (
     <>
@@ -158,8 +142,6 @@ export default function Feed() {
             );
           }
           const forYou = sections.find((s) => s.key === "for_you");
-          const toggleSave = (movie: Movie, isSaved: boolean) =>
-            change.mutate(isSaved ? { kind: "remove", movieId: movie.id } : { kind: "add", movie });
           return (
             <>
               {forYou && <Hero items={forYou.items.slice(0, HERO_COUNT)} saved={saved} onToggleSave={toggleSave} />}
@@ -169,22 +151,11 @@ export default function Feed() {
                 <SectionTitle section={section} />
               </h2>
               <Row>
-                {section.items.map((item) => {
-                  const isSaved = saved.has(item.movie.id);
-                  return (
-                    <li key={item.movie.id}>
-                      <MovieCard
-                        movie={item.movie}
-                        band={item.band}
-                        quick={{
-                          saved: isSaved,
-                          onRate: () => setRating(item.movie),
-                          onToggleSave: () => toggleSave(item.movie, isSaved),
-                        }}
-                      />
-                    </li>
-                  );
-                })}
+                {section.items.map((item) => (
+                  <li key={item.movie.id}>
+                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} />
+                  </li>
+                ))}
               </Row>
             </section>
               ))}
@@ -192,21 +163,7 @@ export default function Feed() {
           );
         }}
       </QueryView>
-      {rating && (
-        <QuickRate
-          movie={rating}
-          onClose={() => setRating(null)}
-          onSave={(value, liked) => {
-            rate.mutate({ movie_id: rating.id, score: value, liked_aspects: showsLikedAspects(value) ? liked : [] });
-            setRating(null);
-          }}
-        />
-      )}
-      {(rate.isError || change.isError) && (
-        <p className="toast" role="alert">
-          {rate.isError ? t("movie.rateError") : t("movie.listError")}
-        </p>
-      )}
+      {overlay}
     </>
   );
 }

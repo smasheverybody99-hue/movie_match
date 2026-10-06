@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { MovieCard } from "../components/MovieCard";
+import { useQuickActions } from "../components/QuickActions";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { traitLabelKey } from "../components/Traits";
 import { useT } from "../i18n";
@@ -165,6 +166,8 @@ export default function Search() {
   const params = toParams(typed, filters);
   const query = useSearch(params);
   const idle = !params.q && !hasFilters(filters);
+  // The same cards as Home's rows, with the same quick Rate and Save.
+  const { quickFor, overlay } = useQuickActions();
 
   return (
     <>
@@ -208,7 +211,7 @@ export default function Search() {
                 <ul className="grid" style={{ listStyle: "none", margin: 0, padding: 0 }}>
                   {movies.map((movie) => (
                     <li key={movie.id}>
-                      <MovieCard movie={movie} />
+                      <MovieCard movie={movie} quick={quickFor(movie)} />
                     </li>
                   ))}
                 </ul>
@@ -217,6 +220,7 @@ export default function Search() {
           </QueryView>
         </section>
       </div>
+      {overlay}
     </>
   );
 }

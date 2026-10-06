@@ -1,8 +1,8 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MOVIES } from "../dev/fixtures";
+import { MOVIES, watchItem } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import { pending, renderWithProviders } from "../test/utils";
@@ -15,12 +15,31 @@ vi.mock("../lib/api", async () => {
 });
 
 const search = vi.mocked(api.searchMovies);
+const watchlist = vi.mocked(api.watchlist);
+const ratings = vi.mocked(api.ratings);
+const add = vi.mocked(api.addToWatchlist);
 const ROUTE = { route: "/search", path: "/search" };
 
 describe("Search", () => {
   beforeEach(() => {
-    search.mockReset();
+    for (const fn of [search, watchlist, ratings, add]) fn.mockReset();
     search.mockResolvedValue(MOVIES.slice(0, 6));
+    watchlist.mockResolvedValue([]);
+    ratings.mockResolvedValue([]);
+  });
+
+  it("uses Home's cards: quick Rate and Save beside each card's link", async () => {
+    watchlist.mockResolvedValue([watchItem(MOVIES[1]!)]);
+    add.mockImplementation(async (id) => watchItem(MOVIES.find((m) => m.id === id)!));
+    renderWithProviders(<Search />, ROUTE);
+    const save = await screen.findByRole("button", { name: "Save The Prestige" });
+    expect(save.closest("a")).toBeNull();
+    expect(screen.getByRole("button", { name: "Rate The Prestige" }).closest("a")).toBeNull();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save Memento" })).toHaveAttribute("aria-pressed", "true"));
+    await userEvent.click(save);
+    expect(add).toHaveBeenCalledWith(1000);
+    await userEvent.click(screen.getByRole("button", { name: "Rate The Prestige" }));
+    expect(within(await screen.findByRole("dialog", { name: "Rate The Prestige" })).getByRole("slider")).toBeInTheDocument();
   });
 
   it("renders its loading state", () => {
