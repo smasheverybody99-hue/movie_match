@@ -70,6 +70,23 @@ describe("Dna", () => {
     expect(within(stats).getByText("Drama")).toBeInTheDocument();
   });
 
+  it("shows the chart first, and the exact values behind Numbers, closed until opened", async () => {
+    renderWithProviders(<Dna />);
+    const chart = await screen.findByRole("img", {
+      name: "Movie DNA chart. Strongest: Plot twists 91, Psychological 88, Mystery 84.",
+    });
+    expect(chart).toHaveClass("dna-flower");
+    const numbers = screen.getByText("Numbers").closest("details")!;
+    expect(numbers).not.toHaveAttribute("open");
+    expect(numbers).toContainElement(screen.getByTestId("dna-bars"));
+    await userEvent.click(screen.getByText("Numbers"));
+    expect(numbers).toHaveAttribute("open");
+    // the chart comes before the stats and the numbers
+    const stats = screen.getByRole("region", { name: "Stats" });
+    expect(chart.compareDocumentPosition(stats) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(stats.compareDocumentPosition(numbers) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("shares a text summary by copying it where the share sheet is missing", async () => {
     const writeText = vi.fn(async () => {});
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });

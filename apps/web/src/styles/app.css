@@ -734,9 +734,62 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 }
 
 /* ---------- DNA ---------- */
-.dna-summary { font-family: var(--font-head); font-style: italic; font-weight: 700; font-size: 18px; line-height: 1.45; margin: 0; }
-.dna-layout { display: grid; gap: var(--space-3); }
-@media (min-width: 900px) { .dna-layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+/* Movie DNA (docs/ui.md 6). Below 1100: one centred column (sentence, chart at most
+   480px, stats in one row, Numbers). From 1100: two columns, the chart (560px) on the
+   left, centred vertically against the right column (sentence, stats as a list,
+   Numbers), which is itself centred. Monochrome: white rays, brightness by value, faint
+   rings at 50 and 100, a faint outline through the tips. */
+.dna-page { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
+.dna-page > * { width: 100%; max-width: 480px; }
+.dna-summary {
+  font-family: var(--font-head); font-style: italic; font-weight: 700; font-size: 18px; line-height: 1.45;
+  margin: 0; text-align: center; max-width: 32rem;
+}
+@media (min-width: 640px) { .dna-summary { font-size: 22px; } }
+.dna-flower { display: block; aspect-ratio: 4 / 3; height: auto; overflow: visible; }
+.dna-ring { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.dna-shape {
+  fill: var(--text); fill-opacity: .06;
+  stroke: color-mix(in srgb, var(--line) 60%, var(--muted)); stroke-width: 1.5; stroke-linejoin: round;
+  animation: dna-shape-in 400ms ease-out 560ms both;
+}
+@keyframes dna-shape-in { from { opacity: 0; } }
+.dna-ray {
+  stroke: var(--text); stroke-width: 10; stroke-linecap: round;
+  transform-box: view-box; transform-origin: 50% 50%;
+  animation: dna-grow 400ms ease-out both;
+}
+@keyframes dna-grow { from { transform: scale(0); } }
+.dna-label { fill: var(--muted); font-family: var(--font-body); font-size: 15px; }
+.dna-label.is-top { fill: var(--text); font-size: 20px; font-weight: 700; }
+/* Phones: only the three strongest are named (the fully white rays), larger; the rest
+   are in Numbers. The 600-unit chart is ~0.6 scale here, so 22 units ~ 13px (24 put
+   ru "Загадочность" past the chart's edge at 320-390). */
+@media (max-width: 639px) {
+  .dna-label:not(.is-top) { display: none; }
+  .dna-label.is-top { font-size: 22px; }
+}
+.dna-stats-skel { height: 72px; }
+.dna-numbers { text-align: center; }
+.dna-numbers > div { text-align: left; }
+.dna-numbers > summary { list-style: none; }
+.dna-numbers > summary::-webkit-details-marker { display: none; }
+.dna-numbers[open] > summary { margin-bottom: var(--space-3); }
+@media (min-width: 1100px) {
+  .dna-page {
+    display: grid; column-gap: var(--space-5); row-gap: var(--space-4); align-items: start;
+    grid-template-columns: 560px minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto auto 1fr;
+    grid-template-areas: "chart ." "chart summary" "chart stats" "chart numbers" "chart .";
+  }
+  .dna-page > * { max-width: none; }
+  .dna-flower { grid-area: chart; align-self: center; }
+  /* 24px at 1100 (a 244px column) up to 32px from ~1420. */
+  .dna-summary { grid-area: summary; text-align: left; font-size: clamp(24px, 2.25vw, 32px); line-height: 1.3; max-width: 18em; }
+  .dna-stats { grid-area: stats; max-width: 360px; }
+  .dna-stats .stats { grid-template-columns: minmax(0, 1fr); }
+  .dna-numbers { grid-area: numbers; text-align: left; max-width: 360px; }
+}
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; }
 .stats div { background: var(--surface-2); border-radius: 10px; padding: 12px; min-width: 0; }
 .stats dt { font-size: 12px; color: var(--muted); }

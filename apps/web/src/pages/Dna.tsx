@@ -1,6 +1,7 @@
 import { Share2 } from "lucide-react";
 import { useState } from "react";
 
+import { DnaFlower } from "../components/DnaFlower";
 import { Icon } from "../components/Icon";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { TraitBar, traitLabelKey } from "../components/Traits";
@@ -28,14 +29,14 @@ export function summarize(dna: MovieDna, t: Translate): string {
   return t("dna.summary", { a: a ?? "", b: b ?? "", c: c ?? "" });
 }
 
+/** The page's shape while it loads: the sentence, the chart's square, the stats row. */
 function DnaSkeleton() {
   return (
-    <>
-      <Skeleton style={{ height: 80, marginBottom: 16 }} />
-      {Array.from({ length: 8 }, (_, i) => (
-        <Skeleton key={i} className="skeleton-line" style={{ height: 18 }} />
-      ))}
-    </>
+    <div className="dna-page">
+      <Skeleton className="skeleton-line dna-summary" style={{ height: 22 }} />
+      <Skeleton className="dna-flower" style={{ borderRadius: "50%" }} />
+      <Skeleton className="dna-stats dna-stats-skel" />
+    </div>
   );
 }
 
@@ -115,19 +116,22 @@ export default function Dna() {
               <h1 className="screen-title">{t("dna.title")}</h1>
               <Share text={`${summary} ${shareText}`} />
             </div>
-            <div className="dna-layout">
-              <div>
-                <div className="panel panel-elev" style={{ marginBottom: 16 }}>
-                  <p className="dna-summary">“{summary}”</p>
-                </div>
-                <div data-testid="dna-bars">
-                  {traits.map(([key, value]) => (
-                    <TraitBar key={key} trait={key} value={value} />
-                  ))}
-                </div>
-              </div>
-              <section aria-labelledby="stats-title">
-                <h2 className="eyebrow" id="stats-title">
+            {/* Below 1100px one column: the sentence, the chart (at most 480px), the stats in
+                one row, Numbers. From 1100 two: the chart (~560px) on the left, centred
+                vertically; the sentence, the stats as a list and Numbers on the right. */}
+            <div className="dna-page">
+              <p className="dna-summary">“{summary}”</p>
+              <DnaFlower
+                scores={dna.scores}
+                label={t("dna.chartLabel", {
+                  traits: traits
+                    .slice(0, 3)
+                    .map(([key, value]) => `${t(traitLabelKey(key))} ${Math.round(value)}`)
+                    .join(", "),
+                })}
+              />
+              <section className="dna-stats" aria-labelledby="stats-title">
+                <h2 className="visually-hidden" id="stats-title">
                   {t("dna.stats")}
                 </h2>
                 <dl className="stats">
@@ -145,6 +149,15 @@ export default function Dna() {
                   </div>
                 </dl>
               </section>
+              {/* A plain disclosure, not a modal: the chart's text alternative too. */}
+              <details className="dna-numbers">
+                <summary className="btn btn-ghost">{t("dna.numbers")}</summary>
+                <div data-testid="dna-bars">
+                  {traits.map(([key, value]) => (
+                    <TraitBar key={key} trait={key} value={value} />
+                  ))}
+                </div>
+              </details>
             </div>
           </>
         );

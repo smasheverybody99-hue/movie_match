@@ -280,7 +280,7 @@ keyingina keyingi qadam.
 | 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi va tasdiqlandi** (2026-10-04) |
 | 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
 | 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun. **Bajarildi** (2026-10-06) |
-| 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun |
+| 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun. **Bajarildi** (2026-10-06) |
 | 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun. **Bajarildi** (2026-10-06; Welcome ko'rib chiqilmadi — brifda yo'q edi) |
 
 Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinadigan
@@ -680,6 +680,38 @@ Aylanish brauzerda: 1.1 s Prestige → 8.1 s Memento → 14.8 Zodiac → 21.9 Pr
 Wind River (~7 s). Reduced motion'da 16 s da ham birinchi film, `aria-live="polite"`.
 Yuklanmagan rasmlar: boshida 2 ta `img` (joriy + keyingi). Testlar: 16 fayl, 205
 (Hero 10, Feed +2). Bundle: JS 628.33 kB (gzip 182.71), CSS 26.41 kB.
+
+### 4-bosqich: Movie DNA — radial diagramma (2026-10-06)
+
+`components/DnaFlower.tsx` (qo'lda SVG), `pages/Dna.tsx`.
+
+- **Diagramma:** 14 nur, `traits.json` tartibida, soat 12 dan soat yo'nalishida;
+  uzunlik qiymatga chiziqli (ichki doira 40 → 100 aylanasi 170 birlik). Masshtab
+  hamma uchun bir xil: 100 aylanasi doim bir joyda, shakllar taqqoslanadi. 50 va 100 da
+  xira aylana. Eng kuchli 3 nur to'liq oq; qolganlari qiymatga qarab 0.4–0.85 (0.4 —
+  fonga nisbatan ~3.5:1, WCAG 1.4.11 grafika uchun 3:1). Qizil yo'q.
+- **Shakl (foydalanuvchi qarori, 2026-10-06):** nur uchlarini tutashtiruvchi xira yopiq
+  chiziq (`--line` va `--muted` aralashmasi), ichi oq 6%. Yuqoridagi jadvalda radar
+  "qo'shni o'qlarni bog'langandek ko'rsatadi, shakl tartibga bog'liq" deb rad etilgan
+  edi — bu e'tiroz o'z kuchida, lekin: nurlar o'z joyida qoladi (qiymat nur uzunligidan
+  o'qiladi), tartib hamma uchun bir xil, shakl esa aynan sahifaning maqsadi — ikki
+  odamni bir qarashda taqqoslash.
+- **Yorliqlar:** ≥ 640 — 14 tasi (uzunlari ikki qatorda); torroqda faqat eng kuchli 3
+  tasi (to'liq oq nurlar). Diagramma qutisi 4:3 (600 × 450 birlik) — kvadrat yuqori va
+  pastda bo'sh polosa qoldirardi.
+- **Joylashuv:** < 1100 — bitta ustun, markazda: xulosa, diagramma (≤ 480px),
+  statistika bir qatorda, "Numbers". ≥ 1100 — ikki ustun: chapda diagramma (560px,
+  vertikal markazda), o'ngda xulosa (Playfair, 24–32px, chapga), statistika ro'yxat
+  bo'lib, "Numbers". Avval sinalgan "markazda bitta tor ustun" 1440 da quruq chiqdi
+  (1232px enda 480px ustun).
+- **"Numbers":** oddiy `<details>` (modal emas) — 14 qiymatning matnli ro'yxati,
+  diagrammaning ekran o'quvchi uchun muqobili; diagramma `role="img"`, eng kuchli
+  uchtasi qiymati bilan `aria-label` da.
+- **Harakat:** nurlar markazdan ketma-ket o'sadi (har biri 400 ms, 40 ms oraliq), shakl
+  keyin paydo bo'ladi; reduced motion — animatsiya yo'q (o'lchangan: 0).
+
+O'lchov: CLS eng yomoni 0 (chegara 0.1); axe 0 (1440, 1100, 390, 320 ru); 320 da scroll
+yo'q, ruscha yorliqlar sig'adi (telefonda 22 birlik).
 
 ### 5-bosqich: qolgan ekranlar (2026-10-06)
 

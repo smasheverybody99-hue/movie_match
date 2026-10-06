@@ -187,6 +187,8 @@ export const en = {
     "No liked films yet: your DNA is built from films you rate above 5. Rate some films you enjoyed.",
   "dna.summary": "You prefer films strong in {a}, {b} and {c}.",
   "dna.stats": "Stats",
+  "dna.numbers": "Numbers",
+  "dna.chartLabel": "Movie DNA chart. Strongest: {traits}.",
   "dna.statFilms": "Films rated",
   "dna.statAverage": "Average rating",
   "dna.statGenre": "Top genre",

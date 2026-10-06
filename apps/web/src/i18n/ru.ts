@@ -186,6 +186,8 @@ export const ru: Record<MessageKey, Message> = {
     "Пока нет понравившихся фильмов: DNA строится из фильмов с оценкой выше 5. Оцените фильмы, которые вам понравились.",
   "dna.summary": "Вам ближе всего фильмы, где сильны: {a}, {b} и {c}.",
   "dna.stats": "Статистика",
+  "dna.numbers": "Цифры",
+  "dna.chartLabel": "Диаграмма Movie DNA. Сильнее всего: {traits}.",
   "dna.statFilms": "Оценено фильмов",
   "dna.statAverage": "Средняя оценка",
   "dna.statGenre": "Любимый жанр",

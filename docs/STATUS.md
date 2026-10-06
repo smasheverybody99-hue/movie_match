@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-06 (hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -21,6 +21,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 
 | | |
 |---|---|
+| CI (`main`, `38a3cb4`, hero tuzatishlari) | **Yashil**, 2026-10-06: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37414071966 |
 | CI (`main`, `5fd524e`, 5-bosqich) | **Yashil**, 2026-10-06: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37413183633 |
 | CI (`main`, `963404b`, Home hero) | **Yashil**, 2026-10-05: gate run 43 |
 | CI (`main`, `a4fb69a`, daraja — panel sarlavhasi, "yaxshi" 0.15) | **Yashil**, 2026-10-05: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37348808980 |
@@ -30,7 +31,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
-| Web testlari | Mahalliy, 2026-10-06 (hero tuzatishlari): 16 fayl, **210 test**, hammasi o'tgan; lint 0, build 0; CLS eng yomoni 0 (chegara 0.1). Avvalgi (5-bosqich): 16 fayl, 209 test, hammasi o'tgan; lint 0, build 0. CLS eng yomoni 0 (chegara 0.1), axe 0, 320 da scroll yo'q, rus tili sig'adi. Avvalgi (3-bosqich yakuni): 16 fayl, 207 test, hammasi o'tgan; lint 0, build 0. 3-bosqich o'lchovi: CLS eng yomoni 0.0001 (chegara 0.1; aylanishda 0), axe 0, 320 da gorizontal scroll yo'q, rus tilida hero 320 da sig'adi. Avvalgi (Home hero): 16 fayl, 205 test, hammasi o'tgan; lint 0, build 0. Avvalgi (daraja — panel sarlavhasi): 15 fayl, 192 test, hammasi o'tgan; lint 0, build 0. Avvalgi (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
+| Web testlari | Mahalliy, 2026-10-06 (4-bosqich, DNA): 17 fayl, **219 test**, hammasi o'tgan; lint 0, build 0; CLS eng yomoni 0, axe 0. Avvalgi (hero tuzatishlari): 16 fayl, 210 test, hammasi o'tgan; lint 0, build 0; CLS eng yomoni 0 (chegara 0.1). Avvalgi (5-bosqich): 16 fayl, 209 test, hammasi o'tgan; lint 0, build 0. CLS eng yomoni 0 (chegara 0.1), axe 0, 320 da scroll yo'q, rus tili sig'adi. Avvalgi (3-bosqich yakuni): 16 fayl, 207 test, hammasi o'tgan; lint 0, build 0. 3-bosqich o'lchovi: CLS eng yomoni 0.0001 (chegara 0.1; aylanishda 0), axe 0, 320 da gorizontal scroll yo'q, rus tilida hero 320 da sig'adi. Avvalgi (Home hero): 16 fayl, 205 test, hammasi o'tgan; lint 0, build 0. Avvalgi (daraja — panel sarlavhasi): 15 fayl, 192 test, hammasi o'tgan; lint 0, build 0. Avvalgi (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
 | `app/services/` coverage | CI (`9b046e1`): ≥ 85% (`--fail-under=85` qadami o'tgan; aniq raqam run log'ida). Mahalliy to'liq run, 2026-09-28: **98.9%** (535 statement, 6 miss) |
 | API testlari (Home hero, `backdrop_path`) | Mahalliy, 2026-10-05: o'zgarishga tegadigan fayllar — `test_recommendations` + unit: o'tgan (yangi backdrop testi bilan); `test_movies_api` + `test_watchlist_api`: 34 / 34 (birinchi run'da 5 tasi yiqildi — `MovieDetailOut` ga `backdrop_path` ikki marta berilgan edi, tuzatildi). To'liq run — CI'da |
@@ -81,8 +82,9 @@ secret yo'q (`.github/workflows/gate.yml`).
    balandlik pasaytirildi (`docs/ui.md` 4a). **"Good" interfeysda ko'rsatilmaydi** (TZ
    1.16): Home'dagi sahifalarning 68% ida chiqardi; API'da qoladi. **5-bosqich bajarildi**
    (2026-10-06): qidiruv kartalari Home'dagi tez tugmalar bilan; watchlist, onboarding,
-   profil qoidalarga mos edi. Keyingisi: **4-bosqich — faqat radial DNA diagrammasi**
-   (TZ 1.15), foydalanuvchi ko'rigidan keyin.
+   profil qoidalarga mos edi. **4-bosqich bajarildi** (2026-10-06): Movie DNA radial
+   diagramma, ≥ 1100 da ikki ustun, nur uchlari bo'ylab xira shakl (`docs/ui.md`).
+   Keyingisi: foydalanuvchi ko'rigi.
    Match foizi (FR-5) bo'yicha qaror hali ochiq. Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
    foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
    izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan

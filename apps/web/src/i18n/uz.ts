@@ -174,6 +174,8 @@ export const uz: Record<MessageKey, Message> = {
     "Hali yoqqan filmingiz yo'q: DNA 5 dan yuqori baholangan filmlardan quriladi. Yoqqan filmlaringizni baholang.",
   "dna.summary": "Siz {a}, {b} va {c} kuchli bo'lgan filmlarni afzal ko'rasiz.",
   "dna.stats": "Statistika",
+  "dna.numbers": "Raqamlar",
+  "dna.chartLabel": "Movie DNA diagrammasi. Eng kuchlilari: {traits}.",
   "dna.statFilms": "Baholangan filmlar",
   "dna.statAverage": "O'rtacha baho",
   "dna.statGenre": "Eng ko'p janr",
