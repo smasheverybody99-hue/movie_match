@@ -276,12 +276,15 @@ keyingina keyingi qadam.
 
 | # | Qadam | Ish |
 |---|---|---|
-| 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), skrinshot ko'rigini kutmoqda |
+| 0 | Poydevor: rang qoidasi, `lucide-react` (ruxsat bilan), emoji olib tashlash, qobiq (yon menyu ikonkalari, qidiruv maydoni), umumiy harakat hook'lari | 1.5–2 kun. **Bajarildi** (2026-10-02), tasdiqlandi |
 | 1 | Film sahifasi (backdrop hero) | 1 kun. **Bajarildi va tasdiqlandi** (2026-10-04) |
-| 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), skrinshot ko'rigini kutmoqda |
-| 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun. **Bajarildi** (2026-10-06) |
-| 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun. **Bajarildi** (2026-10-06) |
-| 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun. **Bajarildi** (2026-10-06; Welcome ko'rib chiqilmadi — brifda yo'q edi) |
+| 2 | Home: poster qatorlari va hover | 1 kun. **Bajarildi** (2026-10-04), tasdiqlandi |
+| 3 | Home: hero (`backdrop_path` API'ga) | 1.5–2 kun. **Bajarildi** (2026-10-06), tasdiqlandi |
+| 4 | Movie DNA: faqat radial gul (2026-10-06 dan; Wrapped tuzilmasi va ulashish rasmi — TZ backlog) | 1 kun. **Bajarildi** (2026-10-06), tasdiqlandi |
+| 5 | Qolgan ekranlar yangi qoidalarga: Search (poster to'ri), Watchlist, Onboarding, Profile, Welcome | 1 kun. **Bajarildi** (2026-10-06; Welcome ko'rib chiqilmadi — brifda yo'q edi), tasdiqlandi |
+
+**Dizayn v2 yopildi** (2026-10-06): olti bosqichning hammasi bajarildi va foydalanuvchi
+tomonidan tasdiqlandi.
 
 Jami taxminan **8–10 kun.** Film sahifasi birinchi: eng kichik va eng ko'rinadigan
 o'zgarish (backdrop hozir eng katta isrof) — yangi qoidalarni bitta ekranda sinab

@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -15,6 +15,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | F2 — Tavsiya dvigateli | **Tugagan** (2026-10-02). Qo'lda tekshiruv **o'tdi** (foydalanuvchi xulosasi): "For you" dagi 20 filmdan deyarli hammasini ko'rardi; qolgan bo'limlar "yomonmas". Qo'lda match hisobi va 5 izohni sabablar bilan solishtirish **bajarilmadi** — formula testda (`test_match_is_recomputable_from_stored_numbers`, har commit'da), izohning mazmuni test qilinmagan. Izoh narxi o'lchangan: $0.00013 bittasi. Tekshiruvda topilgan `POST /watchlist` 500 xatosi tuzatilgan (`01d08f7`); izohlar limiti interfeysda ko'rinmaydi (backlog, TZ 1.9); feed 45 bahoda ~15 s (F5 ishi) |
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding vaqti o'lchanmagan: Supabase kalitlari va trait'li filmlar kerak |
 | Tillar (TZ 1.8, 2026-10-02) | **Kod tayyor.** Ingliz — standart til va kalitlar manbasi (`apps/web/src/i18n/en.ts`); o'zbek — ikkilamchi; rus — qo'shimcha, **ko'rilmagan qoralama**. Menyu: English, O'zbek, Русский; tanlov `localStorage` da saqlanadi, brauzer tili aniqlanmaydi. API: `lang` = `en` \| `uz` \| `ru`, standart `en`; izohlar rus tilida ham (har til alohida kesh). Film ma'lumoti ingliz tilida qoladi (backlog) |
+| Dizayn v2 (`docs/ui.md`) | **Yopildi** (2026-10-06): 0–5 bosqich bajarildi va tasdiqlandi; oxirgi commit `e9a7f9f`, CI yashil |
 | F4 va keyingilari | Boshlanmagan |
 
 ## Oxirgi gate natijasi
@@ -31,6 +32,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | CI (`main`, `4ccd878`) | **Yashil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36609806293 (provayder interfeysi, katalog 500, costs.md, Alembic log tuzatishi) |
 | CI (`main`, `852c767`, provayder interfeysi) | **Qizil**, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36603649367 — `test_migrations` dan keyin `app.cost` logi o'chib qolgan; `4ccd878` da tuzatilgan |
 | CI (`main`, `66bc7a0`, F3 merge) | Yashil, 2026-09-30: https://github.com/smasheverybody99-hue/movie_match/actions/runs/36599220279 |
+| CI (`main`, `e9a7f9f`, DNA sahifasi yakuni — dizayn v2 ning oxirgi commit'i) | **Yashil**, 2026-10-06: gate run 47, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37419205987 |
 | CI (`main`, `f406b9b`, 4-bosqich) | **Yashil**, 2026-10-06: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37418075454 |
 | Web testlari | Mahalliy, 2026-10-06 (4-bosqich yakuni: blok markazda, ixcham statistika): 17 fayl, **219 test**, hammasi o'tgan. Avvalgi (4-bosqich, DNA): 17 fayl, 219 test, hammasi o'tgan; lint 0, build 0; CLS eng yomoni 0, axe 0. Avvalgi (hero tuzatishlari): 16 fayl, 210 test, hammasi o'tgan; lint 0, build 0; CLS eng yomoni 0 (chegara 0.1). Avvalgi (5-bosqich): 16 fayl, 209 test, hammasi o'tgan; lint 0, build 0. CLS eng yomoni 0 (chegara 0.1), axe 0, 320 da scroll yo'q, rus tili sig'adi. Avvalgi (3-bosqich yakuni): 16 fayl, 207 test, hammasi o'tgan; lint 0, build 0. 3-bosqich o'lchovi: CLS eng yomoni 0.0001 (chegara 0.1; aylanishda 0), axe 0, 320 da gorizontal scroll yo'q, rus tilida hero 320 da sig'adi. Avvalgi (Home hero): 16 fayl, 205 test, hammasi o'tgan; lint 0, build 0. Avvalgi (daraja — panel sarlavhasi): 15 fayl, 192 test, hammasi o'tgan; lint 0, build 0. Avvalgi (2-bosqich tuzatishlari): 15 fayl, 189 test, hammasi o'tgan; lint 0, build 0. Onboarding beqarorligining sababi topildi va tuzatildi (`docs/ui.md`, "2-bosqich, ko'rikdan keyingi tuzatishlar"): ko'p tapli testlar CPU'ga bog'liq, muddati o'tgan test keyingi testning DOM'ida ishlab qolardi, baholash qadamida effekt poygasi bor edi. Sun'iy CPU yuki ostida: Onboarding 8 / 8, to'liq to'plam 3 / 3 yashil |
 | API testlari (tillar) | Mahalliy, 2026-10-02: unit + contract 277 o'tgan; o'zgargan integratsiya fayllari (`test_explanations_cache`, `test_recommendations`) 24 / 24. To'liq mahalliy run Frankfurt bazasida 30 daqiqalik chegaraga yetib to'xtatildi (natijasiz) — to'liq run CI'da |
@@ -73,19 +75,19 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **FR-5: match darajasi joriy qilindi (TZ 1.13, 2026-10-05).** Interfeys foizni emas,
-   darajani ko'rsatadi: "kuchli" (eng yaqin 5 film, qizil), "yaxshi" (eng yaqin **15%**,
-   neytral; TZ 1.14 gacha 35%). Film sahifasida daraja — "Why you" panelining sarlavhasi,
-   darajasiz — neytral "You and this film" (`docs/ui.md`). Foiz API'da ichki qoladi; "60% dan past" o'rniga eng uzoq 25% tavsiya
-   qilinmaydi. Film sahifasida ring yo'q. Asos — pastdagi "FR-5 o'lchovi". Dizayn
-   2-bosqich tuzatishlari va **3-bosqich (Home hero, `backdrop_path` har filmda)**
-   bajarilgan (2026-10-05), 2026-10-06 da yakunlangan: hero'da kicker va jumla,
-   balandlik pasaytirildi (`docs/ui.md` 4a). **"Good" interfeysda ko'rsatilmaydi** (TZ
-   1.16): Home'dagi sahifalarning 68% ida chiqardi; API'da qoladi. **5-bosqich bajarildi**
-   (2026-10-06): qidiruv kartalari Home'dagi tez tugmalar bilan; watchlist, onboarding,
-   profil qoidalarga mos edi. **4-bosqich bajarildi** (2026-10-06): Movie DNA radial
-   diagramma, ≥ 1100 da ikki ustun, nur uchlari bo'ylab xira shakl (`docs/ui.md`).
-   Keyingisi: foydalanuvchi ko'rigi.
+1. **F3 qo'lda tekshiruvi** (`docs/prompts/phase-03-web.md`, "Manual checklist"; holati
+   `docs/phase-3-status.md`). Qolgani:
+   - yangi foydalanuvchi sifatida onboarding, vaqt bilan (maqsad < 3 daqiqa) — endi 500
+     traitli film bor; haqiqiy Supabase kirishi bilan (5-band "Chala" da);
+   - Lighthouse film sahifasida **production build va haqiqiy posterlar** bilan (LCP
+     < 2.5 s, INP < 200 ms; dev serverdagi 2.1 s / 80 ms hisobga olinmaydi);
+   - dizayn v2 ekranlarni o'zgartirgani uchun qayta: 320px, faqat klaviatura, axe, API
+     o'chiq holat — har ekranda.
+2. **Dizayn v2 yopildi** (2026-10-06, foydalanuvchi tasdiqladi): olti bosqichning
+   hammasi (0–5) bajarildi va tasdiqlandi; har bosqich natijasi `docs/ui.md` da.
+   FR-5: interfeysda daraja ikki holatda — "Strong match" (qizil, eng yaqin 5 film) yoki
+   neytral "You and this film"; "good" hisoblanadi, ko'rsatilmaydi (TZ 1.16). Asos —
+   pastdagi "FR-5 o'lchovi" va "35% → 15%".
    Match foizi (FR-5) bo'yicha qaror hali ochiq. Oldin bajarildi (2026-10-02): **sabablar katalogga nisbatan** (TZ 1.12, FR-5; match
    foizi o'zgarmagan) — "Why you" endi har filmda bir xil uchta trait emas. Eski 20 ta
    izoh (bitta foydalanuvchi) ruxsat bilan o'chirildi; yangilari yangi sabablar bilan
