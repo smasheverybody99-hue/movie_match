@@ -703,7 +703,9 @@ Yuklanmagan rasmlar: boshida 2 ta `img` (joriy + keyingi). Testlar: 16 fayl, 205
   statistika bir qatorda, "Numbers". ≥ 1100 — ikki ustun: chapda diagramma (560px,
   vertikal markazda), o'ngda xulosa (Playfair, 24–32px, chapga), statistika ro'yxat
   bo'lib, "Numbers". Avval sinalgan "markazda bitta tor ustun" 1440 da quruq chiqdi
-  (1232px enda 480px ustun).
+  (1232px enda 480px ustun). Ikki ustunli blok sarlavha qatori ostidagi balandlikda
+  vertikal markazda (`min-height: calc(100vh - 200px)`; 1440 × 900 scroll bermaydi).
+  Statistika plitkalari bir qatorli: yorliq chapda, qiymat o'ngda (40px, uchtasi 136px).
 - **"Numbers":** oddiy `<details>` (modal emas) — 14 qiymatning matnli ro'yxati,
   diagrammaning ekran o'quvchi uchun muqobili; diagramma `role="img"`, eng kuchli
   uchtasi qiymati bilan `aria-label` da.
