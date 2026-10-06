@@ -108,8 +108,8 @@ function FeedSkeleton() {
 }
 
 /**
- * / — the hero (the top of "For you"), then sections with reasons (design system, home
- * feed). A section without items is not rendered at all; the band on each card is the
+ * / — the hero (the top 5 of "For you"), then sections with reasons (design system, home
+ * feed); the For you row continues from the 6th film, so nothing shows twice. A section without items is not rendered at all; the band on each card is the
  * API's, never recomputed here.
  */
 export default function Feed() {
@@ -133,6 +133,12 @@ export default function Feed() {
             );
           }
           const sections = data.sections.filter((s) => s.items.length > 0);
+          const forYou = sections.find((s) => s.key === "for_you");
+          const heroItems = forYou ? forYou.items.slice(0, HERO_COUNT) : [];
+          // The hero's films are not repeated in the For you row: it starts at the 6th.
+          const rows = sections
+            .map((s) => (s.key === "for_you" ? { ...s, items: s.items.slice(HERO_COUNT) } : s))
+            .filter((s) => s.items.length > 0);
           if (sections.length === 0) {
             return (
               <EmptyState
@@ -141,11 +147,10 @@ export default function Feed() {
               />
             );
           }
-          const forYou = sections.find((s) => s.key === "for_you");
           return (
             <>
-              {forYou && <Hero items={forYou.items.slice(0, HERO_COUNT)} saved={saved} onToggleSave={toggleSave} />}
-              {sections.map((section) => (
+              {heroItems.length > 0 && <Hero items={heroItems} saved={saved} onToggleSave={toggleSave} />}
+              {rows.map((section) => (
             <section key={section.key} className="feed-section" aria-labelledby={`section-${section.key}`}>
               <h2 className="section-title" id={`section-${section.key}`}>
                 <SectionTitle section={section} />

@@ -35,7 +35,7 @@ describe("Feed", () => {
     expect(screen.getByTestId("loading")).toBeInTheDocument();
   });
 
-  it("renders sections, with the strong-match band on the cards the API marked strong", async () => {
+  it("renders sections; For you continues after the hero's five, so no film shows twice", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
     renderWithProviders(<Feed />);
 
@@ -43,11 +43,13 @@ describe("Feed", () => {
     expect(screen.getByRole("heading", { name: "Because you loved Shutter Island" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Under 90 minutes" })).toBeInTheDocument();
 
+    // the fixtures' For you has six: five in the hero, the sixth starts the row
+    expect(within(screen.getByTestId("home-hero")).getByRole("heading", { name: "The Prestige" })).toBeInTheDocument();
     const forYou = screen.getByRole("region", { name: "For you" });
     const first = within(forYou).getAllByRole("link")[0];
-    expect(first).toHaveAttribute("href", "/movie/1000");
-    expect(within(first as HTMLElement).getByText("Strong match")).toBeInTheDocument();
-    expect(within(first as HTMLElement).getByText("The Prestige")).toBeInTheDocument();
+    expect(first).toHaveAttribute("href", "/movie/1005");
+    expect(within(forYou).queryByText("The Prestige")).not.toBeInTheDocument();
+    expect(within(forYou).queryByText("Memento")).not.toBeInTheDocument();
     expect(recommendations).toHaveBeenCalledWith("en");
   });
 
@@ -70,7 +72,12 @@ describe("Feed", () => {
         {
           key: "for_you",
           seed: null,
-          items: [rec(movie(2), 91, "strong"), rec(movie(3), 88, "good"), rec(movie(4), 73, null)],
+          // five for the hero, then the row: strong, good, none
+          items: [0, 1, 2, 3, 4].map((i) => rec(movie(i), 95 - i, "strong")).concat([
+            rec(movie(5), 91, "strong"),
+            rec(movie(6), 88, "good"),
+            rec(movie(7), 73, null),
+          ]),
         },
       ],
     };
@@ -99,6 +106,17 @@ describe("Feed", () => {
     expect(within(hero).getByRole("heading", { level: 2, name: "The Prestige" })).toBeInTheDocument();
     expect(within(hero).getAllByRole("button", { name: /^Film \d of 5$/ })).toHaveLength(5);
     expect(vi.mocked(api.explanation)).not.toHaveBeenCalled();
+  });
+
+  it("with five or fewer in For you: all in the hero, and no For you row", async () => {
+    recommendations.mockResolvedValue({
+      ...RECOMMENDATIONS,
+      sections: RECOMMENDATIONS.sections.map((s) => (s.key === "for_you" ? { ...s, items: s.items.slice(0, 5) } : s)),
+    });
+    renderWithProviders(<Feed />);
+    expect(await screen.findByTestId("home-hero")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "For you" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Under 90 minutes" })).toBeInTheDocument();
   });
 
   it("has no hero when For you is empty", async () => {
@@ -168,52 +186,52 @@ describe("Feed", () => {
   it("gives each card quick Rate and Save buttons beside its link, not inside it", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
     renderWithProviders(<Feed />);
-    const rateButton = await screen.findByRole("button", { name: "Rate The Prestige" });
-    const saveButton = screen.getByRole("button", { name: "Save The Prestige" });
+    const rateButton = await screen.findByRole("button", { name: "Rate Enemy" });
+    const saveButton = screen.getByRole("button", { name: "Save Enemy" });
     expect(saveButton).toHaveAttribute("aria-pressed", "false");
     expect(rateButton.closest("a")).toBeNull();
     expect(saveButton.closest("a")).toBeNull();
     // the card's link still opens the film page
-    expect(screen.getAllByRole("link", { name: /The Prestige/ })[0]).toHaveAttribute("href", "/movie/1000");
+    expect(screen.getAllByRole("link", { name: /Enemy/ })[0]).toHaveAttribute("href", "/movie/1006");
   });
 
   it("rates from the card through the rating dialog, starting at the current score", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
-    ratings.mockResolvedValue([rating(1000, 6)]);
+    ratings.mockResolvedValue([rating(1006, 6)]);
     rate.mockImplementation(async (body) => rating(body.movie_id, body.score));
     renderWithProviders(<Feed />);
-    await userEvent.click(await screen.findByRole("button", { name: "Rate The Prestige" }));
-    const dialog = await screen.findByRole("dialog", { name: "Rate The Prestige" });
+    await userEvent.click(await screen.findByRole("button", { name: "Rate Enemy" }));
+    const dialog = await screen.findByRole("dialog", { name: "Rate Enemy" });
     await waitFor(() => expect(within(dialog).getByRole("slider")).toHaveValue("6"));
     fireEvent.change(within(dialog).getByRole("slider"), { target: { value: "8" } });
     await userEvent.click(within(dialog).getByRole("button", { name: "Save rating" }));
-    expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 8, liked_aspects: [] });
+    expect(rate).toHaveBeenCalledWith({ movie_id: 1006, score: 8, liked_aspects: [] });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("saves from the card at once, and takes it off for a film already on the list", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
-    watchlist.mockResolvedValue([watchItem(movie(1))]);
+    watchlist.mockResolvedValue([watchItem(movie(10))]);
     add.mockReturnValue(pending());
     remove.mockReturnValue(pending());
     renderWithProviders(<Feed />);
 
-    const prestige = await screen.findByRole("button", { name: "Save The Prestige" });
-    await userEvent.click(prestige);
-    expect(add).toHaveBeenCalledWith(1000);
-    expect(prestige).toHaveAttribute("aria-pressed", "true"); // before the server answers
+    const enemy = await screen.findByRole("button", { name: "Save Enemy" });
+    await userEvent.click(enemy);
+    expect(add).toHaveBeenCalledWith(1006);
+    expect(enemy).toHaveAttribute("aria-pressed", "true"); // before the server answers
 
-    const memento = screen.getByRole("button", { name: "Save Memento" });
-    await waitFor(() => expect(memento).toHaveAttribute("aria-pressed", "true"));
-    await userEvent.click(memento);
-    expect(remove).toHaveBeenCalledWith(1001);
+    const arrival = screen.getByRole("button", { name: "Save Arrival" });
+    await waitFor(() => expect(arrival).toHaveAttribute("aria-pressed", "true"));
+    await userEvent.click(arrival);
+    expect(remove).toHaveBeenCalledWith(1010);
   });
 
   it("says so when a quick save fails, and rolls the button back", async () => {
     recommendations.mockResolvedValue(RECOMMENDATIONS);
     add.mockRejectedValue(new ApiError(500, "no"));
     renderWithProviders(<Feed />);
-    const button = await screen.findByRole("button", { name: "Save The Prestige" });
+    const button = await screen.findByRole("button", { name: "Save Enemy" });
     await userEvent.click(button);
     expect(await screen.findByRole("alert")).toHaveTextContent("Your watchlist didn't change. Try again.");
     expect(button).toHaveAttribute("aria-pressed", "false");

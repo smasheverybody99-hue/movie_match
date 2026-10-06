@@ -115,7 +115,9 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
 
 **4a. Hero** (2026-10-06 holati; 3-bosqich, `components/Hero.tsx`)
 
-- **Nima:** "For you" ning birinchi 5 filmi, bittadan, karusel. Backdrop `.main` ning
+- **Nima:** "For you" ning birinchi 5 filmi, bittadan, karusel. **"For you" qatori
+  6-filmdan boshlanadi** — hero'dagi filmlar takrorlanmaydi (Netflix, IVI kabi); 5 tadan
+  kam bo'lsa qator ko'rsatilmaydi. 1440 birinchi ekranida qizil — 1 ta (hero kicker'i). Backdrop `.main` ning
   to'liq enida (w780 / w1280 `srcset`); backdrop yo'q — poster xira; ikkalasi ham yo'q —
   `--surface`. Scrim va gradientlar film sahifasidagi bilan bir xil.
 - **Balandlik — qat'iy, minimal emas:** desktop (≥ 640) `clamp(360px, 56vh, 520px)`,
@@ -135,7 +137,10 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   film sahifasida bor.
 - **Aylanish:** har 7 s; sichqoncha yoki fokus ichida bo'lsa va Pause bosilsa to'xtaydi
   (WCAG 2.2.2). `prefers-reduced-motion` — o'zi aylanmaydi, faqat nuqtalar, ← → tugmalari
-  va klaviatura; Pause tugmasi bu holatda yo'q. Nuqtalar: joriy — oq va kengroq, qolgani
+  va klaviatura; Pause tugmasi bu holatda yo'q. Boshqaruv hero ichida, pastki chap
+  burchakda. Mobil'da (< 640) rasm hero chetigacha boradi (pastki gradient chetda
+  `--bg` ning 85% i, to'liq emas) — boshqaruv rasm ustida turadi; doiralar 40px, bosish
+  nishoni 44px. Nuqtalar: joriy — oq va kengroq, qolgani
   kulrang, har biri 24px nishon. Aylanayotganda `aria-live="off"`, to'xtaganda `polite`.
 - **Unumdorlik:** birinchi backdrop `fetchpriority="high"` (LCP); qolganlari faqat
   navbati kelganda (ko'rsatilganlar va keyingisi).
