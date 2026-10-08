@@ -172,6 +172,49 @@ reason rule (~0.3 s). TZ asks < 500 ms: with this many sequential round trips th
 of reach while the API and the database are far apart — the number that matters is the
 round trip from wherever the API is deployed. Not fixed (measurement only).
 
+## Live measurements after deploy (2026-10-08) — measurement only, nothing fixed
+
+Web <https://movie-match.pages.dev> (Cloudflare Pages), API
+<https://movie-match-api-mgdn.onrender.com> (Render Free, next to the database).
+
+**What the user measured** (main account, Render warm):
+
+| | Time |
+|---|---|
+| Feed, after sign-in until fully shown | **10–13 s** (locally it was ~15 s) |
+| Film page | **4 s** |
+| "You and this film" sentence on the film page | **15 s** |
+
+The main account has **33** ratings in the database, not 45: there are two accounts,
+main (33) and `+onb1` (11).
+
+**What Claude measured** (read-only; no LLM; no token used against the live API):
+
+| Measurement | Result |
+|---|---|
+| Database execution of the 14 feed statements (`EXPLAIN ANALYZE`) | **68 ms in total** (largest: 16 ms, the pairwise similarity for MMR) |
+| Same request from this machine (round trip 185 ms): service time warm / cold | 6.2–6.6 s / 11.4 s; ~95% of it waiting for the database (network) |
+| CPU time of one feed request on this machine | ~0.3 s (0.22–0.48; per step: retrieve 0.09, embedding similarities 0.08, score + reasons 0.06, MMR 0.03, bands 0 — cached) |
+| Film detail endpoint from this machine | 1.1 s, 6 statements, CPU ~0.02 s |
+| Render, extra time for a database round trip (`/health/db` − `/health`) | ~0–40 ms |
+| Render, small endpoints (`/movies/675`, `/movies?limit=100`; ~13 ms CPU each here) | +10 ms and +25–40 ms over `/health` |
+| Render under load: 40 parallel `/movies?limit=100` | the last waits ~2.6 s ⇒ ~65 ms each, **~4–5× this machine's CPU** |
+| Explanations written today | **none** for either account; the main account has 4 cached (films 271110, 1423191, 138843, 969681) |
+
+**Estimate for the live feed request on the server**, from the numbers above: database
+~0.07 s + 14 round trips × ~8 ms ≈ 0.2 s; CPU 0.3 s × 4–5 ≈ 1.2–2.4 s; in total **~1.5–2.6 s**.
+The 10–13 s seen in the browser is **not explained by the server alone**: ~8–10 s are
+somewhere else. Not identified yet; the request timings from the browser are needed. The
+API log on Render has no request durations (uvicorn's access line), so it cannot answer
+this.
+
+**The 15 s sentence.** No explanation was written today, so the sentence did not come
+from a successful generation. Either the generation failed or timed out (the call is
+cut at 10 s, then the page shows the free fallback sentence), or the film was one of the
+four cached. Render's log would show either `explanation failed for movie N` or a
+`cost run=explanation` line. TZ FR-6 asks for one generation per (user, film), cached,
+with a skeleton while it is missing; it does not ask for explanations made in advance.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
