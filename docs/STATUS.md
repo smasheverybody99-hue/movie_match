@@ -185,3 +185,9 @@ o'zi (5 bo'lim, 50 karta).
   - O'chirilgandan keyin tekshirilgan (2026-09-29): `npm run dev` — sahifa HTTP 200
     bilan ochildi; `npm run build` — exit 0; `mypy app scripts` — exit 0 (39 fayl);
     `alembic.exe --version` va `python -m alembic --version` — ikkalasi ishladi.
+
+## Keyingi qadam (2026-10-08)
+
+Keyingi qadam — veb qismini Cloudflare Pages'ga deploy qilish, keyin CORS_ORIGINS va
+Supabase redirect URL'larini yangilash (`docs/deploy.md`, 6 va 7-bo'lim). API tayyor:
+https://movie-match-api-mgdn.onrender.com
