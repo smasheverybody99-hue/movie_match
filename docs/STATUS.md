@@ -82,9 +82,8 @@ secret yo'q (`.github/workflows/gate.yml`).
    keyin, isitilgan servisda: onboarding vaqti (FR-3 verdikti), har baho saqlanishi, feed
    tezligi, Lighthouse (mobil va desktop) — jonli URL'da. Uyg'onish muammosi (Free 15
    daqiqada to'xtaydi) bo'yicha qaror F4 dan oldin (`docs/deploy.md`, 5-bo'lim).
-   **F3 qo'lda tekshiruvi** (`docs/phase-3-status.md`): 2 va 4-band o'tdi; 1-band 3:10,
-   verdikt deploy'dan keyin; 3 (klaviatura) va 6 (API o'chiq) — foydalanuvchi qo'lda;
-   5 (Lighthouse) — deploy'dan keyin.
+   **F3 qo'lda tekshiruvi** (`docs/phase-3-status.md`): oltala band bajarildi (2026-10-08).
+   2, 3, 4, 6 o'tdi; 1-band 3:10, verdikt deploy'dan keyin; 5 (Lighthouse) — deploy'dan keyin.
 2. **Dizayn v2 yopildi** (2026-10-06, foydalanuvchi tasdiqladi): olti bosqichning
    hammasi (0–5) bajarildi va tasdiqlandi; har bosqich natijasi `docs/ui.md` da.
    FR-5: interfeysda daraja ikki holatda — "Strong match" (qizil, eng yaqin 5 film) yoki
