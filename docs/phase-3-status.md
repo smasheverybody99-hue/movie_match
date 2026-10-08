@@ -77,10 +77,14 @@ defect (a) below was fixed on 2026-10-08.
 |---|---|---|
 | 1. Onboarding as a brand-new user, timed (< 3 min, TZ FR-3) | user | **3 min 10 s — over the 3 min target.** New account `+onb1`, the user's own pace, timer from the first onboarding screen to "done". A lower bound: the user designed the app, a real new user is slower. Of that, **58 s** was waiting for the 10 ratings to save (3.5–8.5 s each, median 6.4 s; API log). Two defects seen: (a) "See my recommendations" returned to the pick screen; (b) 5–6 s after each "Next". Diagnosis and decisions below. **FR-3 verdict deferred** to a re-run after deploy |
 | 2. Every screen at 320px: nothing clipped, no horizontal scroll | Claude | **Pass.** 9 screens (Home, Search, Search "harry" — the longest real titles, e.g. "Harry Potter and the Deathly Hallows: Part 2" —, film page, Watchlist, DNA, Profile, About, 404) at 320 and 1440, English; 7 of them in Russian at 320 and 1440 (not the film page: its Russian explanation is not cached and would call the LLM). `scrollWidth` ≤ viewport everywhere, 0 overflowing elements, 0 clipped labels |
-| 3. Keyboard only | user (by hand) | _pending_ |
+| 3. Keyboard only | user (by hand), 2026-10-08 | **Pass.** Feed, film page, rating dialog, search, watchlist, DNA, profile, with Tab / Shift+Tab / Enter / Space / Escape only: focus visible everywhere, logical order, dialogs close on Escape and keep focus inside while open. No defects |
 | 4. axe 4.10.2, contrast and label violations zero | Claude | **Pass: 0 violations** on all of the above. One note: while Movie DNA loads (~3.5 s on this connection) its skeleton has no `h1` — axe `page-has-heading-one` (best practice) fires if run during loading; 0 once loaded |
 | 5. Lighthouse, film page, production build | — | **Moved to after deploy** (decision 3 below): measured on the live URL, not localhost |
-| 6. API off, every screen | user (by hand) | _pending_ |
+| 6. API off, every screen | user (by hand), 2026-10-08 | **Pass.** API stopped by Claude (port 8000 closed, no process left), production build still served. Feed, film page, search, watchlist, DNA, profile, each hard-reloaded (Ctrl+Shift+R): a plain message with "Try again" (e.g. "Couldn't load this film. Check your connection and try again."), no white screen, no raw error text, no endless spinner; the navigation keeps working. API restarted afterwards |
+
+**Summary (2026-10-08): all six items run.** Passed: 2, 3, 4, 6. Item 1 was run (3:10) and its
+defect (a) fixed; the FR-3 verdict waits for the re-timing after deploy. Item 5 (Lighthouse)
+is measured on the live URL after deploy. Both are in `docs/STATUS.md`, "Keyingi qadam" 1.
 
 How 2 and 4 were measured: in the user's Chrome (Claude in Chrome, main account, read
 only — nothing clicked), each screen loaded in a same-origin iframe of the given width,
