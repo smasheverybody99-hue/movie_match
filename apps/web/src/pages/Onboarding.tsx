@@ -17,7 +17,14 @@ import {
   saveProgress,
   type OnboardingProgress,
 } from "../lib/onboardingStore";
-import { ONBOARDING_PAGE, useOnboardingFilms, useRate, useRatings, useSearch } from "../lib/queries";
+import {
+  ONBOARDING_PAGE,
+  useForgetRecommendations,
+  useOnboardingFilms,
+  useRate,
+  useRatings,
+  useSearch,
+} from "../lib/queries";
 import type { TraitKey } from "../lib/traits";
 import type { Movie } from "../lib/types";
 
@@ -291,6 +298,7 @@ function Flow({ userId }: { userId: string }) {
   const t = useT();
   const navigate = useNavigate();
   const ratings = useRatings();
+  const forgetRecommendations = useForgetRecommendations();
   const ratedCount = ratings.data?.length ?? 0;
   const [progress, setProgress] = useState<OnboardingProgress>(() => loadProgress(userId));
 
@@ -307,6 +315,8 @@ function Flow({ userId }: { userId: string }) {
 
   function finish() {
     clearProgress(userId);
+    // The feed loads afresh: a cached one from before these ratings would send us back here.
+    forgetRecommendations();
     navigate("/", { replace: true });
   }
 

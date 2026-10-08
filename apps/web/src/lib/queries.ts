@@ -87,6 +87,16 @@ export function useOnboardingFilms(offset: number) {
   });
 }
 
+/**
+ * Drops every cached feed, in every language. Onboarding calls it before it goes to the
+ * feed: a feed cached before the ratings ("rate 10 more") would otherwise show while the
+ * new one loads and send the user straight back to onboarding (F3 item 1, 2026-10-08).
+ */
+export function useForgetRecommendations() {
+  const client = useQueryClient();
+  return () => client.removeQueries({ queryKey: ["recommendations"] });
+}
+
 /** Put back what `onMutate` replaced; with nothing cached before, drop the guess. */
 function rollback<T>(client: QueryClient, key: readonly unknown[], previous: T | undefined) {
   if (previous === undefined) void client.resetQueries({ queryKey: key, exact: true });

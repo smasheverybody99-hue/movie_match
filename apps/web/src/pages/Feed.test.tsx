@@ -6,7 +6,7 @@ import { RECOMMENDATIONS, movie, rating, rec, watchItem } from "../dev/fixtures"
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import type { Recommendations } from "../lib/types";
-import { navigatedTo, pending, renderWithProviders } from "../test/utils";
+import { createTestQueryClient, navigatedTo, pending, renderWithProviders } from "../test/utils";
 import Feed from "./Feed";
 
 vi.mock("../lib/api", async () => {
@@ -151,6 +151,26 @@ describe("Feed", () => {
     recommendations.mockResolvedValue({ status: "not_enough_data", ratings_needed: 10, sections: [] });
     renderWithProviders(<Feed />);
     expect(await navigatedTo()).toBe("/onboarding");
+  });
+
+  it("waits for the fresh feed instead of acting on a cached 'rate 10 more'", async () => {
+    // The F3 defect: cached before the ratings, shown while the new feed loads, it sent
+    // a user who had just finished onboarding straight back to it.
+    let resolve: (value: Recommendations) => void = () => {};
+    recommendations.mockReturnValue(new Promise<Recommendations>((r) => (resolve = r)));
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(["recommendations", "en"], {
+      status: "not_enough_data",
+      ratings_needed: 10,
+      sections: [],
+    } satisfies Recommendations);
+    renderWithProviders(<Feed />, { queryClient });
+
+    expect(screen.getByTestId("loading")).toBeInTheDocument();
+    expect(screen.queryByTestId("location")).not.toBeInTheDocument();
+    resolve(RECOMMENDATIONS);
+    expect(await screen.findByRole("heading", { name: "For you" })).toBeInTheDocument();
+    expect(screen.queryByTestId("location")).not.toBeInTheDocument();
   });
 
   it("renders its error state with a retry that refetches", async () => {

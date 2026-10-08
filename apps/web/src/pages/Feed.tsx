@@ -6,7 +6,7 @@ import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
 import { useQuickActions } from "../components/QuickActions";
-import { CardRowSkeleton, EmptyState, QueryView, Skeleton } from "../components/States";
+import { CardRowSkeleton, EmptyState, Loading, QueryView, Skeleton } from "../components/States";
 import { useT } from "../i18n";
 import { usePrefersReducedMotion } from "../lib/motion";
 import { useRecommendations } from "../lib/queries";
@@ -123,6 +123,9 @@ export default function Feed() {
       <QueryView query={query} skeleton={<FeedSkeleton />} error={t("feed.error")}>
         {(data) => {
           if (data.status === "not_enough_data") {
+            // A cached "rate N more" can be older than the latest ratings: while the feed is
+            // being fetched again, wait for it instead of acting on old numbers (F3 item 1).
+            if (query.isFetching) return <Loading><FeedSkeleton /></Loading>;
             // A user who has rated nothing yet belongs in onboarding, not on an empty feed.
             if (data.ratings_needed >= 10) return <Navigate to="/onboarding" replace />;
             return (

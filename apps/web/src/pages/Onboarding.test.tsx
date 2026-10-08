@@ -6,8 +6,8 @@ import { MOVIES, rating } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import { loadProgress, saveProgress } from "../lib/onboardingStore";
-import type { RatingIn } from "../lib/types";
-import { navigatedTo, pending, renderWithProviders, TEST_SESSION } from "../test/utils";
+import type { RatingIn, Recommendations } from "../lib/types";
+import { createTestQueryClient, navigatedTo, pending, renderWithProviders, TEST_SESSION } from "../test/utils";
 import Onboarding from "./Onboarding";
 
 vi.mock("../lib/api", async () => {
@@ -204,7 +204,12 @@ describe("Onboarding", () => {
   it("finishes after the tenth rating and goes to the feed", async () => {
     ratings.mockResolvedValue(MOVIES.slice(10, 19).map((m) => rating(m.id, 8)));
     saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 1), index: 0, offset: 0 });
-    renderWithProviders(<Onboarding />, ROUTE);
+    // A feed cached before the ratings ("rate 10 more", in both languages) must not survive.
+    const queryClient = createTestQueryClient();
+    const stale = { status: "not_enough_data", ratings_needed: 10, sections: [] } satisfies Recommendations;
+    queryClient.setQueryData(["recommendations", "en"], stale);
+    queryClient.setQueryData(["recommendations", "ru"], stale);
+    renderWithProviders(<Onboarding />, { ...ROUTE, queryClient });
     await screen.findByRole("heading", { name: "The Prestige" });
     await userEvent.click(screen.getByRole("button", { name: "Next" }));
 
@@ -212,5 +217,7 @@ describe("Onboarding", () => {
     await userEvent.click(screen.getByRole("button", { name: "See my recommendations" }));
     expect(await navigatedTo()).toBe("/");
     expect(loadProgress(TEST_SESSION.userId).step).toBe("pick");
+    expect(queryClient.getQueryData(["recommendations", "en"])).toBeUndefined();
+    expect(queryClient.getQueryData(["recommendations", "ru"])).toBeUndefined();
   });
 });
