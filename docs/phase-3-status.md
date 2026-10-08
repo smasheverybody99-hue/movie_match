@@ -215,6 +215,28 @@ four cached. Render's log would show either `explanation failed for movie N` or 
 `cost run=explanation` line. TZ FR-6 asks for one generation per (user, film), cached,
 with a skeleton while it is missing; it does not ask for explanations made in advance.
 
+### Browser timings (user, DevTools, 2026-10-08) — the cause found
+
+Home after sign-in, Network filtered by `onrender` (49 requests, 2.4 MB in total):
+
+| Request | Type | Size | Time |
+|---|---|---|---|
+| `recommendations?lang=en` | preflight (OPTIONS) | 0.0 kB | **34.06 s** |
+| `watchlist` | preflight (OPTIONS) | 0.0 kB | **33.82 s** |
+| `watchlist` | fetch | 0.6 kB | 1.98 s |
+| `recommendations?lang=en` | fetch | 12.1 kB | **3.10 s** |
+
+Images: 33, 1.57 MB, 328–457 ms each, in parallel — not the problem. The film page's
+sentence was a real Gemini sentence, not the fallback.
+
+**Cause:** the Free instance was asleep. The first requests to reach it (here the CORS
+preflights) waited ~34 s for it to wake. Awake, the feed request takes 3.1 s in the
+browser, against the server estimate of ~1.5–2.6 s above; the rest is the network
+between the browser and Render. The preflights are not slow in themselves: the API already
+sends `Access-Control-Max-Age: 600` (Starlette's default, checked on the live API), so a
+browser repeats a preflight for the same URL only after 10 minutes. Without them, the
+first GET would have waited for the wake-up instead.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
