@@ -7,9 +7,9 @@ testerlar) F5 da qoladi.
 
 | Qism | Qayerda | Holat |
 |---|---|---|
-| API | Render Free, **Singapur** (`render.yaml`) | Tayyorgarlik shu hujjatda |
+| API | Render Free, **Singapur** (`render.yaml`) | **Ishlayapti** (2026-10-08): <https://movie-match-api-mgdn.onrender.com>, natijalar 1a-bo'limda |
 | Baza | Supabase, asosiy loyiha, `ap-southeast-1` (Singapur) | O'zgarmaydi |
-| Web | Cloudflare Pages Free (`docs/costs.md`) | Keyingi qadam, API dan keyin |
+| Web | Cloudflare Pages Free (`docs/costs.md`) | Tayyorgarlik: 6-bo'lim |
 
 Faktlar 2026-10-08 da rasmiy sahifalardan tekshirildi (manbalar pastda).
 
@@ -46,6 +46,27 @@ checksPass`) va faqat `services/api/`, `packages/shared/` yoki `render.yaml` o'z
 Migratsiyalar Render'da ishga tushmaydi. Asosiy baza hozir eng oxirgi migratsiyada. Yangi
 migratsiya bo'lsa, `alembic upgrade head` avvalgidek mahalliy mashinadan ishga
 tushiriladi.
+
+## 1a. Natija (2026-10-08)
+
+API Blueprint orqali yaratildi: <https://movie-match-api-mgdn.onrender.com>.
+
+| Tekshiruv | Natija |
+|---|---|
+| `/health` | 200, `"status":"ok"` |
+| `/health/db` | 200, `"status":"ok"`, `"database":"reachable"` |
+| Server vaqti, bitta ulanishda 10 juftlik (Claude) | `/health` 290–430 ms, `/health/db` 325–710 ms (ko'pi 330–420); farq ~40 ms |
+| Foydalanuvchi o'lchovi | `/health` 0.22–0.26 s, `/health/db` 0.22–0.30 s; farq ~0 |
+
+**Mintaqa tekshiruvi.** DNS nomi `gcp-us-west1-1.origin.onrender.com` (Oregon nomi) avval
+servis Oregon'da degan xavotir berdi. O'lchov buni rad etdi:
+- lokal API'da `/health/db` bazaga ~5 marta boradi: ~1.4 s, bir borib-kelish ~270 ms;
+- Render'da ortiqcha vaqt ~40 ms, ya'ni bir borib-kelish ≤ ~8 ms (eng yomoni ≤ 40 ms).
+  Oregon→Singapur ~5 × 160 ms ≈ 800 ms qo'shardi.
+
+Demak, API bazaning (`aws-0-ap-southeast-1`) yonida. DNS nomi servis mintaqasini
+ko'rsatmaydi: u Render'ning kirish nuqtasi nomi. Panelda "Settings → Region" alohida
+ko'rilmadi, foydalanuvchi qarori bilan: o'lchov yetarli dalil.
 
 ## 2. O'zgaruvchilar (qiymatlarini faqat Render panelida kiritasiz)
 
@@ -114,6 +135,63 @@ Hozir hech biri qilinmaydi.
 
 Tavsiya: alfa uchun **A** — eng kam ish. Lekin bu karta talab qiladi, qaror sizda.
 
+## 6. Web: Cloudflare Pages
+
+Build `apps/web` dan tashqariga chiqmaydi (traitlar ro'yxati ichida, `src/lib/traits.ts`).
+Shuning uchun root directory `apps/web`. Yo'llar (`/movie/123` va boshqalar): `404.html`
+yo'q bo'lsa, Pages ilovani SPA deb hisoblaydi va har yo'lni ilovaga beradi. Qo'shimcha
+fayl kerak emas.
+
+Pages har `main` push'ida build qiladi: CI'ni kutmaydi, Render'dan farqli. `npm run
+build` ichida `tsc` bor, shuning uchun tip xatosi bo'lsa build yiqiladi.
+
+Bosiladigan tugmalar:
+
+1. dash.cloudflare.com → **Sign up** (email). Karta so'ralsa — to'xtang.
+2. **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**.
+3. **GitHub** → ruxsat: **Only select repositories** → `movie_match`.
+4. `movie_match` → **Begin setup**.
+5. Formada:
+   - Project name: `movie-match`. URL `https://movie-match.pages.dev` bo'ladi; nom band
+     bo'lsa boshqasi, URL shunga qarab o'zgaradi.
+   - Production branch: `main`.
+   - Framework preset: **Vite** (yoki None).
+   - Build command: `npm run build`.
+   - Build output directory: `dist`.
+   - Root directory (advanced): `apps/web`.
+   - Environment variables (qiymatsiz ro'yxat):
+     - `NODE_VERSION` = `24` (`.nvmrc` bilan bir xil);
+     - `VITE_API_URL` = `https://movie-match-api-mgdn.onrender.com`;
+     - `VITE_SUPABASE_URL` — `apps/web/.env` dagi bilan bir xil;
+     - `VITE_SUPABASE_ANON_KEY` — `apps/web/.env` dagi bilan bir xil.
+       Brauzerga ochiq kalit, lekin baribir faqat panelga kiritiladi.
+     - `VITE_MOCK_API` kiritilmaydi.
+6. **Save and Deploy**. Tayyor bo'lgach, sayt URL'ini menga yuboring.
+
+`VITE_*` qiymatlar build paytida kodga yoziladi. Ularni o'zgartirsangiz, **qayta deploy
+qilish shart** (Deployments → oxirgi deploy → **Retry deployment**).
+
+## 7. Web manzili ma'lum bo'lgach
+
+`<WEB>` = Pages URL, masalan `https://movie-match.pages.dev` (oxirida `/` siz).
+
+**Render (CORS):**
+1. Servis `movie-match-api` → **Environment**.
+2. `CORS_ORIGINS` → **Edit** → `<WEB>,http://localhost:5173`.
+3. **Save and deploy** (build qayta kerak emas).
+
+**Supabase (kirish qaytadigan manzil):**
+1. Asosiy loyiha → **Authentication** → **URL Configuration**.
+2. **Site URL** → `<WEB>` → **Save**.
+3. **Redirect URLs** → **Add URL** → `<WEB>/` → **Save**.
+   `http://localhost:5173/**` ro'yxatda qoladi (lokal ish uchun).
+
+Google kirishi uchun Google Cloud sozlamasi o'zgarmaydi: u Supabase'ning callback
+manziliga qaytadi, u esa o'zgarmagan.
+
+**Tekshiruv:** `<WEB>` → Google bilan kirish → Home'ning yuklanishi. Brauzer konsolida CORS
+xatosi bo'lmasligi kerak.
+
 ## Manbalar
 
 - Render Free: <https://render.com/docs/free> (15 daqiqa, ~1 daqiqa, 750 soat)
@@ -124,5 +202,10 @@ Tavsiya: alfa uchun **A** — eng kam ish. Lekin bu karta talab qiladi, qaror si
 - Python versiyasi: <https://render.com/docs/python-version>
 - Trafik: <https://render.com/docs/outbound-bandwidth> (Hobby 5 GB)
 - Supabase pauzasi: <https://supabase.com/docs/guides/platform/free-project-pausing>
+- Cloudflare Pages, Git: <https://developers.cloudflare.com/pages/get-started/git-integration/>
+- Pages build image (Node versiyasi): <https://developers.cloudflare.com/pages/configuration/build-image/>
+- Pages SPA yo'llari: <https://developers.cloudflare.com/pages/configuration/serving-pages/>
+- Render o'zgaruvchilarini tahrirlash: <https://render.com/docs/configure-environment-variables>
+- Supabase redirect URL'lari: <https://supabase.com/docs/guides/auth/redirect-urls>
 - Fly.io narxlari: <https://docs.fly.io/about/pricing>
 - Render Starter $7/oy: <https://render.com/pricing> (sahifa to'liq o'qilmadi; narx ikkinchi manbadan va 2026-08-01 dagi o'zgarish sharhidan)
