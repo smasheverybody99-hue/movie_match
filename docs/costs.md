@@ -146,11 +146,14 @@ loyiha limitining hammasi.
 | Nima | Variant | Narx | Cheklov | Manba |
 |---|---|---|---|---|
 | Web (statik Vite build) | Cloudflare Pages Free | $0 | Oyiga 500 build, bir vaqtda 1 build, sayt boshiga 20 000 fayl, fayl ≤ 25 MiB | [developers.cloudflare.com/pages/platform/limits](https://developers.cloudflare.com/pages/platform/limits/) |
-| API (FastAPI) | Render Free web service | $0 | Oyiga 750 soat; 15 daqiqa trafik bo'lmasa to'xtaydi, qayta turishi ~1 daqiqa | [render.com/docs/free](https://render.com/docs/free) |
+| API (FastAPI) | Render Free web service, **Singapur** (`render.yaml`, `docs/deploy.md`) | $0 | 0.1 CPU, 512 MB; oyiga 750 soat; 15 daqiqa trafik bo'lmasa to'xtaydi, qayta turishi ~1 daqiqa; workspace trafigi oyiga 5 GB (Hobby, 2026-08-01 dan), karta bo'lmasa oshganda servislar oy oxirigacha to'xtaydi | [render.com/docs/free](https://render.com/docs/free), [blueprint-spec](https://render.com/docs/blueprint-spec), [outbound-bandwidth](https://render.com/docs/outbound-bandwidth) |
+| API, to'xtamaydigan (ko'rib chiqilmoqda, F4 dan oldin qaror) | Render Starter | $7/oy | 0.5 CPU, 512 MB; karta kerak | [render.com/pricing](https://render.com/pricing) (sahifa to'liq o'qilmadi; narx ikkinchi manbadan) |
+| API, to'xtamaydigan (ko'rib chiqilmoqda) | Fly.io, Singapur, shared-cpu-1x 512 MB | ~$4.7/oy (taxmin: $3.69 AQSh narxi + Singapur ustamasi) | Bepul tarif yo'q; sinov muddatidan keyin karta kerak | [docs.fly.io/about/pricing](https://docs.fly.io/about/pricing) |
 
 Render Free'ning ~1 daqiqalik sovuq starti TZ'dagi "tavsiya < 500 ms" talabiga zid —
-alfa testerlar uchun chidab bo'ladi, ochiq launch uchun emas. Pullik Render tarifi narxi
-bu yerda keltirilmagan: sahifadan olinmadi ([render.com/pricing](https://render.com/pricing)).
+alfa testerlar uchun chidab bo'ladi, ochiq launch uchun emas. Variantlar va tavsiya:
+`docs/deploy.md`, 5-bo'lim. Render ro'yxatdan o'tishda firibgarlikka qarshi tekshiruv
+uchun karta so'rashi mumkin (forum xabarlari; rasmiy sahifada aytilmagan).
 Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz.
 
 ## 3. TMDB tijorat litsenziyasi
@@ -183,3 +186,4 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-01 | Trait tokenlari o'lchov bilan almashtirildi: 50 film, 380/195 film boshiga; haqiqiy run $0.0301 standart tarifda, bepul tarifda $0. Gemini 500/5 000 film qayta hisoblandi |
 | 2026-10-02 | Izoh tokenlari o'lchov bilan almashtirildi: 187 / 30 (19 ta run, F2 qo'lda tekshiruvi); Gemini standart tarifda $0.00013 bitta izoh, oyiga ≤ $0.08. Boshqa provayderlar qatori shu tokenlar bilan qayta hisoblandi |
 | 2026-10-01 | 2-bosqich: davomi 260 so'rov, 94 800 / 47 199 token, $0.1464 standart tarifda (o'lchangan); birinchi urinish ≈ $0.12 (taxmin); jami ≈ $0.27, bepul tarifda $0 |
+| 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |

@@ -1,0 +1,46 @@
+# Render Blueprint for the API (docs/deploy.md). New > Blueprint in the Render dashboard
+# reads this file. No secrets here: every `sync: false` variable is typed into the
+# dashboard once, when the Blueprint is created.
+services:
+  - type: web
+    name: movie-match-api
+    runtime: python
+    # Next to the database (Supabase, ap-southeast-1). Render cannot change a service's
+    # region after creation; without this line it would be oregon.
+    region: singapore
+    plan: free
+    # No rootDir: files outside a service's root directory do not exist on Render, and the
+    # API reads packages/shared/traits.json. The commands step into services/api instead.
+    buildCommand: cd services/api && pip install .
+    # One worker: each is a full copy of the app (~100 MB measured) on a 512 MB instance.
+    startCommand: cd services/api && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Liveness only: /health/db would restart the service on a database blip.
+    healthCheckPath: /health
+    # Deploy only commits that passed the GitHub gate.
+    autoDeployTrigger: checksPass
+    # A web-only or docs-only commit does not redeploy the API.
+    buildFilter:
+      paths:
+        - services/api/**
+        - packages/shared/**
+        - render.yaml
+    envVars:
+      # Fully qualified, as Render requires; the minor version follows pyproject.toml.
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      # Turns off SQL echo (app/db.py).
+      - key: ENV
+        value: production
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: EMBEDDING_DIM
+        value: "1536"
+      # Typed into the dashboard at creation (docs/deploy.md, "O'zgaruvchilar").
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_PROJECT_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

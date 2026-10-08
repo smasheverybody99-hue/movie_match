@@ -1,0 +1,128 @@
+# Deploy — API Render'da (Singapur)
+
+F4 dan oldin alohida qadam, foydalanuvchi qarori bilan (2026-10-08). Maqsad — F3 ning
+ochiq o'lchovlarini (onboarding vaqti FR-3, feed tezligi, Lighthouse) jonli URL'da olish:
+API bazaning yonida turadi. F5 ning qolgani (telemetriya, metrikalar, "wrong" tugmasi,
+testerlar) F5 da qoladi.
+
+| Qism | Qayerda | Holat |
+|---|---|---|
+| API | Render Free, **Singapur** (`render.yaml`) | Tayyorgarlik shu hujjatda |
+| Baza | Supabase, asosiy loyiha, `ap-southeast-1` (Singapur) | O'zgarmaydi |
+| Web | Cloudflare Pages Free (`docs/costs.md`) | Keyingi qadam, API dan keyin |
+
+Faktlar 2026-10-08 da rasmiy sahifalardan tekshirildi (manbalar pastda).
+
+## 1. Render: yaratish tartibi
+
+Mintaqa servis yaratilgandan keyin **o'zgarmaydi** (Render: "You can't modify this value
+after creation"). Shuning uchun u qo'lda tanlanmaydi: `render.yaml` da
+`region: singapore` yozilgan, Render uni fayldan oladi. Qo'lda forma ("New > Web
+Service") **ishlatilmaydi**: u yerda mintaqa ro'yxatdan tanlanadi va standart qiymat
+Oregon.
+
+1. render.com → **Sign up** → **GitHub** bilan kirish.
+   **Karta so'ralsa — to'xtang**, hech narsa kiritmang, menga yozing. (Render
+   forumlarida "firibgarlikka qarshi tekshiruv uchun karta so'raladi" degan xabarlar bor:
+   hammadan emas, lekin bo'lishi mumkin.)
+2. GitHub ruxsati: faqat `movie_match` repozitoriysiga ("Only select repositories").
+3. Dashboard → **New** → **Blueprint**.
+4. Repo ro'yxatidan `movie_match` → **Connect**.
+5. Formada: **Blueprint Name** — `movie-match`; **Branch** — `main`; **Blueprint Path** —
+   bo'sh qoldiring (standart `render.yaml`).
+6. **O'zgarishlar ro'yxati** (Render nima yaratishini ko'rsatadi). Bu yerda tekshiring:
+   - bitta servis: `movie-match-api`, web service, plan **Free**;
+   - mintaqa — **Singapore**. Boshqa mintaqa ko'rinsa, **Deploy bosmang**, menga yozing.
+7. Shu sahifada `sync: false` o'zgaruvchilar uchun maydonlar chiqadi — 2-bo'limdagi
+   to'rttasini kiriting.
+8. **Deploy Blueprint**. Birinchi build bir necha daqiqa oladi.
+9. Servis sahifasida URL ko'rinadi (`https://movie-match-api-XXXX.onrender.com`).
+   Brauzerda `<URL>/health`, keyin `<URL>/health/db` ni oching — ikkalasi
+   `"status":"ok"` bo'lishi kerak. Natijani menga yuboring (URL'da kalit yo'q).
+
+Avtomatik deploy: faqat GitHub gate (CI) o'tgan commit'lar (`autoDeployTrigger:
+checksPass`) va faqat `services/api/`, `packages/shared/` yoki `render.yaml` o'zgarganda.
+
+Migratsiyalar Render'da ishga tushmaydi. Asosiy baza hozir eng oxirgi migratsiyada. Yangi
+migratsiya bo'lsa, `alembic upgrade head` avvalgidek mahalliy mashinadan ishga
+tushiriladi.
+
+## 2. O'zgaruvchilar (qiymatlarini faqat Render panelida kiritasiz)
+
+Repoda qiymat yo'q. `render.yaml` da faqat sir bo'lmaganlari bor: `PYTHON_VERSION`
+(3.12.10), `ENV=production` (SQL logini o'chiradi), `LLM_PROVIDER=gemini`,
+`EMBEDDING_DIM=1536`.
+
+| O'zgaruvchi | Nima | Qayerdan |
+|---|---|---|
+| `DATABASE_URL` | Asosiy baza, session pooler, `postgresql+asyncpg://...` | `services/api/.env` dagi bilan bir xil |
+| `SUPABASE_PROJECT_URL` | `https://<ref>.supabase.co` | `.env` dagi bilan bir xil |
+| `GEMINI_API_KEY` | Keshda yo'q izohlar uchun ("Why you'll like this") | `.env` dagi bilan bir xil |
+| `CORS_ORIGINS` | Web manzili. Hozircha `http://localhost:5173`; web deploy bo'lgach, Pages URL'i qo'shiladi (vergul bilan) | — |
+
+Kerak **emas**, kiritilmaydi: `TEST_DATABASE_URL` (testlar uchun), `TMDB_API_KEY`
+(ingestion — fon ishi, serverda emas), `ANTHROPIC_API_KEY` (F4), `SUPABASE_JWT_SECRET`
+(bo'sh qolishi shart, ADR 0007), `REDIS_URL` (ishlatilmaydi).
+
+## 3. O'lchovdan oldin isitish
+
+Render Free 15 daqiqa so'rovsiz qolsa to'xtaydi, qayta turishi ~1 daqiqa. Aks holda
+birinchi so'rov uyg'onish vaqtini o'lchaydi.
+
+1. `<URL>/health` ni oching. Javob kelguncha kuting (1 daqiqagacha) — bu uyg'onish.
+2. `<URL>/health/db` — bazaga birinchi ulanish (pool shu yerda ochiladi).
+3. Ilovada Home'ni bir marta oching — katalog keshlari yuklanadi (daraja chegaralari,
+   sabablar qoidasi; ~10 daqiqaga saqlanadi).
+4. Shundan keyin o'lchang. O'lchovlar orasida 15 daqiqadan ko'p tanaffus bo'lsa —
+   1-qadamdan qayta.
+
+Raqamlarni yozganda "isitilgan" deb belgilaymiz. Sovuq start alohida bir marta o'lchanadi.
+
+## 4. Cheklovlar va taxminlar
+
+**Xotira (Free: 512 MB, 0.1 CPU).** Mahalliy o'lchov (Windows, 2026-10-08): butun API
+import qilinganda ~91 MB, Gemini SDK bilan ~93 MB; haqiqiy so'rovlarga xizmat qilgan
+server cho'qqisi **102 MB**. Linux'da shu tartibda, ehtiyot bilan **120–180 MB** — limitning
+~25–35%. Chegaraga yaqin emas. Xavf faqat ikki holatda: worker sonini oshirish (har biri
+to'liq nusxa) yoki katalog embedding'larini Python'ga yuklash (500 × 1 536 son ≈ 30–40 MB).
+
+**CPU 0.1.** Mahalliy hisob ~0.03 s, 0.1 CPU da ~0.3 s bo'lishi mumkin; JSON va token
+tekshiruvi ham sekinlashadi. Deploy'dan keyingi o'lchov buni ko'rsatadi.
+
+**Trafik: oyiga 5 GB** (Hobby workspace, 2026-08-01 dan). Karta bo'lmasa, oshib ketganda
+Render servislarni **oy oxirigacha to'xtatadi**. Taxmin: `/recommendations` javobi
+~40–60 KB (50 film, tavsifi bilan; API javoblarni siqmaydi). 50 tester × kuniga 10 marta ≈
+0.75 GB/oy, boshqa so'rovlar bilan ~1–2 GB. Posterlar TMDB'dan, web Cloudflare'dan keladi —
+ular hisobga kirmaydi. Alfa uchun yetadi. Zaxira: API javoblarini gzip bilan siqish
+(bir qatorlik o'zgarish, hozir qilinmaydi).
+
+**Supabase Free pauzasi.** Loyiha **bir hafta** davomida bazaga yetarli so'rov
+kelmasa to'xtatiladi; pauzadan taxminan bir hafta oldin ogohlantirish xati keladi.
+Dashboard → loyiha → **Resume project** bilan qaytariladi (ma'lumot saqlanadi, 1 yil
+ichida). Alfa davomida testerlar kunda so'rov yuboradi — xavf faqat tanaffuslarda. Test
+loyihasi (Frankfurt) har push'da CI tomonidan ishlatiladi. Pauzasiz: Supabase Pro, $25/oy.
+
+## 5. Haqiqiy foydalanuvchi uchun uyg'onish muammosi (F4 dan oldin hal qilinadi)
+
+Hozir hech biri qilinmaydi.
+
+| Variant | Narx | Afzalligi | Kamchiligi |
+|---|---|---|---|
+| A. Render Starter | $7/oy | Hech qachon to'xtamaydi; CPU 0.5 (Free'dan 5×); faqat tarif almashadi | Karta kerak |
+| B. Free + tashqi "ping" har ≤ 14 daqiqada (masalan bepul uptime monitor) | $0 | Kod va hisob o'zgarmaydi | Oyiga ~744 soat — 750 soatlik bepul limitning deyarli hammasi, ya'ni faqat bitta bepul servis; CPU 0.1 qoladi; Render shartlari bunga qanday qarashini tekshirmadim |
+| C. Fly.io, Singapur, shared-cpu-1x 512 MB | ~$4.7/oy (taxmin: AQSh narxi $3.69 + Singapur ustamasi) | To'xtamaydi | Karta kerak; yangi platforma, `render.yaml` o'rniga boshqa sozlama; bepul tarif yo'q |
+
+Tavsiya: alfa uchun **A** — eng kam ish. Lekin bu karta talab qiladi, qaror sizda.
+
+## Manbalar
+
+- Render Free: <https://render.com/docs/free> (15 daqiqa, ~1 daqiqa, 750 soat)
+- Render mintaqalari: <https://render.com/docs/regions> (Singapur bor, o'zgarmaydi)
+- Blueprint: <https://render.com/docs/blueprint-spec> (`region` standarti oregon, `plan: free` = 0.1 CPU / 512 MB, `autoDeployTrigger`, `sync: false`)
+- Blueprint yaratish: <https://render.com/docs/infrastructure-as-code>
+- Monorepo, root directory: <https://render.com/docs/monorepo-support>
+- Python versiyasi: <https://render.com/docs/python-version>
+- Trafik: <https://render.com/docs/outbound-bandwidth> (Hobby 5 GB)
+- Supabase pauzasi: <https://supabase.com/docs/guides/platform/free-project-pausing>
+- Fly.io narxlari: <https://docs.fly.io/about/pricing>
+- Render Starter $7/oy: <https://render.com/pricing> (sahifa to'liq o'qilmadi; narx ikkinchi manbadan va 2026-08-01 dagi o'zgarish sharhidan)
