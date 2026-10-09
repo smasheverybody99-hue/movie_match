@@ -32,6 +32,7 @@ export const uz: Record<MessageKey, Message> = {
   "band.strong": "Kuchli moslik",
   "common.poster": "{title} posteri",
   "common.loading": "Yuklanmoqda",
+  "common.saving": "Saqlanmoqda…",
 
   // Welcome / auth
   "welcome.tagline":
@@ -95,6 +96,9 @@ export const uz: Record<MessageKey, Message> = {
   "feed.notEnoughCta": "Baholashni davom ettirish",
   "feed.empty": "Hozircha sizga tavsiya yo'q. Yana bir nechta film baholang.",
   "feed.emptyCta": "Film qidirish",
+  "feed.loading.picking": "Filmlaringiz tanlanmoqda…",
+  "feed.loading.still": "Hali ham qidiryapmiz…",
+  "feed.loading.waking": "Server uyg'onmoqda, biroz kuting…",
   "feed.error": "Tavsiyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urining.",
   "feed.quickSave": "{title} filmini saqlash",
   "feed.scrollPrev": "Oldingi filmlar",
@@ -112,6 +116,7 @@ export const uz: Record<MessageKey, Message> = {
   "movie.whyKicker": "Siz va bu film",
   "movie.whyYouFallback": "Siz bilan umumiy jihatlari: {traits}.",
   "movie.whyYouGeneral": "Ta'mingizga umuman mos — bitta yaqqol jihati bilan emas.",
+  "movie.explaining": "Izoh tayyorlanmoqda…",
   "movie.noMatch": "Mosligini hisoblash uchun avval 10 ta film baholang.",
   "movie.compareOther": "Boshqa jihatlari",
   "movie.compareTop": "Eng kuchli jihatlari",

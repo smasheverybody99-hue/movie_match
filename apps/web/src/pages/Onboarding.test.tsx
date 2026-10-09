@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -188,6 +188,20 @@ describe("Onboarding", () => {
       "true",
     );
     expect(loadProgress(TEST_SESSION.userId).picks.map((m) => m.id)).toEqual([1000, 1001, 1002]);
+  });
+
+  it("while a rating saves, Next says so inside, stays enabled and a second press sends nothing", async () => {
+    rate.mockReturnValue(pending());
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    const next = await screen.findByRole("button", { name: "Next" });
+    await userEvent.click(next);
+
+    expect(next).not.toBeDisabled();
+    expect(next).toHaveAttribute("aria-disabled", "true");
+    expect(within(next).getByTestId("saving")).toHaveTextContent("Saving…");
+    await userEvent.click(next);
+    expect(rate).toHaveBeenCalledTimes(1);
   });
 
   it("restores the rating position after a remount", async () => {

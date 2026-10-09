@@ -6,7 +6,7 @@ import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
-import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
+import { EmptyState, ErrorState, Loading, SavingLabel, Skeleton } from "../components/States";
 import { OfflineBanner } from "../components/Layout";
 import { useT } from "../i18n";
 import { useAuth } from "../lib/auth";
@@ -231,7 +231,7 @@ function RateStep({
   }
 
   async function next() {
-    if (!movie) return;
+    if (!movie || rate.isPending) return; // a second press while it saves does nothing
     try {
       await rate.mutateAsync({
         movie_id: movie.id,
@@ -277,8 +277,13 @@ function RateStep({
           <button type="button" className="btn btn-ghost" onClick={notSeen} disabled={rate.isPending}>
             {t("onboarding.rate.notSeen")}
           </button>
-          <button type="button" className="btn btn-primary" onClick={() => void next()} disabled={rate.isPending}>
-            {t("onboarding.rate.next")}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => void next()}
+            aria-disabled={rate.isPending || undefined}
+          >
+            <SavingLabel saving={rate.isPending}>{t("onboarding.rate.next")}</SavingLabel>
           </button>
         </div>
       </div>

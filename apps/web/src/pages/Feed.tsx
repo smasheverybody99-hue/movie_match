@@ -6,10 +6,11 @@ import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
 import { useQuickActions } from "../components/QuickActions";
-import { CardRowSkeleton, EmptyState, Loading, QueryView, Skeleton } from "../components/States";
+import { EmptyState, LoadingMark, QueryView } from "../components/States";
 import { useT } from "../i18n";
 import { usePrefersReducedMotion } from "../lib/motion";
 import { useRecommendations } from "../lib/queries";
+import { useElapsedStage } from "../lib/useElapsedStage";
 import type { Section, SectionKey } from "../lib/types";
 
 /** A neutral icon before each row's title (docs/ui.md, 2). */
@@ -92,19 +93,20 @@ function Row({ children }: { children: ReactNode }) {
   );
 }
 
-function FeedSkeleton() {
-  return (
-    <>
-      {/* The hero's box, so the rows do not jump when it arrives. */}
-      <div className="home-hero" />
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="feed-section">
-          <Skeleton className="section-title skeleton-title" />
-          <CardRowSkeleton />
-        </div>
-      ))}
-    </>
-  );
+/** When the first-load words change (ms): picking → still looking → the server is waking. */
+export const FEED_LOADING_STEPS = [5000, 15000] as const;
+
+/**
+ * The feed's first load: the spinning mark in the middle, with words that change at 5 s
+ * and 15 s. The last says the server is waking: Render Free sleeps after 15 minutes
+ * without traffic and takes ~35 s to wake (docs/deploy.md), and without a word the app
+ * looks broken.
+ */
+function FeedLoading() {
+  const t = useT();
+  const stage = useElapsedStage(FEED_LOADING_STEPS);
+  const text = [t("feed.loading.picking"), t("feed.loading.still"), t("feed.loading.waking")][stage]!;
+  return <LoadingMark size={72} motion="spin" text={text} className="feed-loading" />;
 }
 
 /**
@@ -120,12 +122,12 @@ export default function Feed() {
   return (
     <>
       <h1 className="visually-hidden">{t("nav.home")}</h1>
-      <QueryView query={query} skeleton={<FeedSkeleton />} error={t("feed.error")}>
+      <QueryView query={query} loading={<FeedLoading />} error={t("feed.error")}>
         {(data) => {
           if (data.status === "not_enough_data") {
             // A cached "rate N more" can be older than the latest ratings: while the feed is
             // being fetched again, wait for it instead of acting on old numbers (F3 item 1).
-            if (query.isFetching) return <Loading><FeedSkeleton /></Loading>;
+            if (query.isFetching) return <FeedLoading />;
             // A user who has rated nothing yet belongs in onboarding, not on an empty feed.
             if (data.ratings_needed >= 10) return <Navigate to="/onboarding" replace />;
             return (

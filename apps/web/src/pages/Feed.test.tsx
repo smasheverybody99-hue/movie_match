@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -33,6 +33,69 @@ describe("Feed", () => {
     recommendations.mockReturnValue(pending());
     renderWithProviders(<Feed />);
     expect(screen.getByTestId("loading")).toBeInTheDocument();
+  });
+
+  describe("first load", () => {
+    function motion(reduce: boolean) {
+      vi.stubGlobal(
+        "matchMedia",
+        vi.fn(() => ({ matches: reduce, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+      );
+    }
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it("spins the mark and changes its words at 5 s and 15 s, the last about the server waking", async () => {
+      vi.useFakeTimers();
+      motion(false);
+      recommendations.mockReturnValue(pending());
+      renderWithProviders(<Feed />);
+      await act(async () => {}); // the session settles
+
+      const loading = screen.getByTestId("loading");
+      expect(loading).toHaveAttribute("role", "status");
+      expect(loading).toHaveAttribute("aria-live", "polite");
+      const mark = within(loading).getByRole("img", { name: "Loading" });
+      expect(mark).toHaveAttribute("data-variant", "full");
+      expect(mark).toHaveAttribute("width", "72");
+      expect(mark).toHaveClass("logo-spin");
+      expect(loading).toHaveTextContent("Picking your films…");
+
+      act(() => vi.advanceTimersByTime(4999));
+      expect(loading).toHaveTextContent("Picking your films…");
+      act(() => vi.advanceTimersByTime(1));
+      expect(loading).toHaveTextContent("Still looking…");
+      act(() => vi.advanceTimersByTime(9999));
+      expect(loading).toHaveTextContent("Still looking…");
+      act(() => vi.advanceTimersByTime(1));
+      expect(loading).toHaveTextContent("The server is waking up, just a moment…");
+    });
+
+    it("with reduced motion the mark stands still and only the words remain", async () => {
+      vi.useFakeTimers();
+      motion(true);
+      recommendations.mockReturnValue(pending());
+      renderWithProviders(<Feed />);
+      await act(async () => {});
+      const loading = screen.getByTestId("loading");
+      expect(within(loading).getByRole("img", { name: "Loading" })).not.toHaveClass("logo-spin");
+      expect(loading).toHaveTextContent("Picking your films…");
+      act(() => vi.advanceTimersByTime(15000));
+      expect(loading).toHaveTextContent("The server is waking up, just a moment…");
+    });
+
+    it("speaks Uzbek and Russian too", async () => {
+      recommendations.mockReturnValue(pending());
+      const uz = renderWithProviders(<Feed />, { lang: "uz" });
+      await act(async () => {});
+      expect(screen.getByTestId("loading")).toHaveTextContent("Filmlaringiz tanlanmoqda…");
+      uz.unmount();
+      renderWithProviders(<Feed />, { lang: "ru" });
+      await act(async () => {});
+      expect(screen.getByTestId("loading")).toHaveTextContent("Подбираем ваши фильмы…");
+    });
   });
 
   it("renders sections; For you continues after the hero's five, so no film shows twice", async () => {

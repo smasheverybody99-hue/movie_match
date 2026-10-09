@@ -10,6 +10,8 @@
  *   localStorage["mm.mock.down"] = "1"                     (every request fails)
  *   localStorage["mm.mock.signedOut"] = "1"                (start at /welcome)
  *   localStorage["mm.mock.explain"] = "none" | "long"      (no AI text / a 2-sentence one)
+ *   localStorage["mm.mock.delay"] = "20000"                (every answer that much later, ms:
+ *                                                          to see the loading states)
  * Posters and backdrops are real TMDB paths (images.ts). Reasons vary by film id: three,
  * one, or none (id % 4 == 3, the "suits you overall" case).
  */
@@ -174,7 +176,7 @@ export function install(): AuthClient {
   window.fetch = async (input, init) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
     if (!url.href.startsWith(BASE_URL)) return realFetch(input, init);
-    await wait(250);
+    await wait(250 + (Number(flag("mm.mock.delay")) || 0));
     if (flag("mm.mock.down") === "1") throw new TypeError("Failed to fetch");
     const body: unknown = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
     return route(init?.method ?? "GET", url, body);

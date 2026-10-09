@@ -34,6 +34,7 @@ export const ru: Record<MessageKey, Message> = {
   "band.strong": "Очень близко",
   "common.poster": "Постер фильма «{title}»",
   "common.loading": "Загрузка",
+  "common.saving": "Сохраняем…",
 
   "welcome.tagline":
     "Находите фильмы по тому, что любите именно вы, а не по тому, что смотрели все.",
@@ -106,6 +107,9 @@ export const ru: Record<MessageKey, Message> = {
   "feed.notEnoughCta": "Продолжить оценивать",
   "feed.empty": "Пока нет рекомендаций для вас. Оцените ещё несколько фильмов.",
   "feed.emptyCta": "Поиск фильмов",
+  "feed.loading.picking": "Подбираем ваши фильмы…",
+  "feed.loading.still": "Всё ещё ищем…",
+  "feed.loading.waking": "Сервер просыпается, подождите немного…",
   "feed.error": "Не удалось загрузить рекомендации. Проверьте подключение и попробуйте снова.",
   "feed.quickSave": "Сохранить «{title}»",
   "feed.scrollPrev": "Предыдущие фильмы",
@@ -122,6 +126,7 @@ export const ru: Record<MessageKey, Message> = {
   "movie.whyKicker": "Вы и этот фильм",
   "movie.whyYouFallback": "Что у вас общего: {traits}.",
   "movie.whyYouGeneral": "Подходит вашему вкусу в целом, а не одной яркой чертой.",
+  "movie.explaining": "Готовим объяснение…",
   "movie.noMatch": "Сначала оцените 10 фильмов, чтобы увидеть, насколько вам подходит этот.",
   "movie.compareOther": "Другие черты",
   "movie.compareTop": "Самые сильные черты",

@@ -780,6 +780,48 @@ O'lchov (2026-10-09, mock): CLS 0 (Home 1440 va 390, Welcome 390 va 1440, Home 3
 axe 0; 320 da gorizontal scroll yo'q. Bundle: JS +1.06 kB (gzip +0.56 kB), CSS −0.14 kB;
 ikonkalar bundle'dan tashqarida, `public/` da (jami ~33 KB).
 
+### Yuklanish holatlari (2026-10-09, 2-bosqich)
+
+Belgi bilan yuklanish: `components/States.tsx` — `LoadingMark` (belgi va matn) va
+`SavingLabel` (saqlash tugmasi ichida). Ikki harakat, faqat `transform` va `opacity`:
+
+| Harakat | Qiymat | Qayerda |
+|---|---|---|
+| Aylanish (`.logo-spin`) | 360°, 2.4 s, linear, cheksiz, markaz atrofida | Katta yuklanish: Feed |
+| Pulsatsiya (`.logo-pulse`) | opacity 1 → 0.45 → 1, 1.6 s, ease-in-out, cheksiz | Kichik, ichki holatlar |
+
+| Joy | Belgi | Matn (en / uz / ru) |
+|---|---|---|
+| Feed, birinchi yuklanish — kontent maydoni markazida | 72px full, aylanadi | 0–5 s: "Picking your films…" / "Filmlaringiz tanlanmoqda…" / "Подбираем ваши фильмы…"; 5–15 s: "Still looking…" / "Hali ham qidiryapmiz…" / "Всё ещё ищем…"; 15 s+: "The server is waking up, just a moment…" / "Server uyg'onmoqda, biroz kuting…" / "Сервер просыпается, подождите немного…" |
+| Film sahifasi, izoh yozilayotganda — izoh slotining o'rnida | 32px compact, pulsatsiya | "Writing the explanation…" / "Izoh tayyorlanmoqda…" / "Готовим объяснение…" |
+| Baho saqlanayotganda — tugma ichida (film sahifasi Rate, onboarding Next) | 20px compact, pulsatsiya | "Saving…" / "Saqlanmoqda…" / "Сохраняем…" |
+| Qidiruv natijalari | Belgi yo'q, skeleton qoladi | — |
+| Kartalardagi tez baholash (Home, Qidiruv) | Belgi yo'q: dialog darhol yopiladi, baho optimistik; xato bo'lsa toast (foydalanuvchi, 2026-10-09) | — |
+
+Qoidalar:
+- **Matn — `aria-live="polite"`** (`role="status"`), almashganda ekran o'qish dasturi
+  eshitadi. Belgi `role="img"`, nomi tilga mos "Loading" / "Yuklanmoqda" / "Загрузка".
+- **Reduced motion:** belgi qimirlamaydi, faqat matn qoladi — CSS global qoidasi ham,
+  `LoadingMark` / `SavingLabel` klassni umuman qo'ymaydi (JS).
+- **Saqlash tugma ichida** (qaror A, foydalanuvchi, 2026-10-09; briefdagi "yonida" o'rniga,
+  CLS 0 uchun): yozuv, ko'rinmas "Saving…" namunasi va xabar bitta grid katakda — tugma doim
+  ikkalasining kengrog'icha keng, saqlash boshlanganda ham, tugaganda ham hech narsa
+  siljimaydi. Tugma o'chirilmaydi: `aria-disabled`, ikkinchi bosish e'tiborsiz.
+- **CLS 0 uchun:** Feed matni to'liq kenglikda, ikki qator balandlikda band qilingan va har
+  xabar yangi element (`key`) — markazlangan matn almashganda siljish sanalmaydi. Izoh
+  yuklanishi eski skeleton balandligini (slot shriftida 3 qator, yolg'iz panelda 2)
+  saqlaydi — ≥ 1100px da markazlangan ustun matn kelganda qimirlamaydi.
+- Feed matnlari 5 va 15 s da almashadi (`FEED_LOADING_STEPS`): oxirgisi muhim — Render Free
+  15 daqiqa tegilmasa uxlaydi va ~35 s da uyg'onadi (`docs/deploy.md`).
+
+O'lchov (2026-10-09, mock, `mm.mock.delay` bilan): CLS 0 — Feed yuklanishi 1440 (0 s), 390
+va 320 ru (16 s, "server uyg'onmoqda"), 1440 uz; Feed kelishi 1440 va 320 ru; izoh yuklanishi
+va kelishi 1440, 390; saqlash 1440 va 390 (tugma kengligi saqlashdan oldin va paytida bir
+xil: 171.2 / 219.3 px). axe 0 hammasida. Ikkita oldindan bor siljish (o'zgarmagan, HEAD'da
+ham shu qiymat): izoh 1100px da to'rt qatorga chiqqanda 0.0016 (zaxira 3 qator) va 320 ru da
+0.0016 (matn 4 qatorlik zaxiradan uzun) — bu bosqichga kirmaydi.
+Bundle (1-bosqichga nisbatan): JS +1.74 kB (gzip +0.54 kB), CSS +1.05 kB (gzip +0.23 kB). Testlar: 236.
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

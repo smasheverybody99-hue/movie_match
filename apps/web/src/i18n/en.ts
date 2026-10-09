@@ -43,6 +43,7 @@ export const en = {
   "band.strong": "Strong match",
   "common.poster": "Poster for {title}",
   "common.loading": "Loading",
+  "common.saving": "Saving…",
 
   "welcome.tagline":
     "Find movies based on what you actually love — not just what everyone watched.",
@@ -109,6 +110,9 @@ export const en = {
   "feed.notEnoughCta": "Keep rating",
   "feed.empty": "No recommendations for you yet. Rate a few more films.",
   "feed.emptyCta": "Search films",
+  "feed.loading.picking": "Picking your films…",
+  "feed.loading.still": "Still looking…",
+  "feed.loading.waking": "The server is waking up, just a moment…",
   "feed.error": "Couldn't load recommendations. Check your connection and try again.",
   "feed.quickSave": "Save {title}",
   "feed.scrollPrev": "Previous films",
@@ -125,6 +129,7 @@ export const en = {
   "movie.whyKicker": "You and this film",
   "movie.whyYouFallback": "What you share with it: {traits}.",
   "movie.whyYouGeneral": "It suits your taste overall rather than through one standout quality.",
+  "movie.explaining": "Writing the explanation…",
   "movie.noMatch": "Rate 10 films first to see how well this one matches you.",
   "movie.compareOther": "Other traits",
   "movie.compareTop": "Its strongest traits",

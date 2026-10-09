@@ -79,24 +79,29 @@ describe("MoviePage", () => {
     expect(explanation).toHaveBeenCalledWith(1000, "en");
   });
 
-  it("shows the explanation skeleton while it loads", async () => {
+  it("shows the pulsing mark and its words in the sentence's place while it is written", async () => {
     const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
     explanation.mockReturnValue(pendingText.promise);
     renderWithProviders(<MoviePage />, ROUTE);
-    expect(await screen.findByTestId("explanation-skeleton")).toBeInTheDocument();
+    const loading = await screen.findByTestId("explanation-loading");
+    expect(loading).toHaveTextContent("Writing the explanation…");
+    expect(loading).toHaveAttribute("aria-live", "polite");
+    expect(within(loading).getByRole("img", { name: "Loading" })).toHaveAttribute("data-variant", "compact");
+    // inside the slot that keeps its height for the sentence
+    expect(screen.getByTestId("why-slot")).toContainElement(loading);
     // the rest of the page does not wait for it (FR-6)
     expect(screen.getByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
 
     pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here." });
     expect(await screen.findByText("Now it is here.")).toBeInTheDocument();
-    expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
   });
 
   it("keeps the sentence's slot while the explanation loads, then fills that same slot", async () => {
     const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
     explanation.mockReturnValue(pendingText.promise);
     renderWithProviders(<MoviePage />, ROUTE);
-    await screen.findByTestId("explanation-skeleton");
+    await screen.findByTestId("explanation-loading");
     const slot = screen.getByTestId("why-slot");
     // the axes are there from the start: they come with the film, not with the text
     expect(within(screen.getByTestId("why-traits")).getAllByTestId(/^axis-/)).toHaveLength(3);
@@ -193,7 +198,7 @@ describe("MoviePage", () => {
     expect(screen.getByTestId("why-slot")).not.toHaveClass("why-reserve");
     expect(screen.getByText("Strong match")).toBeInTheDocument();
     expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("explanation-skeleton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
     // the API writes no text without a reason, so the page does not ask
     expect(explanation).not.toHaveBeenCalled();
     expect(screen.queryByText(/What you share with it/)).not.toBeInTheDocument();
@@ -301,6 +306,32 @@ describe("MoviePage", () => {
     expect(await screen.findByTestId("my-rating")).toHaveTextContent("Your rating: 9.0");
     await waitFor(() => expect(ratings).toHaveBeenCalledTimes(2));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("while a rating saves, the Rate button says so inside, stays enabled and ignores a press", async () => {
+    const request = deferred<Rating>();
+    rate.mockReturnValue(request.promise);
+    renderWithProviders(<MoviePage />, ROUTE);
+    await rateFilm("9");
+
+    const button = screen.getByRole("button", { name: /Saving…/ });
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    const saving = within(button).getByTestId("saving");
+    expect(saving).toHaveAttribute("aria-live", "polite");
+    const mark = within(saving).getByRole("img", { name: "Loading" });
+    expect(mark).toHaveAttribute("data-variant", "compact");
+    expect(mark).toHaveAttribute("width", "20");
+    // the label stays underneath (hidden), so the button keeps its width
+    expect(button).toHaveTextContent("Your rating: 9.0");
+
+    await userEvent.click(button);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    ratings.mockResolvedValue([rating(1000, 9)]);
+    request.resolve(rating(1000, 9));
+    await waitFor(() => expect(saving).toBeEmptyDOMElement());
+    expect(button).not.toHaveAttribute("aria-disabled");
   });
 
   it("saves to the watchlist optimistically", async () => {

@@ -9,7 +9,7 @@ import { Kicker } from "../components/Kicker";
 import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
-import { EmptyState, ErrorState, Loading, Skeleton } from "../components/States";
+import { EmptyState, ErrorState, Loading, LoadingMark, SavingLabel, Skeleton } from "../components/States";
 import { AxisLegend, TraitAxis, traitLabelKey } from "../components/Traits";
 import { useT } from "../i18n";
 import { isNotFound } from "../lib/api";
@@ -138,13 +138,15 @@ function Why({ detail }: { detail: MovieDetail }) {
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
         <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (
-            <Loading>
-              <div className="why-skel-lines" data-testid="explanation-skeleton">
-                <Skeleton className="why-skel" />
-                <Skeleton className="why-skel" />
-                <Skeleton className="why-skel" style={{ width: "60%" }} />
-              </div>
-            </Loading>
+            // The slot keeps its reserved height, so the sentence replaces this in place.
+            <LoadingMark
+              size={32}
+              variant="compact"
+              motion="pulse"
+              text={t("movie.explaining")}
+              className="why-loading"
+              testId="explanation-loading"
+            />
           ) : (
             <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
           )}
@@ -213,8 +215,18 @@ function Actions({ detail }: { detail: MovieDetail }) {
         <FieldError>{t("movie.listError")}</FieldError>
       )}
       <div className="film-actions">
-        <button type="button" className="btn btn-secondary" onClick={() => setRating(true)} disabled={rate.isPending}>
-          <Icon as={Gauge} /> {mine ? t("movie.yourRating", { score: score(mine.score) }) : t("movie.rate")}
+        {/* Not disabled while the rating saves: the mark says so inside, a second press waits. */}
+        <button
+          type="button"
+          className="btn btn-secondary"
+          aria-disabled={rate.isPending || undefined}
+          onClick={() => {
+            if (!rate.isPending) setRating(true);
+          }}
+        >
+          <SavingLabel saving={rate.isPending}>
+            <Icon as={Gauge} /> {mine ? t("movie.yourRating", { score: score(mine.score) }) : t("movie.rate")}
+          </SavingLabel>
         </button>
         <button
           type="button"

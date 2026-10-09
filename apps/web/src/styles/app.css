@@ -66,6 +66,30 @@ a { color: inherit; }
 /* The mark (components/Logo.tsx): neutral, in the text colour; the name stays muted. */
 .logo { display: block; flex-shrink: 0; }
 .brand-logo { color: var(--text); }
+
+/* Loading with the mark (States.tsx LoadingMark, docs/ui.md "Loading"): the mark in the
+   text colour, the words muted. Motion only through transform and opacity; the global
+   reduced-motion rule stops both, and LoadingMark leaves the class off as well. */
+.loading-mark { display: flex; align-items: center; gap: var(--space-2); color: var(--muted); font-size: 15px; }
+.loading-mark .logo { color: var(--text); }
+.logo-spin { animation: logo-spin 2.4s linear infinite; transform-origin: 50% 50%; }
+@keyframes logo-spin { to { transform: rotate(360deg); } }
+.logo-pulse { animation: logo-pulse 1.6s ease-in-out infinite; }
+@keyframes logo-pulse { 50% { opacity: .45; } }
+/* A save button while it saves (States.tsx SavingLabel): label, width keeper and note in
+   one grid cell, so the button keeps one width; the hidden label still holds its place. */
+.saving-stack { display: inline-grid; justify-items: center; align-items: center; }
+.saving-stack > * { grid-area: 1 / 1; }
+.saving-label { display: inline-flex; align-items: center; gap: 6px; }
+.saving-note { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+.saving-mark-box { width: 20px; height: 20px; }
+.saving-stack .is-hidden { visibility: hidden; }
+.btn[aria-disabled="true"] { cursor: progress; }
+/* The feed's first load: in the middle of the content area. The words' box is full width
+   and two lines high from the start, so a longer message (the server waking, two lines on
+   a phone) changes only the text inside it, and the mark never moves (CLS 0). */
+.feed-loading { flex-direction: column; justify-content: center; gap: var(--space-3); min-height: 60vh; text-align: center; }
+.feed-loading .loading-text { align-self: stretch; line-height: 1.4; min-height: calc(2 * 1.4em); }
 .nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .nav-link {
   display: flex; align-items: center; gap: 10px;
@@ -644,7 +668,11 @@ select.field { appearance: auto; }
 @keyframes why-in { from { opacity: 0; } to { opacity: 1; } }
 /* A skeleton bar per line of text: .6em tall, centred in its 1.3em line. A flex column, so
    the bars' margins add up instead of collapsing: three bars are exactly three lines. */
-.why-skel-lines { display: flex; flex-direction: column; }
+/* In the sentence's reserved slot (MoviePage, "Why you"): the words at body size, the box
+   as tall as the skeleton it replaced (three lines of the slot's own font), so where the
+   column is centred (>= 1100px) the kicker does not move when the sentence arrives. */
+.why-loading { font-size: inherit; min-height: calc(3 * 1.3em); }
+.why-loading .loading-text { font-family: var(--font-body); font-size: 15px; }
 .why-skel { height: .6em; margin: .35em 0; }
 .why-traits { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
 @media (min-width: 640px) {
@@ -659,6 +687,7 @@ select.field { appearance: auto; }
 @media (min-width: 900px) {
   .why-solo .why-reserve { min-height: calc(2 * 1.3em); }
   .why-solo .why-skel:nth-child(3) { display: none; }
+  .why-solo .why-loading { min-height: calc(2 * 1.3em); }
 }
 @media (min-width: 1100px) {
   .why:not(.why-solo) {
