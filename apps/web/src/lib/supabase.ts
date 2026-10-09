@@ -1,4 +1,8 @@
-import { createClient, type AuthError, type Session as SupabaseSession } from "@supabase/supabase-js";
+import {
+  AuthClient as SupabaseAuthClient,
+  type AuthError,
+  type Session as SupabaseSession,
+} from "@supabase/auth-js";
 
 /**
  * The slice of Supabase Auth the app uses, behind a small interface so screens and
@@ -50,44 +54,70 @@ function check(error: AuthError | null): void {
   throw new AuthFailure(disabled ? "provider_disabled" : "failed", error.message);
 }
 
+type SupabaseAuthOptions = ConstructorParameters<typeof SupabaseAuthClient>[0];
+
+/**
+ * The auth client exactly as `createClient` from supabase-js 2.117 built it, without the
+ * realtime, storage, postgrest and functions clients the app never used (~33 KB gzip).
+ * Changing any of these signs people out or breaks sign-in:
+ * - storageKey: supabase-js's `sb-<project ref>-auth-token`; auth-js on its own would
+ *   use `supabase.auth.token` and every saved session would be lost;
+ * - url: `<project>/auth/v1`;
+ * - headers: the anon key as `apikey` and as the bearer token;
+ * - flowType "implicit": the Google and email links come back with the token in the URL
+ *   fragment, which detectSessionInUrl reads.
+ * The test checks these against createClient itself.
+ */
+export function authClientOptions(supabaseUrl: string, anonKey: string): SupabaseAuthOptions {
+  const trimmed = supabaseUrl.trim();
+  const base = new URL(trimmed.endsWith("/") ? trimmed : `${trimmed}/`);
+  return {
+    url: new URL("auth/v1", base).href,
+    storageKey: `sb-${base.hostname.split(".")[0]}-auth-token`,
+    headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: "implicit",
+  };
+}
+
 /** Null when the Supabase URL or anon key is missing: sign-in is then not configured. */
 export function createSupabaseAuth(): AuthClient | null {
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   if (!url || !anonKey) return null;
 
-  const client = createClient(url, anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-  });
+  const auth = new SupabaseAuthClient(authClientOptions(url, anonKey));
   const redirectTo = `${window.location.origin}/`;
 
   return {
     async getSession() {
-      const { data } = await client.auth.getSession();
+      const { data } = await auth.getSession();
       return toSession(data.session);
     },
     onChange(listener) {
-      const { data } = client.auth.onAuthStateChange((_event, session) => {
+      const { data } = auth.onAuthStateChange((_event, session) => {
         listener(toSession(session));
       });
       return () => data.subscription.unsubscribe();
     },
     async signInWithOAuth(provider) {
-      const { error } = await client.auth.signInWithOAuth({
+      const { error } = await auth.signInWithOAuth({
         provider,
         options: { redirectTo },
       });
       check(error);
     },
     async signInWithEmail(email) {
-      const { error } = await client.auth.signInWithOtp({
+      const { error } = await auth.signInWithOtp({
         email,
         options: { emailRedirectTo: redirectTo },
       });
       check(error);
     },
     async signOut() {
-      const { error } = await client.auth.signOut();
+      const { error } = await auth.signOut();
       check(error);
     },
   };
