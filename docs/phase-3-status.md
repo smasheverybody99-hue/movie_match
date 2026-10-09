@@ -237,6 +237,93 @@ sends `Access-Control-Max-Age: 600` (Starlette's default, checked on the live AP
 browser repeats a preflight for the same URL only after 10 minutes. Without them, the
 first GET would have waited for the wake-up instead.
 
+## Mobile load: preconnect and an auth-only Supabase client (2026-10-09)
+
+**Manual Lighthouse, film page, signed in, Guest window (user).** The same laptop gave
+mobile TBT 920 ms one day and 1790 ms the next, so these numbers are not a baseline.
+
+| | LCP | FCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|
+| Mobile | 3.6 s | 1.3 s | 1790 ms | 6.0 s | 0 |
+| Desktop | 1.6 s | 0.5 s | 50 ms | 1.5 s | 0 |
+
+**Lighthouse CLI 13.5.0, `https://movie-match.pages.dev/` (Welcome), medians.**
+- Setup: default mobile preset (simulated 4G, CPU ×4) or `--preset=desktop`, headless
+  Chrome 154, 15 s between runs, API awake.
+- PageSpeed Insights was tried first: its keyless quota answered 429 on the first call.
+- Welcome uses the same bundle as every page, but it calls neither the API nor Supabase.
+  **These runs show the bundle change, not the preconnects**; the user checks the
+  preconnects on the film page by hand.
+- The CPU is not simulated: the laptop's own time is multiplied by 4, so TBT depends on
+  this machine. `benchmarkIndex` (this machine's speed) was 1146–2359.
+- "Before" ran without the API and Supabase preconnects.
+
+| Mobile, 5 runs | Score | LCP | FCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|---|
+| Before (bundle `index-Byl75D76.js`) | 91 (86–92) | 2.62 s (2.57–2.93) | 2.62 s | 145 ms (69–183) | 2.87 s (2.62–3.51) | 0.001 |
+| After (`index-p0fXTjd2.js`) | 94 (66–94) | 2.50 s (2.47–4.99) | 2.50 s | 46 ms (0–122) | 2.61 s (2.47–6.85) | 0.001 |
+
+| Desktop, 3 runs | Score | LCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|
+| Before | 97 (95–98) | 1.03 s (0.89–1.12) | 0 ms | 1.10 s | 0.000 |
+| After | 95 (95–96) | 1.05 s (1.02–1.09) | 0 ms | 1.22 s | 0.000 |
+
+Notes on the runs:
+- **The slow "after" run.** Run 3 (LCP 4.99 s) was the network, not the code: the Google
+  Fonts stylesheet took 2.7 s and the site's own files were slow too. Without it the
+  after LCP range is 2.47–2.66 s.
+- **What the LCP waits for.** The LCP element on Welcome is the tagline text, which
+  waits for the bundle to run. Render delay (median run): before 1462 ms, after 870 ms.
+- **Mobile main thread, medians in ms, before → after:**
+
+  | Part | Before | After |
+  |---|---|---|
+  | Script Evaluation | 361 | 306 |
+  | Script Parsing & Compile | 4 | 4 |
+  | Style & Layout | 341 | 415 |
+  | Other | 438 | 415 |
+  | Bundle's own time (bootup) | 380 | 315 |
+
+**Bundle (one JS chunk).**
+
+| | Raw | Gzip (vite) | Over the wire (CLI) |
+|---|---|---|---|
+| Before | 634.35 kB | 185.10 kB | 185,269 B |
+| After | 513.86 kB | 151.26 kB | 152,245 B |
+| Change | −120.5 kB (−19%) | −33.8 kB (−18%) | −33.0 kB |
+
+**What changed.**
+- **Preconnect** (`4fb041d`). `<link rel="preconnect" crossorigin>` for the origins of
+  `VITE_API_URL` and `VITE_SUPABASE_URL`, added by a build plugin in `vite.config.ts`. An
+  empty or malformed value gives no link at all, so the CI build has none.
+  - `crossorigin`: both are CORS fetches without cookies, so they use the anonymous
+    connection pool.
+  - Why not `%VITE_*%` in `index.html`: that leaves an empty or literal `href` when the
+    variable is unset.
+- **Auth-only Supabase** (`492686b`). `lib/supabase.ts` builds `AuthClient` from
+  `@supabase/auth-js` with exactly the settings `createClient` gave it. The bundle has no
+  realtime, storage, postgrest or functions code left.
+  - Settings kept: storage key `sb-<ref>-auth-token`, `<project>/auth/v1`, the anon key
+    as `apikey` and as the bearer, implicit flow, persisted and auto-refreshed sessions,
+    session read from the URL.
+  - Dropped: only the `X-Client-Info` telemetry header. auth-js sends its own.
+  - Tests: one compares the built client's settings with `createClient`'s own, and one
+    pins the storage key. Changing the flow or the key fails both.
+  - `supabase-js` stays as a dev dependency for that test.
+  - Checked in a production build: a session saved under the old key is picked up and
+    the app opens signed in.
+  - CI runs 63 (branch) and 64 (main) were green.
+  - Live check by the user still to do: Google sign-in, sign-out, session kept on reload.
+
+**Rejected for now, with the reason.**
+
+| Proposal | Why not now |
+|---|---|
+| Route-level code splitting (`React.lazy`) | Saves ~5.5 kB gzip: the other pages are small. It adds Suspense fallbacks, which must not shift layout. Not worth it at this size. |
+| Lazy-loaded uz/ru strings | Saves ~6.3 kB gzip. Costs a moment of waiting, or a flash of English, when the language is switched or a uz/ru user opens the site. |
+| Poster `srcset` / smaller poster | The poster is not the LCP element (the hero backdrop or the text is), and the backdrop already has `srcset` and `fetchpriority="high"`. The gain is small. |
+| Same-origin API through a Cloudflare proxy | Would remove CORS preflights, one round trip per new URL. It changes the deploy and CORS setup: 1–2 hours of work and medium risk. The preconnect covers the connection part. |
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
