@@ -42,6 +42,14 @@ MAX_CHARS = 400  # longer than two sentences means the model ignored the brief
 Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test checks)
 LANGUAGE_NAMES = {"en": "English", "uz": "Uzbek (Latin script)", "ru": "Russian"}
 
+# Russian answers translated the English brief word for word ("яркого действия" for action,
+# "держит более бодрый темп") and dropped ё, which the interface uses. So a Russian prompt
+# names each quality with the interface's own word and asks for natural Russian.
+RUSSIAN_STYLE = (
+    "Пиши естественным русским языком, используй букву ё, "
+    "избегай калек с английского."  # noqa: RUF001 - Cyrillic on purpose
+)
+
 SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a film suits
 their taste. Use only the qualities you are given: each is one where this film stands out
 from a typical film, in the direction the viewer leans. Say it in plain everyday words and
@@ -66,11 +74,16 @@ def build_prompt(
         for key in reasons
     ]
     year = f" ({movie.release_date.year})" if movie.release_date else ""
-    return (
+    prompt = (
         f"Film: {movie.title}{year}\n"
         f"Shared qualities, strongest first:\n" + "\n".join(lines) + "\n\n"
         f"Write the sentences in {LANGUAGE_NAMES[lang]}."
     )
+    if lang == "ru":
+        names = trait_labels("ru")
+        words = "; ".join(f"{labels[key]} = {names[key].lower()}" for key in reasons)
+        prompt += f"\nName the qualities with these Russian words: {words}.\n{RUSSIAN_STYLE}"
+    return prompt
 
 
 def clean(raw: str) -> str | None:

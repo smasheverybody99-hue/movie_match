@@ -12,6 +12,7 @@ from app.providers.gemini import EXPLAIN_MODEL, GeminiExplainer
 from app.services.explain import (
     LANGUAGE_NAMES,
     MAX_CHARS,
+    RUSSIAN_STYLE,
     SYSTEM_PROMPT,
     Lang,
     build_prompt,
@@ -54,8 +55,30 @@ def test_prompt_asks_for_each_language(lang: Lang, name: str) -> None:
     prompt = build_prompt(
         Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang, TYPICAL
     )
-    assert prompt.endswith(f"Write the sentences in {name}.")
+    assert f"\n\nWrite the sentences in {name}." in prompt
     assert "- Action:" in prompt  # the brief itself stays in English
+
+
+@pytest.mark.parametrize("lang", ["en", "uz"])
+def test_prompt_ends_with_the_language_outside_russian(lang: Lang) -> None:
+    prompt = build_prompt(
+        Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang, TYPICAL
+    )
+    assert prompt.endswith(f"Write the sentences in {LANGUAGE_NAMES[lang]}.")
+    assert RUSSIAN_STYLE not in prompt
+
+
+def test_russian_prompt_names_the_qualities_in_russian_and_asks_for_natural_russian() -> None:
+    prompt = build_prompt(
+        Movie(id=1, title="Heat"), ["action", "pacing"], _scores(), _scores(), "ru", TYPICAL
+    )
+    # the interface's words, so "action" does not come back as "действие"
+    assert "Name the qualities with these Russian words: Action = экшен; Pace = динамичность." in (
+        prompt
+    )
+    assert prompt.endswith("\n" + RUSSIAN_STYLE)
+    assert RUSSIAN_STYLE.startswith("Пиши естественным русским языком, используй букву ё")
+    assert "Romance" not in prompt and "романтика" not in prompt  # only the real reasons
 
 
 def test_the_service_and_the_api_accept_the_same_languages() -> None:
