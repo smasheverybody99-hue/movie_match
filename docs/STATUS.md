@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-09 (**logo, yuklanish holatlari va o'tish effektlari tugadi**, dialog portal tuzatishi; oxirgi commit `a6dffc6`, CI run 61 yashil); 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -16,13 +16,18 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 | F3 — Web ilova | **Kod tugagan, `main` da (`66bc7a0`), CI yashil. Qo'lda tekshiruv chala.** Foydalanuvchi so'rovi bilan F2 qo'lda tekshiruvidan oldin boshlangan (prompt sharti bajarilmagan). Onboarding 3:10 (2026-10-08, maqsad < 3 daqiqa): 58 s — baho saqlashni kutish (Singapurgacha tarmoq); verdikt deploy'dan keyin. Tekshiruvda topilgan (a) xato — eskirgan kesh onboarding'ga qaytarardi — tuzatildi (`3d7a976`). Tafsilot: `docs/phase-3-status.md` |
 | Tillar (TZ 1.8, 2026-10-02) | **Kod tayyor.** Ingliz — standart til va kalitlar manbasi (`apps/web/src/i18n/en.ts`); o'zbek — ikkilamchi; rus — qo'shimcha, **ko'rilmagan qoralama**. Menyu: English, O'zbek, Русский; tanlov `localStorage` da saqlanadi, brauzer tili aniqlanmaydi. API: `lang` = `en` \| `uz` \| `ru`, standart `en`; izohlar rus tilida ham (har til alohida kesh). Film ma'lumoti ingliz tilida qoladi (backlog) |
 | Dizayn v2 (`docs/ui.md`) | **Yopildi** (2026-10-06): 0–5 bosqich bajarildi va tasdiqlandi; oxirgi commit `e9a7f9f`, CI yashil |
-| Deploy (F4 dan oldin, alohida qadam) | **Tayyorgarlik** (2026-10-08, foydalanuvchi qarori): fazalar tartibida deploy F5 ichida, F5 esa F4 gate'ini talab qiladi. Alohida qilinadi, chunki F3 ning ochiq o'lchovlari (FR-3 onboarding, feed tezligi, Lighthouse) faqat jonli URL'da o'lchanadi. API — Render Free, Singapur (`render.yaml`); web — Cloudflare Pages (keyin). F5 ning telemetriya, metrika, "wrong" tugmasi va testerlar qismi F5 da qoladi. Qadamlar: `docs/deploy.md` |
+| Logo, yuklanish, o'tishlar (`docs/ui.md`: Logo, Yuklanish holatlari, O'tish effektlari) | **Tugadi** (2026-10-09). Uch bosqich: logo, favicon, ikonkalar va manifest (`d84e09c`, run 58); belgi bilan yuklanish holatlari (`d692ec4`, run 59); qisqa o'tishlar (`f1125ad`, run 60); dialog `document.body` ga portal — Rate dialogi panellar ostida qolardi, oldindan bor nuqson (`a6dffc6`, run 61). Hammasi CI yashil. CLS 0, axe 0 (mock, haqiqiy Chrome); testlar 246. Sahifa o'tishi: `BrowserRouter` da `viewTransition` hech qachon ishlamagan — endi 120 ms opacity; to'liq o'tish backlog'da |
+| Deploy (F4 dan oldin, alohida qadam) | **Ishlayapti** (2026-10-08): web https://movie-match.pages.dev (Cloudflare Pages), API https://movie-match-api-mgdn.onrender.com (Render Free, Singapur). Tayyorgarlik (2026-10-08, foydalanuvchi qarori): fazalar tartibida deploy F5 ichida, F5 esa F4 gate'ini talab qiladi. Alohida qilinadi, chunki F3 ning ochiq o'lchovlari (FR-3 onboarding, feed tezligi, Lighthouse) faqat jonli URL'da o'lchanadi. API — Render Free, Singapur (`render.yaml`); web — Cloudflare Pages (keyin). F5 ning telemetriya, metrika, "wrong" tugmasi va testerlar qismi F5 da qoladi. Qadamlar: `docs/deploy.md` |
 | F4 va keyingilari | Boshlanmagan |
 
 ## Oxirgi gate natijasi
 
 | | |
 |---|---|
+| CI (`main`, `a6dffc6`, dialog portal — logo, yuklanish va o'tishlar ishining oxirgi commit'i) | **Yashil**, 2026-10-09: gate run 61, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37890967059 |
+| CI (`main`, `f1125ad`, o'tish effektlari) | **Yashil**, 2026-10-09: gate run 60, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37890208197 |
+| CI (`main`, `d692ec4`, yuklanish holatlari) | **Yashil**, 2026-10-09: gate run 59, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37884921901 |
+| CI (`main`, `d84e09c`, logo) | **Yashil**, 2026-10-09: gate run 58, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37879723011 |
 | CI (`main`, `9b3d9d3`, F3 onboarding (a) tuzatishi `3d7a976` + hisobot) | **Yashil**, 2026-10-08: gate run 49, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37735098960 |
 | CI (`main`, `38a3cb4`, hero tuzatishlari) | **Yashil**, 2026-10-06: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37414071966 |
 | CI (`main`, `5fd524e`, 5-bosqich) | **Yashil**, 2026-10-06: https://github.com/smasheverybody99-hue/movie_match/actions/runs/37413183633 |
@@ -77,13 +82,14 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-1. **Deploy** (`docs/deploy.md`): foydalanuvchi Render'da Blueprint orqali API ni
-   yaratadi (Singapur, karta so'ralsa to'xtaydi), keyin web — Cloudflare Pages. Deploy'dan
-   keyin, isitilgan servisda: onboarding vaqti (FR-3 verdikti), har baho saqlanishi, feed
-   tezligi, Lighthouse (mobil va desktop) — jonli URL'da. Uyg'onish muammosi (Free 15
-   daqiqada to'xtaydi) bo'yicha qaror F4 dan oldin (`docs/deploy.md`, 5-bo'lim).
+1. **Jonli saytni tekshirish (foydalanuvchi)** — https://movie-match.pages.dev, Render
+   oldindan uyg'otilgan holda (`docs/deploy.md`, 3-bo'lim): yangi logo, favicon, yuklanish
+   holatlari va o'tishlar (onboarding qadam almashinuvi brauzerda o'lchanmagan — shu yerda
+   ko'riladi). Keyin jonli URL'dagi F3 o'lchovlari: onboarding vaqti (FR-3 verdikti), har
+   baho saqlanishi, Lighthouse (mobil va desktop). **Alfa testerlardan oldin** Render
+   Starter'ga o'tiladi (quyida). Keyin — F4.
    **F3 qo'lda tekshiruvi** (`docs/phase-3-status.md`): oltala band bajarildi (2026-10-08).
-   2, 3, 4, 6 o'tdi; 1-band 3:10, verdikt deploy'dan keyin; 5 (Lighthouse) — deploy'dan keyin.
+   2, 3, 4, 6 o'tdi; 1-band 3:10, verdikt jonli o'lchovdan keyin; 5 (Lighthouse) — jonli URL'da.
 2. **Dizayn v2 yopildi** (2026-10-06, foydalanuvchi tasdiqladi): olti bosqichning
    hammasi (0–5) bajarildi va tasdiqlandi; har bosqich natijasi `docs/ui.md` da.
    FR-5: interfeysda daraja ikki holatda — "Strong match" (qizil, eng yaqin 5 film) yoki
@@ -188,9 +194,9 @@ o'zi (5 bo'lim, 50 karta).
 
 ## Keyingi qadam (2026-10-08)
 
-Keyingi qadam — veb qismini Cloudflare Pages'ga deploy qilish, keyin CORS_ORIGINS va
-Supabase redirect URL'larini yangilash (`docs/deploy.md`, 6 va 7-bo'lim). API tayyor:
-https://movie-match-api-mgdn.onrender.com
+Deploy tugadi (2026-10-08): web https://movie-match.pages.dev, API
+https://movie-match-api-mgdn.onrender.com; CORS va Supabase redirect yangilangan. Keyingi
+qadam — yuqoridagi "Keyingi qadam" 1: foydalanuvchi jonli saytni tekshiradi.
 
 **Alfa testerlardan OLDIN Render Starter'ga o'tiladi** ($7/oy, karta kerak; foydalanuvchi
 qarori, 2026-10-09). Free instance 15 daqiqada uxlaydi va uyg'onishi ~34 s (DevTools,
