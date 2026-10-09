@@ -133,7 +133,7 @@ Hozir hech biri qilinmaydi.
 | B. Free + tashqi "ping" har ≤ 14 daqiqada (masalan bepul uptime monitor) | $0 | Kod va hisob o'zgarmaydi | Oyiga ~744 soat — 750 soatlik bepul limitning deyarli hammasi, ya'ni faqat bitta bepul servis; CPU 0.1 qoladi; Render shartlari bunga qanday qarashini tekshirmadim |
 | C. Fly.io, Singapur, shared-cpu-1x 512 MB | ~$4.7/oy (taxmin: AQSh narxi $3.69 + Singapur ustamasi) | To'xtamaydi | Karta kerak; yangi platforma, `render.yaml` o'rniga boshqa sozlama; bepul tarif yo'q |
 
-Tavsiya: alfa uchun **A** — eng kam ish. Lekin bu karta talab qiladi, qaror sizda.
+**Qaror (2026-10-09):** alfa testerlar chaqirilishidan oldin **A** (Render Starter). Ungacha Free, server sinovdan oldin qo'lda uyg'otiladi (3-bo'lim). B (ping) qilinmaydi: Render shartlari aniq emas, 750 soatning hammasini oladi.
 
 ## 6. Web: Cloudflare Pages
 

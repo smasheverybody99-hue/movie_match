@@ -191,3 +191,10 @@ o'zi (5 bo'lim, 50 karta).
 Keyingi qadam — veb qismini Cloudflare Pages'ga deploy qilish, keyin CORS_ORIGINS va
 Supabase redirect URL'larini yangilash (`docs/deploy.md`, 6 va 7-bo'lim). API tayyor:
 https://movie-match-api-mgdn.onrender.com
+
+**Alfa testerlardan OLDIN Render Starter'ga o'tiladi** ($7/oy, karta kerak; foydalanuvchi
+qarori, 2026-10-09). Free instance 15 daqiqada uxlaydi va uyg'onishi ~34 s (DevTools,
+`docs/phase-3-status.md`); Starter uxlamaydi va CPU 5 baravar ko'p (0.5). Hozircha hech
+narsa qilinmaydi: ilovani faqat foydalanuvchi sinaydi va serverni oldindan uyg'otadi.
+Ping qilinmaydi: Render shartlari aniq emas va u 750 soatlik bepul limitning hammasini
+oladi. Max-Age va feed keshi — backlog'da (TZ, 2-bo'lim).
