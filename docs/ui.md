@@ -736,6 +736,50 @@ bor joyda, oddiy yorliqlar — eyebrow / section-title):
 O'lchov (bir marta): CLS eng yomoni 0 (chegara 0.1); axe 0 (to'rt ekran, 1440 va 320 ru);
 320 da gorizontal scroll yo'q, rus tilidagi yozuvlar sig'adi (kesilgan element yo'q).
 
+### Logo (2026-10-09, 1-bosqich)
+
+Belgi Movie DNA diagrammasidan olingan: markazi bo'sh, har traitga bitta nur. Bitta oila,
+ikki chizma, ikkalasi `viewBox="0 0 120 120"`, `stroke-linecap="round"`. Kod:
+`components/Logo.tsx` (`size` px, `variant` "full" | "compact", `title`). Koordinatalar
+shu faylda, bitta manba.
+
+| | Full — 40px va undan katta | Compact — 40px dan kichik |
+|---|---|---|
+| Nurlar | 14 ta, `stroke-width` 6, ichki aylana r 14 dan uchigacha | 8 ta, `stroke-width` 9 |
+| Konvert | Nurlar uchidan o'tuvchi `<polygon>`: fill 7%, stroke 40%, `stroke-width` 1.6, `stroke-linejoin` round | Yo'q |
+| Qayerda | Welcome 48px; katta yuklanish belgisi (72px) | Yon menyu 32px, mobil yuqori panel 28px, favicon; ichki yuklanish belgilari (`variant="compact"` katta o'lchamda ham) |
+
+**Chegara 40px** (foydalanuvchi, 2026-10-09; avval 24px edi). 40px dan kichikda doim compact. Sabab: yon menyudagi 32px skrinshotda 14 nur bir-biriga qo'shilib ketdi. Xato o'lchamda emas, 14 nurni kichik o'lchamda chizishda edi. Ikki variantli oila aynan shu uchun bor: o'lcham chizmani tanlaydi. Testi: 39px compact, 40px full.
+
+Full nurlari `[x1, y1, x2, y2]`, soat 12 dan soat yo'nalishida: 60,46→60,16.8;
+66.07,47.39→74.06,30.81; 70.95,51.27→90.1,36; 73.65,56.89→86.91,53.86;
+73.65,63.11→104.16,70.08; 70.95,68.73→87.68,82.07; 66.07,72.61→73.15,87.3; 60,74→60,100.5;
+53.93,72.61→48.76,83.33; 49.05,68.73→30.68,83.38; 46.35,63.11→27.15,67.5;
+46.35,56.89→17.2,50.23; 49.05,51.27→37.33,41.92; 53.93,47.39→42.86,24.41.
+Compact: 60,44→60,12.3; 71.31,48.69→84.54,35.46; 76,60→102.6,60; 71.31,71.31→81.5,81.5;
+60,76→60,106.2; 48.69,71.31→33.41,86.59; 44,60→27.4,60; 48.69,48.69→30.87,30.87.
+
+**Rang: faqat `currentColor`** — nurlar ham, konvert ham. Rangni joyi beradi: yon menyu va
+Welcome'da `--text`. Qizil yoki boshqa aksent yo'q. Brief maketidagi `#F2F2F3` / `#0B0B0C`
+ishlatilmadi: ular ozgina ko'k tusli, qaror 5 va CLAUDE.md ("inline hex yo'q") ustun
+(foydalanuvchi, 2026-10-09).
+
+Statik fayllar (`apps/web/public/`), tokenlarning qiymati bilan:
+- `favicon.svg` — compact, fonsiz. Ichida `prefers-color-scheme`: yorug' brauzerda `#0a0a0a`
+  (`--bg`), qorong'ida `#f5f5f5` (`--text`) nurlar. Oq favicon yorug' tabda yo'qolar edi.
+- `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` — full, `#0a0a0a` fon,
+  `#f5f5f5` nurlar, burchak radiusini tizim qo'yadi.
+- `manifest.webmanifest` — minimal: nom, ikki ikonka, `background_color` va
+  `theme_color` `#0a0a0a`. `display` yo'q: telefonga o'rnatish alohida qaror.
+
+Ikonkalar `Logo.tsx` koordinatalaridan skript bilan chiziladi (headless Chrome, CDP —
+yangi dastur o'rnatilmaydi). Logo o'zgarsa, ikonkalar qayta chiziladi. `Logo.test.tsx`
+favicon nurlarini `COMPACT_RAYS` bilan solishtiradi.
+
+O'lchov (2026-10-09, mock): CLS 0 (Home 1440 va 390, Welcome 390 va 1440, Home 320 ru);
+axe 0; 320 da gorizontal scroll yo'q. Bundle: JS +1.06 kB (gzip +0.56 kB), CSS −0.14 kB;
+ikonkalar bundle'dan tashqarida, `public/` da (jami ~33 KB).
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

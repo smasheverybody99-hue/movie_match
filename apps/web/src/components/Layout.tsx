@@ -6,6 +6,7 @@ import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { useOnline } from "../lib/useOnline";
 import { Icon } from "./Icon";
+import { Logo } from "./Logo";
 
 /**
  * Four of the design's five sections: the Assistant arrives in Phase 4. Web: left
@@ -62,13 +63,12 @@ export function OfflineBanner() {
   );
 }
 
-function Brand() {
+/** The mark and the name; the link carries the accessible name, so the mark is decorative. */
+function Brand({ size }: { size: number }) {
   const t = useT();
   return (
     <NavLink to="/" className="brand" aria-label={t("app.name")} viewTransition>
-      <span className="brand-mark" aria-hidden="true">
-        {t("app.name").slice(0, 1)}
-      </span>
+      <Logo size={size} className="brand-logo" />
       <span aria-hidden="true">{t("app.name").toUpperCase()}</span>
     </NavLink>
   );
@@ -92,7 +92,7 @@ export function AppShell() {
         {t("nav.skipToContent")}
       </a>
       <aside className="sidebar">
-        <Brand />
+        <Brand size={32} />
         <nav aria-label={t("nav.label")}>
           <ul className="nav-list">
             {SECTIONS.map((s) => (
@@ -118,7 +118,7 @@ export function AppShell() {
       <div className="main">
         <OfflineBanner />
         <header className="topbar">
-          <Brand />
+          <Brand size={28} />
           <NavLink to="/profile" className="avatar-link" aria-label={t("nav.profile")} viewTransition>
             <Avatar />
           </NavLink>

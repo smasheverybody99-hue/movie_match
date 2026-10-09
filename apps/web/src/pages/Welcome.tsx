@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { FieldError } from "../components/FieldError";
+import { Logo } from "../components/Logo";
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { AuthFailure, type OAuthProvider } from "../lib/supabase";
@@ -64,9 +65,7 @@ export default function Welcome() {
   return (
     <main className="welcome" id="main">
       <div className="welcome-inner">
-        <span className="brand-mark welcome-mark" aria-hidden="true">
-          {t("app.name").slice(0, 1)}
-        </span>
+        <Logo size={48} className="welcome-mark" />
         <h1>{t("app.name")}</h1>
         <p className="welcome-tagline">{t("welcome.tagline")}</p>
 
