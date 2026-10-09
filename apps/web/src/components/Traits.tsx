@@ -1,10 +1,20 @@
 import type { CSSProperties } from "react";
 
-import { useT, type MessageKey } from "../i18n";
+import { useT, type MessageKey, type Translate } from "../i18n";
 import { traitBand, type TraitKey } from "../lib/traits";
+import type { Lang } from "../lib/types";
 
 export function traitLabelKey(key: TraitKey): MessageKey {
   return `trait.${key}`;
+}
+
+/**
+ * A trait's name inside a sentence. Russian writes common nouns in a list in lower case
+ * ("в которых сильны сюжетные повороты и юмор"); labels on their own keep the capital.
+ */
+export function traitInSentence(key: TraitKey, t: Translate, lang: Lang): string {
+  const label = t(traitLabelKey(key));
+  return lang === "ru" ? label.toLocaleLowerCase("ru") : label;
 }
 
 /** One trait: label, value, a bar coloured by strength (not quality). */

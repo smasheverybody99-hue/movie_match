@@ -101,11 +101,10 @@ secret yo'q (`.github/workflows/gate.yml`).
    yoziladi. Mahalliy API qayta ishga tushirilishi kerak. Match foizi taqsimoti o'lchandi
    (`docs/phase-2-status.md`): yoqmagan va yoqqan filmlar bir xil (~85%), 60% chegarasi
    deyarli hech narsani filtrlamaydi — FR-5 formulasi bo'yicha alohida qaror kutilmoqda.
-2. **Rus tilini ko'rib chiqish (foydalanuvchi).** `apps/web/src/i18n/ru.ts` (166 kalit)
-   va `packages/shared/traits.json` dagi `label_ru` — agent yozgan, **ko'rilmagan
-   qoralama**. Belgi (shu band va `ru.ts` sarlavhasi) foydalanuvchi ko'rib chiqmaguncha
-   turadi. E'tibor: "Хочу посмотреть" (watchlist), ring ichida "СХОДСТВО" (joy 9px da
-   ~65px, "СОВПАДЕНИЕ" sig'maydi), `dna.summary` jumla tuzilishi.
+2. **Rus tili: foydalanuvchi ko'rib chiqdi (2026-10-09), tuzatishlar kiritildi.** Hali
+   ko'rilmagan, agent yozgan qismlar: janr nomlari (`genre.*`, 19 ta, ru va uz),
+   `label_ru` "Накал эмоций" (radarda "Эмоциональный" sig'magani uchun, foydalanuvchi
+   qarori) va yangi umumiy matnlar ("Вход временно недоступен…").
 3. Batch uchun billing ochilsa — `TRAIT_MODE=batch` ga qaytish (yarim narx).
 
 ## FR-5 o'lchovi (2026-10-05) — match darajasi qarorining asosi

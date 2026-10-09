@@ -79,6 +79,18 @@ describe("MoviePage", () => {
     expect(explanation).toHaveBeenCalledWith(1000, "en");
   });
 
+  it("in Russian: the panel heading, genres in Russian, the rating with a decimal comma", async () => {
+    ratings.mockResolvedValue([rating(1000, 7)]);
+    renderWithProviders(<MoviePage />, { ...ROUTE, lang: "ru" });
+    const why = await screen.findByRole("region", { name: "Больше всего подходит" });
+    expect(why).toBeInTheDocument();
+    const head = screen.getByRole("heading", { level: 1 }).parentElement!;
+    const tags = within(head).getAllByRole("listitem").map((li) => li.textContent);
+    expect(tags).toEqual(["2006", "130 мин", "Драма", "Детектив"]);
+    expect(await screen.findByRole("button", { name: /Ваша оценка: 7,0/ })).toBeInTheDocument();
+    expect(explanation).toHaveBeenCalledWith(1000, "ru");
+  });
+
   it("shows the pulsing mark and its words in the sentence's place while it is written", async () => {
     const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
     explanation.mockReturnValue(pendingText.promise);

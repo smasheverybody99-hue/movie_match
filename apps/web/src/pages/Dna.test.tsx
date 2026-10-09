@@ -70,6 +70,17 @@ describe("Dna", () => {
     expect(within(stats).getByText("Drama")).toBeInTheDocument();
   });
 
+  it("in Russian: traits in lower case inside the sentence, a decimal comma, the genre translated", async () => {
+    renderWithProviders(<Dna />, { ...ROUTE, lang: "ru" });
+    expect(
+      await screen.findByText("“Вам ближе всего фильмы, в которых сильны сюжетные повороты, психологизм и загадочность.”"),
+    ).toBeInTheDocument();
+    const stats = screen.getByRole("region", { name: "Статистика" });
+    expect(within(stats).getByText("7,6")).toBeInTheDocument();
+    expect(within(stats).getByText("Драма")).toBeInTheDocument();
+    expect(screen.getByText("В цифрах")).toBeInTheDocument();
+  });
+
   it("shows the chart first, and the exact values behind Numbers, closed until opened", async () => {
     renderWithProviders(<Dna />);
     const chart = await screen.findByRole("img", {
@@ -108,6 +119,6 @@ describe("summary helpers", () => {
   it("prefers the API's summary when there is one", () => {
     const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string | number>) =>
       translate("en", key, vars);
-    expect(summarize({ ...DNA, summary: "Given." }, t)).toBe("Given.");
+    expect(summarize({ ...DNA, summary: "Given." }, t, "en")).toBe("Given.");
   });
 });

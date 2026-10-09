@@ -86,7 +86,11 @@ export function authClientOptions(supabaseUrl: string, anonKey: string): Supabas
 export function createSupabaseAuth(): AuthClient | null {
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
+  if (!url || !anonKey) {
+    // For whoever deploys; the person on /welcome only reads that sign-in is unavailable.
+    console.error("Sign-in is not configured: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are needed.");
+    return null;
+  }
 
   const auth = new SupabaseAuthClient(authClientOptions(url, anonKey));
   const redirectTo = `${window.location.origin}/`;

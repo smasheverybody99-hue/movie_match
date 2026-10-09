@@ -1,6 +1,6 @@
 import { useEffect, useId } from "react";
 
-import { useT } from "../i18n";
+import { useI18n } from "../i18n";
 import { score as formatScore } from "../lib/format";
 import { TRAIT_KEYS, type TraitKey } from "../lib/traits";
 import { traitLabelKey } from "./Traits";
@@ -33,7 +33,7 @@ export function RatingInput({
   aspects: TraitKey[];
   onAspectsChange: (aspects: TraitKey[]) => void;
 }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const id = useId();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function RatingInput({
   return (
     <div>
       <div className="score-big" aria-hidden="true">
-        {formatScore(value)}
+        {formatScore(value, lang)}
       </div>
       <div className="meta" aria-hidden="true">
         {t("onboarding.rate.outOf")}
@@ -70,7 +70,7 @@ export function RatingInput({
         max={10}
         step={0.5}
         value={value}
-        aria-valuetext={formatScore(value)}
+        aria-valuetext={formatScore(value, lang)}
         aria-describedby={`${id}-hint`}
         onChange={(e) => onChange(Number(e.target.value))}
       />

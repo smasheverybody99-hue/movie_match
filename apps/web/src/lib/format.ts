@@ -1,5 +1,5 @@
 import type { Translate } from "../i18n";
-import type { Movie } from "./types";
+import type { Lang, Movie } from "./types";
 
 const TMDB_IMAGES = "https://image.tmdb.org/t/p";
 
@@ -34,7 +34,7 @@ export function initials(title: string): string {
     .toUpperCase();
 }
 
-/** One decimal, the way scores are shown: 8 -> "8.0". */
-export function score(value: number): string {
-  return value.toFixed(1);
+/** One decimal in the language's own way: 8 -> "8.0" in English, "8,0" in Russian and Uzbek. */
+export function score(value: number, lang: Lang): string {
+  return new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }

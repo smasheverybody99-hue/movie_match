@@ -94,7 +94,7 @@ describe("Feed", () => {
       uz.unmount();
       renderWithProviders(<Feed />, { lang: "ru" });
       await act(async () => {});
-      expect(screen.getByTestId("loading")).toHaveTextContent("Подбираем ваши фильмы…");
+      expect(screen.getByTestId("loading")).toHaveTextContent("Подбираем фильмы для вас…");
     });
   });
 

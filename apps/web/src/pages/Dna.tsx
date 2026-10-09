@@ -4,12 +4,13 @@ import { useState } from "react";
 import { DnaFlower } from "../components/DnaFlower";
 import { Icon } from "../components/Icon";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
-import { TraitBar, traitLabelKey } from "../components/Traits";
-import { useT, type Translate } from "../i18n";
+import { TraitBar, traitInSentence, traitLabelKey } from "../components/Traits";
+import { useI18n, useT, type Translate } from "../i18n";
 import { score } from "../lib/format";
+import { genreLabel } from "../lib/genres";
 import { useDna } from "../lib/queries";
 import { isTraitKey, type TraitKey } from "../lib/traits";
-import type { MovieDna } from "../lib/types";
+import type { Lang, MovieDna } from "../lib/types";
 
 /** The taste vector as [trait, score], strongest first; ties keep the vector order. */
 export function sortedTraits(scores: Record<string, number>): [TraitKey, number][] {
@@ -23,9 +24,9 @@ export function sortedTraits(scores: Record<string, number>): [TraitKey, number]
  * server-side (backlog), the sentence names the three strongest dimensions — the same
  * numbers the bars show, so it can never say something the profile doesn't.
  */
-export function summarize(dna: MovieDna, t: Translate): string {
+export function summarize(dna: MovieDna, t: Translate, lang: Lang): string {
   if (dna.summary) return dna.summary;
-  const [a, b, c] = sortedTraits(dna.scores).map(([key]) => t(traitLabelKey(key)));
+  const [a, b, c] = sortedTraits(dna.scores).map(([key]) => traitInSentence(key, t, lang));
   return t("dna.summary", { a: a ?? "", b: b ?? "", c: c ?? "" });
 }
 
@@ -77,7 +78,7 @@ function Share({ text }: { text: string }) {
 
 /** /dna — the taste profile (FR-7). Below 10 ratings: "rate N more", never empty bars. */
 export default function Dna() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const query = useDna();
 
   return (
@@ -103,7 +104,7 @@ export default function Dna() {
             </>
           );
         }
-        const summary = summarize(dna, t);
+        const summary = summarize(dna, t, lang);
         const shareText = t("dna.shareText", {
           traits: traits
             .slice(0, 5)
@@ -141,11 +142,11 @@ export default function Dna() {
                   </div>
                   <div>
                     <dt>{t("dna.statAverage")}</dt>
-                    <dd>{dna.average_rating !== null ? score(dna.average_rating) : "—"}</dd>
+                    <dd>{dna.average_rating !== null ? score(dna.average_rating, lang) : "—"}</dd>
                   </div>
                   <div>
                     <dt>{t("dna.statGenre")}</dt>
-                    <dd>{dna.top_genre ?? "—"}</dd>
+                    <dd>{dna.top_genre ? genreLabel(dna.top_genre, t) : "—"}</dd>
                   </div>
                 </dl>
               </section>

@@ -41,6 +41,7 @@ export const en = {
   "common.save": "Save",
   "common.minutes": "{n}m",
   "band.strong": "Strong match",
+  "band.strongHeading": "Strong match",
   "common.poster": "Poster for {title}",
   "common.loading": "Loading",
   "common.saving": "Saving…",
@@ -57,8 +58,7 @@ export const en = {
   "welcome.emailInvalid": "Enter a full email address, like you@example.com",
   "welcome.error": "Couldn't sign you in. Check your connection and try again.",
   "welcome.providerOff": "This sign-in method isn't switched on yet. Use another one.",
-  "welcome.notConfigured":
-    "Sign-in isn't set up yet: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are needed.",
+  "welcome.notConfigured": "Sign-in is unavailable right now. Try again later.",
   "welcome.terms": "By continuing you accept the Terms and Privacy Policy.",
   "welcome.about": "About",
 
@@ -221,6 +221,27 @@ export const en = {
 
   "notFound.title": "This page doesn't exist",
   "notFound.cta": "Go home",
+
+  // TMDB's genre names as the API sends them (lib/genres.ts)
+  "genre.action": "Action",
+  "genre.adventure": "Adventure",
+  "genre.animation": "Animation",
+  "genre.comedy": "Comedy",
+  "genre.crime": "Crime",
+  "genre.documentary": "Documentary",
+  "genre.drama": "Drama",
+  "genre.family": "Family",
+  "genre.fantasy": "Fantasy",
+  "genre.history": "History",
+  "genre.horror": "Horror",
+  "genre.music": "Music",
+  "genre.mystery": "Mystery",
+  "genre.romance": "Romance",
+  "genre.science_fiction": "Science Fiction",
+  "genre.thriller": "Thriller",
+  "genre.tv_movie": "TV Movie",
+  "genre.war": "War",
+  "genre.western": "Western",
 
   // packages/shared/traits.json label_en
   "trait.psychological_complexity": "Psychological",

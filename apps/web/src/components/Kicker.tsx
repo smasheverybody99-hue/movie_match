@@ -12,7 +12,7 @@ export function Kicker({ band, as: Tag = "h2", id }: { band: MatchBand | null | 
   const strong = shownBand(band) === "strong";
   return (
     <Tag className={strong ? "kicker kicker-strong" : "kicker"} id={id}>
-      {strong ? t("band.strong") : t("movie.whyKicker")}
+      {strong ? t("band.strongHeading") : t("movie.whyKicker")}
     </Tag>
   );
 }

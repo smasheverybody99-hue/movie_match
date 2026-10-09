@@ -93,6 +93,24 @@ describe("dictionaries", () => {
     }
     expect(sharedSpec.dimensions.map((d) => d.key)).toEqual([...TRAIT_KEYS]);
   });
+
+  it("never shows a person the setup's variable names", () => {
+    for (const lang of LANGS) {
+      expect(DICTIONARIES[lang]["welcome.notConfigured"], lang).not.toMatch(/VITE_|SUPABASE/);
+    }
+  });
+
+  it("Russian: the match badge and the panel heading are two different words", () => {
+    expect(DICTIONARIES.ru["band.strong"]).toBe("Точное совпадение");
+    expect(DICTIONARIES.ru["band.strongHeading"]).toBe("Больше всего подходит");
+  });
+
+  it("Russian names the section Movie DNA and never declines it", () => {
+    const texts = Object.values(DICTIONARIES.ru).flatMap(forms);
+    // "DNA" only inside the name; a film's own profile is ДНК
+    for (const text of texts) expect(text.replace(/Movie DNA/g, ""), text).not.toMatch(/DNA/);
+    expect(texts.filter((text) => /свою Movie DNA|Моя Movie DNA/.test(text))).toEqual([]);
+  });
 });
 
 describe("format and translate", () => {
@@ -127,7 +145,7 @@ describe("format and translate", () => {
     [24, "фильма"],
   ])("picks the Russian form for %i: %s", (n, word) => {
     expect(translate("ru", "dna.rateMore", { n })).toBe(
-      `Оцените ещё ${n} ${word}, чтобы открыть свою Movie DNA.`,
+      `Оцените ещё ${n} ${word}, чтобы открыть раздел Movie DNA.`,
     );
   });
 

@@ -10,10 +10,11 @@ import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, LoadingMark, SavingLabel, Skeleton } from "../components/States";
-import { AxisLegend, TraitAxis, traitLabelKey } from "../components/Traits";
-import { useT } from "../i18n";
+import { AxisLegend, TraitAxis, traitInSentence } from "../components/Traits";
+import { useI18n, useT } from "../i18n";
 import { isNotFound } from "../lib/api";
 import { imageUrl, releaseYear, score } from "../lib/format";
+import { genreLabel } from "../lib/genres";
 import { usePrefersReducedMotion } from "../lib/motion";
 import {
   useDna,
@@ -85,7 +86,7 @@ function Tags({ detail }: { detail: MovieDetail }) {
   const tags = [
     ...(year ? [year] : []),
     ...(detail.runtime_minutes ? [t("common.minutes", { n: detail.runtime_minutes })] : []),
-    ...detail.genres,
+    ...detail.genres.map((genre) => genreLabel(genre, t)),
   ];
   if (!tags.length) return null;
   return (
@@ -108,7 +109,7 @@ function Tags({ detail }: { detail: MovieDetail }) {
  * same size, without axes.
  */
 function Why({ detail }: { detail: MovieDetail }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const reduce = usePrefersReducedMotion();
   const dna = useDna();
   const reasons = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
@@ -127,7 +128,7 @@ function Why({ detail }: { detail: MovieDetail }) {
   }
   const sentence = reasons.length
     ? (explanation.data?.text ??
-      t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") }))
+      t("movie.whyYouFallback", { traits: reasons.map((key) => traitInSentence(key, t, lang)).join(", ") }))
     : t("movie.whyYouGeneral");
   const film = detail.traits?.scores ?? {};
   const taste = tasteScores(dna.data?.scores);
@@ -192,7 +193,7 @@ function Compare({ detail }: { detail: MovieDetail }) {
 }
 
 function Actions({ detail }: { detail: MovieDetail }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const ratings = useRatings();
   const watchlist = useWatchlist();
   const change = useWatchlistChange();
@@ -205,7 +206,7 @@ function Actions({ detail }: { detail: MovieDetail }) {
     <>
       {mine && (
         <p className="meta" data-testid="my-rating">
-          {t("movie.yourRating", { score: score(mine.score) })}
+          {t("movie.yourRating", { score: score(mine.score, lang) })}
         </p>
       )}
       {rate.isError && (
@@ -225,7 +226,7 @@ function Actions({ detail }: { detail: MovieDetail }) {
           }}
         >
           <SavingLabel saving={rate.isPending}>
-            <Icon as={Gauge} /> {mine ? t("movie.yourRating", { score: score(mine.score) }) : t("movie.rate")}
+            <Icon as={Gauge} /> {mine ? t("movie.yourRating", { score: score(mine.score, lang) }) : t("movie.rate")}
           </SavingLabel>
         </button>
         <button

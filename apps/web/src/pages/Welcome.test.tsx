@@ -57,7 +57,7 @@ describe("Welcome", () => {
 
   it("explains when sign-in is not configured instead of failing silently", () => {
     renderWithProviders(<Welcome />, { ...ROUTE, auth: null });
-    expect(screen.getByRole("alert")).toHaveTextContent("Sign-in isn't set up yet");
+    expect(screen.getByRole("alert")).toHaveTextContent("Sign-in is unavailable right now. Try again later.");
     expect(screen.getByRole("button", { name: "Continue with Google" })).toBeDisabled();
   });
 

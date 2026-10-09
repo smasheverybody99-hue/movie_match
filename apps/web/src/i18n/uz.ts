@@ -30,6 +30,7 @@ export const uz: Record<MessageKey, Message> = {
   "common.save": "Saqlash",
   "common.minutes": "{n} daq",
   "band.strong": "Kuchli moslik",
+  "band.strongHeading": "Kuchli moslik",
   "common.poster": "{title} posteri",
   "common.loading": "Yuklanmoqda",
   "common.saving": "Saqlanmoqda…",
@@ -47,8 +48,7 @@ export const uz: Record<MessageKey, Message> = {
   "welcome.emailInvalid": "Email manzilini to'liq kiriting, masalan: siz@misol.uz",
   "welcome.error": "Kirib bo'lmadi. Internetni tekshirib, qayta urining.",
   "welcome.providerOff": "Bu usul hozircha yoqilmagan. Boshqa usul bilan kiring.",
-  "welcome.notConfigured":
-    "Kirish hali sozlanmagan: VITE_SUPABASE_URL va VITE_SUPABASE_ANON_KEY kerak.",
+  "welcome.notConfigured": "Kirish hozircha ishlamayapti. Keyinroq urinib ko'ring.",
   "welcome.terms": "Davom etsangiz, Foydalanish shartlari va Maxfiylik siyosatini qabul qilasiz.",
   "welcome.about": "Loyiha haqida",
 
@@ -208,6 +208,27 @@ export const uz: Record<MessageKey, Message> = {
 
   "notFound.title": "Bunday sahifa yo'q",
   "notFound.cta": "Bosh sahifaga",
+
+  // TMDB genres (lib/genres.ts)
+  "genre.action": "Jangari",
+  "genre.adventure": "Sarguzasht",
+  "genre.animation": "Animatsiya",
+  "genre.comedy": "Komediya",
+  "genre.crime": "Kriminal",
+  "genre.documentary": "Hujjatli",
+  "genre.drama": "Drama",
+  "genre.family": "Oilaviy",
+  "genre.fantasy": "Fentezi",
+  "genre.history": "Tarixiy",
+  "genre.horror": "Qo'rqinchli",
+  "genre.music": "Musiqiy",
+  "genre.mystery": "Detektiv",
+  "genre.romance": "Romantik",
+  "genre.science_fiction": "Ilmiy fantastika",
+  "genre.thriller": "Triller",
+  "genre.tv_movie": "Telefilm",
+  "genre.war": "Harbiy",
+  "genre.western": "Vestern",
 
   // Traits: packages/shared/traits.json label_uz
   "trait.psychological_complexity": "Psixologik",
