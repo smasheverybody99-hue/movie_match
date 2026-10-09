@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { TASTE } from "../dev/fixtures";
 import { TRAIT_KEYS } from "../lib/traits";
 import { renderWithProviders } from "../test/utils";
-import { DnaFlower, rayAngle, rayLength, rayOpacity, shapePoints } from "./DnaFlower";
+import { DnaFlower, lines, rayAngle, rayLength, rayOpacity, shapePoints } from "./DnaFlower";
 
 describe("DnaFlower", () => {
   it("is one image with the summary as its label", () => {
@@ -66,5 +66,14 @@ describe("DnaFlower", () => {
     expect(document.querySelectorAll(".dna-label")).toHaveLength(14);
     const long = screen.getByTestId("ray-emotional_intensity").querySelectorAll("tspan");
     expect([...long].map((s) => s.textContent)).toEqual(["Emotional", "intensity"]);
+  });
+});
+
+describe("DnaFlower labels", () => {
+  it("puts a label of 12 characters or more on two lines, at the space nearest the middle", () => {
+    expect(lines("Накал эмоций")).toEqual(["Накал", "эмоций"]); // 12: one line ran past a phone
+    expect(lines("Emotional intensity")).toEqual(["Emotional", "intensity"]);
+    expect(lines("Plot twists")).toEqual(["Plot twists"]); // 11
+    expect(lines("Динамичность")).toEqual(["Динамичность"]); // one word stays whole
   });
 });

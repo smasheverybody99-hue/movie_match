@@ -38,9 +38,13 @@ export function shapePoints(scores: Partial<Record<TraitKey, number>>): string {
   }).join(" ");
 }
 
-/** A long label on two lines, split at the space nearest its middle. */
-function lines(label: string): string[] {
-  if (label.length <= 12 || !label.includes(" ")) return [label];
+/**
+ * A label of 12 characters or more on two lines, split at the space nearest its middle.
+ * 12, not 13: ru "Накал эмоций" on one line ran past a 390px screen when it was among
+ * the strongest (the larger size).
+ */
+export function lines(label: string): string[] {
+  if (label.length < 12 || !label.includes(" ")) return [label];
   const mid = label.length / 2;
   let best = -1;
   for (let i = label.indexOf(" "); i !== -1; i = label.indexOf(" ", i + 1)) {
