@@ -101,7 +101,7 @@ describe("dictionaries", () => {
   });
 
   it("Russian: the match badge and the panel heading are two different words", () => {
-    expect(DICTIONARIES.ru["band.strong"]).toBe("Точное совпадение");
+    expect(DICTIONARIES.ru["band.strong"]).toBe("Сильное совпадение");
     expect(DICTIONARIES.ru["band.strongHeading"]).toBe("Больше всего подходит");
   });
 

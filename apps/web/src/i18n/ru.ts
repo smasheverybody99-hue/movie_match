@@ -34,7 +34,7 @@ export const ru: Record<MessageKey, Message> = {
   "common.cancel": "Отмена",
   "common.save": "Сохранить",
   "common.minutes": "{n} мин",
-  "band.strong": "Точное совпадение",
+  "band.strong": "Сильное совпадение",
   "band.strongHeading": "Больше всего подходит",
   "common.poster": "Постер фильма «{title}»",
   "common.loading": "Загрузка",
