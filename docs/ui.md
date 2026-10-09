@@ -869,12 +869,18 @@ manfiy margin'i o'ram orqali o'tib, o'ramni 84px siljitardi (0.0467, o'lchovda t
 Bundle (2-bosqichga nisbatan): JS +0.83 kB (gzip +0.36 kB), CSS +0.99 kB (gzip +0.19 kB).
 Testlar: 244.
 
-**Topilgan, bu bosqichdan oldin bor nuqson (tuzatilmagan):** film sahifasidagi Rate dialogi
-`.film-head` ichida chiziladi, u esa `position: relative; z-index: 1` — alohida qatlam
-(stacking context). Shuning uchun dialog (z-index 70) telefonda yuqori panel (20) va pastki
-menyu (30) ostida, 1440 da qidiruv qatori ostida qoladi. HEAD'da ham aynan shunday
-(2026-10-09, `elementFromPoint` bilan). Taklif: dialogni `document.body` ga portal bilan
-chizish.
+**Topilgan va tuzatilgan nuqson (2026-10-09):** film sahifasidagi Rate dialogi `.film-head`
+ichida chizilardi, u esa `position: relative; z-index: 1` — alohida qatlam (stacking
+context); `.main` esa o'lcham konteyneri (`container-type`). Shuning uchun dialog (z-index 70)
+telefonda yuqori panel (20) va pastki menyu (30) ostida, 1440 da qidiruv qatori ostida
+qolardi (HEAD'da ham shunday edi). **Tuzatildi:** `Dialog.tsx` endi `document.body` ga portal
+bilan chiziladi; React hodisalari va konteksti komponent daraxti bo'ylab ketadi, klaviatura
+boshqaruvi o'zgarmadi. Tekshiruv, haqiqiy Chrome (`elementFromPoint`, ekranning to'rt
+burchagi va markazi): film sahifasi 390 va 1440, profil 390 — hammasida dialog; fokus
+ichida, Escape va fon bosilishi yopadi, fokus ochgan tugmaga qaytadi; ochiq dialogda axe 0,
+CLS 0. Testlar (`Dialog.test.tsx`): backdrop — `body` ning bevosita farzandi; Tab aylanadi,
+fokus qaytadi. Ustida turishini jsdom tekshira olmaydi (layout yo'q, `elementFromPoint`
+ishlamaydi) — bu brauzer o'lchovida.
 
 ### 10. Mobil paritet
 

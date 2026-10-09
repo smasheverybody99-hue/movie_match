@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { usePrefersReducedMotion } from "../lib/motion";
 
@@ -37,6 +38,10 @@ export function DialogCancel({ children }: { children: ReactNode }) {
  * backdrop close it; Tab stays inside; focus returns to whatever opened it.
  * In: the backdrop fades and the sheet grows from 96% (160 ms, ease-out). Out: the reverse
  * in 120 ms, ease-in, and only then `onClose`. With reduced motion it closes at once.
+ * Drawn into document.body (a portal): wherever it is opened from, no ancestor's stacking
+ * context or containment can hold it under the top bar, the bottom nav or the search row
+ * (the film page's head is `z-index: 1`; `.main` is a size container). React events and
+ * context still follow the component tree, so the keyboard handling below is unchanged.
  */
 export function Dialog({
   title,
@@ -102,7 +107,7 @@ export function Dialog({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className={closing ? "dialog-backdrop is-closing" : "dialog-backdrop"}
       onMouseDown={(e) => {
@@ -120,6 +125,7 @@ export function Dialog({
         <h2 id={id}>{title}</h2>
         <CloseContext.Provider value={close}>{children}</CloseContext.Provider>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
