@@ -1,6 +1,6 @@
 import { Bookmark, Dna, House, Search, type LucideIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useMatch, useNavigate } from "react-router-dom";
 
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
@@ -34,7 +34,7 @@ function TopSearch() {
   function submit(event: FormEvent) {
     event.preventDefault();
     const text = q.trim();
-    navigate(text ? `/search?q=${encodeURIComponent(text)}` : "/search", { viewTransition: true });
+    navigate(text ? `/search?q=${encodeURIComponent(text)}` : "/search");
     setQ("");
   }
 
@@ -67,7 +67,7 @@ export function OfflineBanner() {
 function Brand({ size }: { size: number }) {
   const t = useT();
   return (
-    <NavLink to="/" className="brand" aria-label={t("app.name")} viewTransition>
+    <NavLink to="/" className="brand" aria-label={t("app.name")}>
       <Logo size={size} className="brand-logo" />
       <span aria-hidden="true">{t("app.name").toUpperCase()}</span>
     </NavLink>
@@ -86,6 +86,7 @@ function Avatar() {
 
 export function AppShell() {
   const t = useT();
+  const location = useLocation();
   return (
     <div className="shell">
       <a href="#main" className="skip-link">
@@ -97,7 +98,7 @@ export function AppShell() {
           <ul className="nav-list">
             {SECTIONS.map((s) => (
               <li key={s.to}>
-                <NavLink to={s.to} end={s.end} className="nav-link" viewTransition>
+                <NavLink to={s.to} end={s.end} className="nav-link">
                   <span className="nav-icon">
                     <Icon as={s.icon} />
                   </span>
@@ -108,7 +109,7 @@ export function AppShell() {
           </ul>
         </nav>
         <div className="sidebar-foot">
-          <NavLink to="/profile" className="nav-link" viewTransition>
+          <NavLink to="/profile" className="nav-link">
             <Avatar />
             {t("nav.profile")}
           </NavLink>
@@ -119,7 +120,7 @@ export function AppShell() {
         <OfflineBanner />
         <header className="topbar">
           <Brand size={28} />
-          <NavLink to="/profile" className="avatar-link" aria-label={t("nav.profile")} viewTransition>
+          <NavLink to="/profile" className="avatar-link" aria-label={t("nav.profile")}>
             <Avatar />
           </NavLink>
         </header>
@@ -127,11 +128,15 @@ export function AppShell() {
           <TopSearch />
         </div>
         <main id="main" className="page" tabIndex={-1}>
-          <Outlet />
+          {/* Keyed by path: a new page is new content and fades in (120 ms, opacity only:
+              a transform would carry the page's fixed bars with it). The shell stays. */}
+          <div key={location.pathname} className="page-enter">
+            <Outlet />
+          </div>
         </main>
         <nav className="bottom-nav" aria-label={t("nav.label")}>
           {SECTIONS.map((s) => (
-            <NavLink key={s.to} to={s.to} end={s.end} viewTransition>
+            <NavLink key={s.to} to={s.to} end={s.end}>
               <span className="nav-icon">
                 <Icon as={s.icon} size={22} />
               </span>

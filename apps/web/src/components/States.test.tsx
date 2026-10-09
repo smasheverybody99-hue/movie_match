@@ -55,3 +55,21 @@ describe("offline", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
+
+describe("content after loading", () => {
+  it("fades in where the skeleton was, once it has waited for it", async () => {
+    renderWithProviders(<Probe fetcher={async () => "arrived"} />);
+    expect(screen.getByText("skeleton")).toBeInTheDocument();
+    const content = await screen.findByText("arrived");
+    expect(content.parentElement).toHaveClass("arrive");
+  });
+
+  it("is simply there when it comes from the cache: nothing fades", async () => {
+    const { queryClient, unmount } = renderWithProviders(<Probe fetcher={async () => "cached"} />);
+    await screen.findByText("cached");
+    unmount();
+    renderWithProviders(<Probe fetcher={async () => "cached"} />, { queryClient });
+    const content = screen.getByText("cached");
+    expect(content.parentElement).not.toHaveClass("arrive");
+  });
+});

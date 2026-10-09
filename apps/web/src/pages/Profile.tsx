@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Dialog } from "../components/Dialog";
+import { Dialog, DialogCancel } from "../components/Dialog";
 import { FieldError } from "../components/FieldError";
 import { LANGS, useI18n, useT } from "../i18n";
 import { useAuth } from "../lib/auth";
@@ -96,9 +96,7 @@ export default function Profile() {
             <FieldError>{t("profile.deleteError")}</FieldError>
           )}
           <div className="foot-actions">
-            <button type="button" className="btn btn-ghost" onClick={() => setConfirming(false)}>
-              {t("common.cancel")}
-            </button>
+            <DialogCancel>{t("common.cancel")}</DialogCancel>
             <button
               type="button"
               className="btn btn-primary"

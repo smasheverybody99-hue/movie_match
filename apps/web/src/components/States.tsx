@@ -1,5 +1,5 @@
 import type { UseQueryResult } from "@tanstack/react-query";
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { useT } from "../i18n";
@@ -172,7 +172,14 @@ export function QueryView<T>({
   children: (data: T) => ReactNode;
 }) {
   const t = useT();
-  if (query.data !== undefined) return <>{children(query.data)}</>;
+  // Content that replaces a loading state fades in (160 ms, docs/ui.md 7); content that
+  // was already in the cache is simply there.
+  const [waited, setWaited] = useState(false);
+  const loadingNow = query.data === undefined && query.isPending && query.fetchStatus !== "paused";
+  if (loadingNow && !waited) setWaited(true);
+  if (query.data !== undefined) {
+    return waited ? <div className="arrive">{children(query.data)}</div> : <>{children(query.data)}</>;
+  }
   if (query.isPending && query.fetchStatus === "paused") {
     return <ErrorState message={t("common.offlineNoCache")} onRetry={() => void query.refetch()} />;
   }

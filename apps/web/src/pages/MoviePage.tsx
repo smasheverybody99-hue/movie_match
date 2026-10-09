@@ -290,6 +290,9 @@ export default function MoviePage() {
   const params = useParams();
   const id = Number(params.id);
   const query = useMovie(Number.isInteger(id) ? id : 0);
+  // After the skeleton the page fades in (160 ms); from the cache it is simply there.
+  const [waited, setWaited] = useState(false);
+  if (query.data === undefined && query.isPending && !waited) setWaited(true);
 
   if (!Number.isInteger(id) || id <= 0 || isNotFound(query.error)) {
     return <EmptyState message={t("movie.notFound")} action={{ label: t("movie.notFoundCta"), to: "/" }} />;
@@ -306,7 +309,7 @@ export default function MoviePage() {
 
   const detail = query.data;
   return (
-    <article className="film-page">
+    <article className={waited ? "film-page arrive" : "film-page"}>
       <Hero detail={detail} />
       <header className="film-head">
         <Poster title={detail.title} path={detail.poster_path} describe eager />

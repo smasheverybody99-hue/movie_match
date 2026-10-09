@@ -28,6 +28,9 @@ import {
 import type { TraitKey } from "../lib/traits";
 import type { Movie } from "../lib/types";
 
+/** The steps in order: a higher number is forward. */
+const STEP_ORDER: Record<OnboardingProgress["step"], number> = { pick: 0, rate: 1, done: 2 };
+
 /** FR-3: no recommendations before 10 ratings. */
 export const REQUIRED_RATINGS = 10;
 const DEFAULT_SCORE = 7;
@@ -306,6 +309,14 @@ function Flow({ userId }: { userId: string }) {
   const forgetRecommendations = useForgetRecommendations();
   const ratedCount = ratings.data?.length ?? 0;
   const [progress, setProgress] = useState<OnboardingProgress>(() => loadProgress(userId));
+  // Which way the last step change went, for the slide (docs/ui.md 7): forward from the
+  // right, back from the left. Nothing slides on the first screen (also after a reload).
+  const [shown, setShown] = useState(progress.step);
+  const [slide, setSlide] = useState<"forward" | "back" | null>(null);
+  if (progress.step !== shown) {
+    setSlide(STEP_ORDER[progress.step] > STEP_ORDER[shown] ? "forward" : "back");
+    setShown(progress.step);
+  }
 
   const update = useCallback(
     (next: Partial<OnboardingProgress>) => {
@@ -329,28 +340,31 @@ function Flow({ userId }: { userId: string }) {
     <>
       <OfflineBanner />
       <main className="onboarding" id="main">
-        {progress.step === "pick" && <PickStep progress={progress} update={update} ratedCount={ratedCount} />}
-        {progress.step === "rate" && (
-          // Keyed by film: each film starts from the default score and a clean error state.
-          // (An effect that reset them ran after the first paint and could undo a score
-          // given in between.)
-          <RateStep
-            key={progress.picks[progress.index]?.id ?? "none"}
-            progress={progress}
-            update={update}
-            ratedCount={ratedCount}
-          />
-        )}
-        {progress.step === "done" && (
-          <>
-            <Progress step={3} />
-            <h1 className="screen-title">{t("onboarding.done.title")}</h1>
-            <p>{t("onboarding.done.body", { n: ratedCount })}</p>
-            <button type="button" className="btn btn-primary" onClick={finish} autoFocus>
-              {t("onboarding.done.cta")}
-            </button>
-          </>
-        )}
+        {/* Keyed by step: each step is new content sliding in; the fixed foot bar stays put. */}
+        <div key={progress.step} className={slide ? `step step-${slide}` : "step"}>
+          {progress.step === "pick" && <PickStep progress={progress} update={update} ratedCount={ratedCount} />}
+          {progress.step === "rate" && (
+            // Keyed by film: each film starts from the default score and a clean error state.
+            // (An effect that reset them ran after the first paint and could undo a score
+            // given in between.)
+            <RateStep
+              key={progress.picks[progress.index]?.id ?? "none"}
+              progress={progress}
+              update={update}
+              ratedCount={ratedCount}
+            />
+          )}
+          {progress.step === "done" && (
+            <>
+              <Progress step={3} />
+              <h1 className="screen-title">{t("onboarding.done.title")}</h1>
+              <p>{t("onboarding.done.body", { n: ratedCount })}</p>
+              <button type="button" className="btn btn-primary" onClick={finish} autoFocus>
+                {t("onboarding.done.cta")}
+              </button>
+            </>
+          )}
+        </div>
       </main>
     </>
   );

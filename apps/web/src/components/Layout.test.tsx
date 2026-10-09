@@ -45,4 +45,18 @@ describe("AppShell", () => {
     shellAt("/search");
     expect(screen.queryByRole("search")).toBeNull();
   });
+
+  it("fades a new page in as new content; the shell itself is not part of it", async () => {
+    shellAt("/");
+    const home = screen.getByText("home").closest(".page-enter");
+    expect(home).not.toBeNull();
+    // the navigation sits outside the fading content
+    const [sidebar] = screen.getAllByRole("navigation", { name: "Main sections" });
+    expect(home).not.toContainElement(sidebar as HTMLElement);
+
+    await userEvent.click(within(sidebar as HTMLElement).getByRole("link", { name: "Search" }));
+    const search = (await screen.findByTestId("q")).closest(".page-enter");
+    expect(search).not.toBeNull();
+    expect(search).not.toBe(home); // a new element: the fade runs again
+  });
 });

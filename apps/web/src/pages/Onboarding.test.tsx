@@ -204,6 +204,26 @@ describe("Onboarding", () => {
     expect(rate).toHaveBeenCalledTimes(1);
   });
 
+  it("slides a new step in from the right going forward, from the left going back, not on arrival", async () => {
+    saveProgress(TEST_SESSION.userId, { step: "pick", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    const pick = await screen.findByRole("heading", { level: 1, name: "Which ones did you love?" });
+    expect(pick.closest(".step")).not.toHaveClass("step-forward");
+    expect(pick.closest(".step")).not.toHaveClass("step-back");
+
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    const rate = await screen.findByRole("heading", { level: 1, name: "How much did you like it?" });
+    expect(rate.closest(".step")).toHaveClass("step-forward");
+  });
+
+  it("slides back from the left when the rate step sends you to pick more", async () => {
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: [], index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await userEvent.click(await screen.findByRole("button", { name: "Pick more films" }));
+    const pick = await screen.findByRole("heading", { level: 1, name: "Which ones did you love?" });
+    expect(pick.closest(".step")).toHaveClass("step-back");
+  });
+
   it("restores the rating position after a remount", async () => {
     saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
     const first = renderWithProviders(<Onboarding />, ROUTE);

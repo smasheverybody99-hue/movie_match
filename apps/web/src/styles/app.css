@@ -148,6 +148,7 @@ a { color: inherit; }
 }
 
 .offline-banner {
+  animation: banner-down 160ms ease-out both;
   position: sticky; top: 0; z-index: 40;
   background: var(--surface-2); color: var(--text);
   border-bottom: 1px solid var(--gold);
@@ -235,7 +236,7 @@ a { color: inherit; }
 .field:focus { outline: none; border-color: var(--text); }
 .field[aria-invalid="true"] { border-color: var(--gold); }
 .field-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.field-error { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--text); margin-top: 6px; }
+.field-error { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--text); margin-top: 6px; animation: banner-down 160ms ease-out both; }
 .field-error .icon { color: var(--gold); margin-top: 2px; }
 select.field { appearance: auto; }
 
@@ -273,11 +274,13 @@ select.field { appearance: auto; }
 
 /* Quick actions (Home): a dark layer rising from the poster's foot with two outlined icon
    buttons. Shown on hover with a fine pointer, or on keyboard focus anywhere; the poster and
-   the layer grow 8% together and the poster casts a soft shadow, so the card lifts off the
-   row (it is drawn above its neighbours meanwhile). Transform, opacity and the shadow only.
+   the layer grow 3% together in 120 ms (in ease-out, out ease-in, docs/ui.md 7) and the
+   poster casts a soft shadow, so the card lifts off the row (it is drawn above its
+   neighbours meanwhile). Only transform and opacity move; the shadow is not animated. The
+   focus ring has no transition, so it is there at once with the keyboard.
    The layer fades out well below the top, so the red match badge stays clear. */
-.has-quick { --lift: 1.08; }
-.has-quick .poster { transition: transform 200ms ease, box-shadow 200ms ease; }
+.has-quick { --lift: 1.03; }
+.has-quick .poster { transition: transform 120ms ease-in; }
 .card-quick {
   position: absolute; left: 0; right: 0; top: 0; z-index: 1; aspect-ratio: 2 / 3;
   display: flex; align-items: flex-end; justify-content: center; gap: var(--space-2);
@@ -287,7 +290,7 @@ select.field { appearance: auto; }
     color-mix(in srgb, var(--bg) 70%, transparent) 35%,
     transparent 70%);
   opacity: 0; pointer-events: none;
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 120ms ease-in, transform 120ms ease-in;
 }
 .quick-btn {
   width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
@@ -296,12 +299,12 @@ select.field { appearance: auto; }
 .quick-btn:hover { background: color-mix(in srgb, var(--text) 15%, transparent); }
 .has-quick:focus-within { z-index: 2; }
 .has-quick:focus-within .card-quick { opacity: 1; pointer-events: auto; }
-.has-quick:focus-within .poster, .has-quick:focus-within .card-quick { transform: scale(var(--lift)); }
+.has-quick:focus-within .poster, .has-quick:focus-within .card-quick { transform: scale(var(--lift)); transition-timing-function: ease-out; }
 .has-quick:focus-within .poster { box-shadow: 0 20px 44px 4px color-mix(in srgb, var(--bg) 95%, transparent); }
 @media (hover: hover) and (pointer: fine) {
   .has-quick:hover { z-index: 2; }
   .has-quick:hover .card-quick { opacity: 1; pointer-events: auto; }
-  .has-quick:hover .poster, .has-quick:hover .card-quick { transform: scale(var(--lift)); }
+  .has-quick:hover .poster, .has-quick:hover .card-quick { transform: scale(var(--lift)); transition-timing-function: ease-out; }
   .has-quick:hover .poster { box-shadow: 0 20px 44px 4px color-mix(in srgb, var(--bg) 95%, transparent); }
 }
 
@@ -418,7 +421,12 @@ select.field { appearance: auto; }
   bottom: calc(var(--bottom-nav-height) + var(--space-3)); z-index: 60;
   background: var(--surface-2); color: var(--text); border: 1px solid var(--line);
   padding: 10px var(--space-3); border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px);
+  animation: toast-up 160ms ease-out both;
 }
+/* Errors and messages arrive (docs/ui.md 7): a 160 ms fade and 8px of travel, from above
+   for the banners at the top and inline, from below for the toast (centred by translateX). */
+@keyframes banner-down { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes toast-up { from { opacity: 0; transform: translate(-50%, 8px); } to { transform: translate(-50%, 0); } }
 @media (min-width: 640px) { .toast { bottom: var(--space-4); } }
 
 /* ---------- welcome ---------- */
@@ -664,7 +672,7 @@ select.field { appearance: auto; }
 /* While the text can still arrive, its height is held (in lines of its own size). */
 .why-reserve { min-height: calc(4 * 1.3em); }
 .why-text { margin: 0; font: inherit; color: var(--text); }
-.why-in { animation: why-in 200ms ease-out both; }
+.why-in { animation: why-in 160ms ease-out both; }
 @keyframes why-in { from { opacity: 0; } to { opacity: 1; } }
 /* A skeleton bar per line of text: .6em tall, centred in its 1.3em line. A flex column, so
    the bars' margins add up instead of collapsing: three bars are exactly three lines. */
@@ -732,6 +740,16 @@ select.field { appearance: auto; }
 }
 @media (min-width: 640px) { .dialog-backdrop { align-items: center; } .dialog { border-radius: var(--radius); } }
 .dialog h2 { font-size: 20px; margin-bottom: var(--space-3); }
+/* In 160 ms ease-out: the backdrop fades, the sheet grows from 96%. Out 120 ms ease-in, the
+   reverse (Dialog.tsx waits for it before closing). Focus handling is unchanged. */
+.dialog-backdrop { animation: fade-in 160ms ease-out both; }
+.dialog { animation: dialog-in 160ms ease-out both; }
+.dialog-backdrop.is-closing { animation: fade-out 120ms ease-in both; pointer-events: none; }
+.dialog-backdrop.is-closing .dialog { animation: dialog-out 120ms ease-in both; }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes dialog-in { from { opacity: 0; transform: scale(.96); } }
+@keyframes dialog-out { to { opacity: 0; transform: scale(.96); } }
 
 /* ---------- search ---------- */
 .search-bar { position: sticky; top: 52px; z-index: 15; background: var(--bg); padding: var(--space-2) 0; }
@@ -831,13 +849,29 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .title-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
 .title-row .screen-title { margin: 0; }
 
-/* Page transitions (React Router's viewTransition): a short cross-fade. */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
+/* A new page fades in (AppShell keys the content by path, docs/ui.md 7): 120 ms, ease-out,
+   opacity only. No fill: once it has run nothing is left on the element, so it makes no
+   stacking context that would trap the page's dialogs and fixed bars under the top bar.
+   flow-root: the wrapper stays put for the whole visit, so a first child's negative top
+   margin (Home's hero, the film hero) must not collapse through it and move it (CLS). */
+.page-enter { display: flow-root; animation: fade-in 120ms ease-out; }
+
+/* Content that replaces a loading state (QueryView, the film page): a 160 ms fade where the
+   skeleton was. Opacity only, so nothing moves and fixed bars inside keep their place; no
+   fill, so no stacking context stays behind (the film page's rating dialog is inside it). */
+.arrive { animation: fade-in 160ms ease-out; }
+
+/* Onboarding steps (Onboarding.tsx): 200 ms, ease-out, forward from the right and back from
+   the left. Every child but the fixed foot bar moves (a transform on the wrapper would pin
+   the bar to it); the page clips the travel so 320px never scrolls sideways. */
+.onboarding { overflow-x: clip; }
+.step-forward > :not(.sticky-foot) { animation: step-from-right 200ms ease-out; }
+.step-back > :not(.sticky-foot) { animation: step-from-left 200ms ease-out; }
+@keyframes step-from-right { from { opacity: 0; transform: translateX(24px); } }
+@keyframes step-from-left { from { opacity: 0; transform: translateX(-24px); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  /* The rule above does not reach view-transition pseudo-elements. */
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 .aspects { border: none; padding: 0; margin: var(--space-3) 0 0; }

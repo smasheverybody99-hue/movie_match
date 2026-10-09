@@ -243,13 +243,27 @@ Ish: **2–3 kun** (testlari bilan).
 
 | Joy | Harakat | Davomiyligi |
 |---|---|---|
-| Sahifa o'tishlari | View Transitions API: React Router 7.18 dagi `viewTransition` (`Link`/`NavLink`). Qo'llamaydigan brauzer — oddiy o'tish | 200–250 ms |
-| Poster hover | `transform: scale(1.08)` + soya + qatlam paydo bo'lishi | 200 ms |
+| Sahifa o'tishlari | Yangi sahifa paydo bo'ladi: faqat opacity, ease-out. Yon menyu, yuqori panel va qidiruv qatori qimirlamaydi (2026-10-09, quyida) | 120 ms |
+| Poster hover va fokus | `transform: scale(1.03)` + qatlam paydo bo'lishi; kirish ease-out, chiqish ease-in; soya animatsiyasiz; fokus halqasi kechikmaydi | 120 ms |
+| Skeleton → kontent | Kontent skeleton o'rnida paydo bo'ladi (opacity); keshdan kelsa — animatsiyasiz | 160 ms |
+| Baholash dialogi | Ochilish: fon fade + varaq 0.96 → 1 (ease-out). Yopilish: teskari (ease-in), dialog shundan keyin yopiladi | 160 / 120 ms |
+| Onboarding qadamlari | Yon siljish 24px + opacity: oldinga o'ngdan, orqaga chapdan; pastki panel qimirlamaydi | 200 ms |
+| Xato va xabar bannerlari | Fade + 8px: offline banner va maydon xatosi yuqoridan, toast pastdan | 160 ms |
 | DNA guli | Nurlar markazdan ketma-ket o'sadi | 40 ms oraliq, jami ~900 ms |
 | Hero | Slaydlar crossfade | 400 ms |
 
 Qoidalar: faqat `transform` va `opacity` (layout emas); har animatsiya element birinchi
-paydo bo'lganda bir marta, har qayta chizishda emas.
+paydo bo'lganda bir marta, har qayta chizishda emas. Kirish ease-out, chiqish ease-in, hech
+biri 200 ms dan uzun emas (DNA guli va hero bundan mustasno — ular o'z bo'limlarida).
+
+**Tuzatish (2026-10-09): avvalgi "Sahifa o'tishlari — View Transitions, 200–250 ms" yozuvi
+noto'g'ri edi.** Ilova `BrowserRouter` ishlatadi; React Router 7.18 da `viewTransition`
+faqat data router'da (`createBrowserRouter` + `RouterProvider`) ishlaydi —
+`BrowserRouter` da prop jimgina e'tiborsiz qoladi (manba kodida tekshirildi: 
+`startViewTransition` faqat `RouterProvider` ichida). Haqiqiy Chrome'da navigatsiyada
+bironta o'tish animatsiyasi yo'q edi. Ishlamaydigan `viewTransition` proplari va
+`::view-transition-*` CSS olib tashlandi, o'rniga yuqoridagi 120 ms paydo bo'lish.
+To'liq o'tish (eski sahifa so'nib, yangisi 8px ko'tarilib) — backlog (TZ, 2-bo'lim).
 
 **`prefers-reduced-motion`:** CSS'da global qoida bor (`app.css`, barcha animatsiya va
 transition o'chadi). Lekin JS animatsiyalari (sanash, hero aylanishi, DNA ketma-ketligi) uni
@@ -821,6 +835,46 @@ xil: 171.2 / 219.3 px). axe 0 hammasida. Ikkita oldindan bor siljish (o'zgarmaga
 ham shu qiymat): izoh 1100px da to'rt qatorga chiqqanda 0.0016 (zaxira 3 qator) va 320 ru da
 0.0016 (matn 4 qatorlik zaxiradan uzun) — bu bosqichga kirmaydi.
 Bundle (1-bosqichga nisbatan): JS +1.74 kB (gzip +0.54 kB), CSS +1.05 kB (gzip +0.23 kB). Testlar: 236.
+
+### O'tish effektlari (2026-10-09, 3-bosqich)
+
+Qiymatlar 7-bo'lim jadvalida. Amalga oshirish:
+- **Sahifa:** `AppShell` kontentni yo'l bo'yicha kalitlaydi (`.page-enter`), yangi sahifa —
+  yangi element, 120 ms opacity. `transform` yo'q: u sahifadagi `position: fixed` panellarni
+  (telefonda film tugmalari) animatsiya paytida o'zi bilan olib ketardi (foydalanuvchi
+  qarori, variant B).
+- **Animatsiya tugagach hech narsa qolmaydi** (`fill` yo'q) sahifa, kontent paydo bo'lishi va
+  onboarding qadamlarida: opacity animatsiyasi amalda turgan element stacking context
+  yaratadi va ichidagi dialog (z-index 70) yuqori panel ostida qolib ketardi.
+- **Dialog:** `Dialog.tsx` yopilishni 120 ms kutadi (`DIALOG_CLOSE_MS`), keyin `onClose`;
+  ichidagi tugmalar `useDialogClose` / `DialogCancel` orqali xuddi Escape kabi chiqadi.
+  Reduced motion'da darhol yopiladi.
+- **Onboarding:** qadam o'rami qadam bo'yicha kalitlangan; pastki panel (`.sticky-foot`) dan
+  boshqa har bola siljiydi — o'ramga `transform` berilsa, fixed panel unga yopishib qolardi.
+  `.onboarding { overflow-x: clip }`: 320 da yon scroll yo'q.
+- **Reduced motion:** global CSS qoidasi hamma animatsiya va transition'ni o'chiradi; JS
+  tomonda dialog kutmaydi.
+
+O'lchov (2026-10-09, mock, haqiqiy Chrome): CLS 0 va axe 0 — film sahifasi, qidiruv, DNA
+(320 ru), watchlist (kontent kelishi), ochiq dialog (1440, 390), onboarding 320; dialog
+ochilishi 160 ms, yopilishi 120 ms, 40 ms da hali bor, 240 ms da yo'q, fokus ochgan
+tugmaga qaytadi; poster 1.03, `transition` 120 ms ease-out, fokus halqasi `transition` 0s;
+reduced motion'da ochiq dialogda ishlayotgan animatsiya yo'q, Escape darhol yopadi.
+Onboarding qadam almashinuvi brauzerda o'lchanmadi (skript plitkalarni tanlay olmadi,
+keyin xotira yetmadi) — yo'nalish testlarda tasdiqlangan, jonli ilovada ko'riladi.
+Sahifa o'tishi: navigatsiyada `.page-enter` da `fade-in` 120 ms, `fill: none`; yon menyu va
+yuqori panel joyidan qimirlamaydi, tugagach animatsiya qolmaydi; CLS 0 (1440, 390). Home
+CLS 0 (1440, 390, 320 ru, yuklanish bilan) — o'ram `display: flow-root`: busiz Home hero'ning
+manfiy margin'i o'ram orqali o'tib, o'ramni 84px siljitardi (0.0467, o'lchovda topildi).
+Bundle (2-bosqichga nisbatan): JS +0.83 kB (gzip +0.36 kB), CSS +0.99 kB (gzip +0.19 kB).
+Testlar: 244.
+
+**Topilgan, bu bosqichdan oldin bor nuqson (tuzatilmagan):** film sahifasidagi Rate dialogi
+`.film-head` ichida chiziladi, u esa `position: relative; z-index: 1` — alohida qatlam
+(stacking context). Shuning uchun dialog (z-index 70) telefonda yuqori panel (20) va pastki
+menyu (30) ostida, 1440 da qidiruv qatori ostida qoladi. HEAD'da ham aynan shunday
+(2026-10-09, `elementFromPoint` bilan). Taklif: dialogni `document.body` ga portal bilan
+chizish.
 
 ### 10. Mobil paritet
 
