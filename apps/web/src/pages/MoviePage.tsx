@@ -291,6 +291,13 @@ export default function MoviePage() {
   const params = useParams();
   const id = Number(params.id);
   const query = useMovie(Number.isInteger(id) ? id : 0);
+  // The taste, the ratings and the list do not depend on the film, so they go out with
+  // it instead of after it (one round trip, not two). Why, Compare and Actions read the
+  // same cache entries. The page is behind RequireAuth: signed out, none of this runs.
+  // The explanation waits for the film's reasons and stays in Why.
+  useDna();
+  useRatings();
+  useWatchlist();
   // After the skeleton the page fades in (160 ms); from the cache it is simply there.
   const [waited, setWaited] = useState(false);
   if (query.data === undefined && query.isPending && !waited) setWaited(true);

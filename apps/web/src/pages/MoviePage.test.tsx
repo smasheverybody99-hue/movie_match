@@ -6,7 +6,8 @@ import { DNA, detail, movie, rating } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
 import type { Rating, WatchlistItem } from "../lib/types";
-import { pending, renderWithProviders } from "../test/utils";
+import App from "../App";
+import { createTestQueryClient, fakeAuthClient, pending, renderWithProviders } from "../test/utils";
 import { axisPositions, DOT_GAP } from "../components/Traits";
 import MoviePage, { comparedTraits } from "./MoviePage";
 
@@ -53,6 +54,31 @@ describe("MoviePage", () => {
     ratings.mockResolvedValue([]);
     dna.mockResolvedValue(DNA);
     watchlist.mockResolvedValue([]);
+  });
+
+  it("asks for the taste, the ratings and the list together with the film, not after it", async () => {
+    const film = deferred<typeof FILM>();
+    getMovie.mockReturnValue(film.promise);
+    renderWithProviders(<MoviePage />, { ...ROUTE, queryClient: createTestQueryClient({ staleTime: 60_000 }) });
+    expect(screen.getByTestId("loading")).toBeInTheDocument();
+    // the film has not arrived, the other three are already out
+    await waitFor(() => expect(dna).toHaveBeenCalledTimes(1));
+    expect(ratings).toHaveBeenCalledTimes(1);
+    expect(watchlist).toHaveBeenCalledTimes(1);
+    expect(explanation).not.toHaveBeenCalled(); // it needs the film's reasons
+    film.resolve(FILM);
+    expect(await screen.findByText("Twisty and cerebral, like your favourites.")).toBeInTheDocument();
+    // the panels read the same cache entries: still one request each
+    expect(dna).toHaveBeenCalledTimes(1);
+    expect(ratings).toHaveBeenCalledTimes(1);
+    expect(watchlist).toHaveBeenCalledTimes(1);
+    expect(explanation).toHaveBeenCalledTimes(1);
+  });
+
+  it("signed out, sends none of them: the film page is not reached", async () => {
+    renderWithProviders(<App />, { route: "/movie/1000", path: "/*", auth: fakeAuthClient(null) });
+    expect(await screen.findByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+    for (const fn of [getMovie, dna, ratings, watchlist, explanation]) expect(fn).not.toHaveBeenCalled();
   });
 
   it("renders its loading state", () => {
@@ -312,7 +338,8 @@ describe("MoviePage", () => {
 
   it("keeps a successful rating", async () => {
     rate.mockImplementation(async (body) => rating(body.movie_id, body.score));
-    renderWithProviders(<MoviePage />, ROUTE);
+    // the app's stale time, so the two calls are the first load and the refetch after saving
+    renderWithProviders(<MoviePage />, { ...ROUTE, queryClient: createTestQueryClient({ staleTime: 60_000 }) });
     ratings.mockResolvedValue([rating(1000, 9)]); // what the refetch after saving returns
     await rateFilm("9");
     expect(await screen.findByTestId("my-rating")).toHaveTextContent("Your rating: 9.0");

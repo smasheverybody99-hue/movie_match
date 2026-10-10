@@ -14,10 +14,15 @@ import type { Lang } from "../lib/types";
  * A query client for tests: no retries and no caching between tests, so a
  * failing request fails immediately instead of being retried for seconds.
  */
-export function createTestQueryClient(): QueryClient {
+/**
+ * `staleTime` 0 by default, so a test sees every refetch. A test that counts requests the
+ * way production makes them passes the app's own (lib/queryClient.ts, 60 s): with 0, every
+ * component that mounts later refetches what is already there.
+ */
+export function createTestQueryClient({ staleTime = 0 }: { staleTime?: number } = {}): QueryClient {
   return new QueryClient({
     defaultOptions: {
-      queries: { retry: false, gcTime: Infinity, staleTime: 0 },
+      queries: { retry: false, gcTime: Infinity, staleTime },
       mutations: { retry: false },
     },
   });
