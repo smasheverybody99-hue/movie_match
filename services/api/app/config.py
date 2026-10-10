@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     redis_url: str = ""
 
     cors_origins: str = "http://localhost:5173"
+    # The commit Render deployed: Render sets RENDER_GIT_COMMIT on every deploy. /health
+    # reports it, so each push can be checked against what is live (docs/deploy.md, 1b).
+    # Empty when run locally.
+    render_git_commit: str = ""
 
     # Catalogue. The target is deliberately a setting: raise it here, not in code.
     # 500 since 2026-09-30, for cost: trait and embedding spend grow with the film count

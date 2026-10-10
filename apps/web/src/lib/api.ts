@@ -86,7 +86,7 @@ export function searchQuery(params: SearchParams): string {
 }
 
 export const api = {
-  health: () => request<{ status: string; trait_dimensions: number }>("/health"),
+  health: () => request<{ status: string; trait_dimensions: number; commit: string | null }>("/health"),
 
   searchMovies: (params: SearchParams) => request<Movie[]>(`/movies?${searchQuery(params)}`),
   getMovie: (id: number) => request<MovieDetail>(`/movies/${id}`),
