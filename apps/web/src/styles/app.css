@@ -12,7 +12,7 @@
  * - Numbers on a scale keep the text colour; the bar carries the shade.
  */
 :root {
-  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
   --nav-width: 208px;
   --bottom-nav-height: 64px;
   --touch: 44px;

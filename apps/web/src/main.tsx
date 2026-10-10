@@ -8,6 +8,7 @@ import { I18nProvider } from "./i18n";
 import { AuthProvider } from "./lib/auth";
 import { queryClient } from "./lib/queryClient";
 import { createSupabaseAuth, type AuthClient } from "./lib/supabase";
+import "./styles/fonts.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
 

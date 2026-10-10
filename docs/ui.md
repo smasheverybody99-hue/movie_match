@@ -882,6 +882,33 @@ CLS 0. Testlar (`Dialog.test.tsx`): backdrop — `body` ning bevosita farzandi; 
 fokus qaytadi. Ustida turishini jsdom tekshira olmaydi (layout yo'q, `elementFromPoint`
 ishlamaydi) — bu brauzer o'lchovida.
 
+### Shriftlar (2026-10-10)
+
+Shriftlar Google Fonts'dan emas, o'zimizdan: `apps/web/public/fonts`, qoidalar
+`src/styles/fonts.css`. Oilalar va og'irliklar oldingidek: Playfair Display 700–900,
+Inter 400–800, JetBrains Mono 400 va 600. Har oila har yozuv uchun bitta variable woff2
+(Google'ning o'z fayllari, OFL litsenziyasi yonida). `unicode-range` tufayli sahifa faqat
+kerakli yozuvni yuklaydi: lotin har doim, kirill — ruscha va til menyusidagi "Русский"
+uchun. O'zbekcha lotin subset'ida (apostrof ASCII `'`, `ʻ` ishlatilmaydi). Playfair'ning
+kursiv fayli yo'q: DNA jumlasidagi kursiv avvalgidek sintez qilinadi.
+
+- `font-display: swap`; `index.html` ikkita lotin faylini oldindan yuklaydi (Inter va
+  Playfair). Google'ga preconnect va stylesheet olib tashlandi.
+- Cloudflare: `/fonts/*` bir yil, `immutable` (`public/_headers`). Fayl nomida versiya bor
+  (`inter-v20-…`): yangi versiya yangi nom.
+- **Swap sakramasligi uchun** shrift yuklanguncha matn mahalliy shriftda, web shriftning
+  o'lchamlari bilan chiziladi ("Fallback" face'lar): `size-adjust` kenglikni,
+  `ascent/descent-override` qator chizig'ini tenglaydi. Oddiy va qalin uchun alohida mahalliy
+  face (Arial / Arial Bold, Georgia Bold), kirill uchun alohida face (nisbat yozuvga qarab
+  2–3% farq qiladi); desktop'dan keyin Android'niki (Roboto, Noto Serif). Raqamlar
+  Chrome'da ilovaning o'z matnlari bo'yicha o'lchangan.
+- O'lchov (mock, dev server, har sahifa 3 marta, shrift fayllari 1.5 s ushlab turilganda):
+  Google bilan Welcome 390 px da CLS **0.1436** (shior qatorlari qayta bo'linib, markazlangan
+  blok siljiydi), film sahifasi 0.0017–0.0027; o'zimizdagi bilan hamma sahifada 0 dan
+  0.0003 gacha (film sahifasi `dl.facts` 0.0003, DNA 390 0.0002). Ushlab turilmaganda hammasi
+  0. Shriftlar yuklangach skrinshotlar Google'niki bilan piksel-piksel bir xil (12 tadan 11;
+  Home 1280 — rasmlar yuklanish vaqti, Google'ning o'zida ham ikki marta har xil chiqdi).
+
 ### 10. Mobil paritet
 
 `apps/mobile/lib/theme/tokens.dart` web tokenlarini aynan takrorlaydi. Mobil ilova hali

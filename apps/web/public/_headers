@@ -1,0 +1,7 @@
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+# Font files carry their upstream version in the name (inter-v20-…): a new version is a new
+# name, so a year and immutable is safe. Vite's hashed /assets/* get the same.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -19,8 +19,9 @@
   --gold: #f0b93b;
   --green: #3fb98a;
 
-  --font-head: "Playfair Display", Cambria, Georgia, serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* The "Fallback" faces (styles/fonts.css) stand in while a file loads, at its metrics. */
+  --font-head: "Playfair Display", "Playfair Display Fallback", "Playfair Display Fallback Android", Georgia, serif;
+  --font-body: "Inter", "Inter Fallback", "Inter Fallback Android", system-ui, sans-serif;
 
   --radius-sm: 8px;
   --radius: 14px;
