@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.17 · 2026-10-09 · Holat: tasdiqlangan
+Versiya 1.18 · 2026-10-10 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -155,7 +155,9 @@ Yangi foydalanuvchi uchta qadamdan o'tadi: filmlar tanlash → baholash → tayy
 
 **Qabul mezoni:**
 - Kamida 10 ta film baholanmaguncha tavsiya ko'rsatilmaydi.
-- Butun jarayon 3 daqiqadan kam vaqt oladi (o'lchanadi).
+- Butun jarayon 3 daqiqadan kam vaqt oladi (o'lchanadi). **Holat (2026-10-10):** bajarildi deb
+  hisoblanadi — foydalanuvchi jonli saytda o'tdi, kutish sezilmadi; alohida vaqt o'lchovi
+  qilinmaydi (foydalanuvchi qarori). Deploy'dan oldin 3:10 edi, 58 s i baho saqlash kutishi.
 - 8.0 dan yuqori baho qo'yilganda "nimasi yoqdi?" chiplari chiqadi.
 - Yarim yo'lda chiqib ketgan foydalanuvchi qaytganda o'sha joydan davom etadi.
 
@@ -407,6 +409,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.18 | 2026-10-10 | FR-3: jonli saytda bajarildi, alohida vaqt o'lchovisiz (foydalanuvchi qarori) |
 | 1.17 | 2026-10-09 | §5 Tillar: janr nomlari interfeys lug'atida tarjima qilinadi; backlog — film nomi va tavsifining ruscha tarjimasiga foydalanuvchi so'rovi (TMDB `ru-RU`) yozildi |
 | 1.16 | 2026-10-06 | FR-5: interfeysda daraja ikki holatda — "Strong match" (qizil) va neytral "You and this film"; "good" hisoblanadi va API'da qoladi, lekin ko'rsatilmaydi. Asos: Home'dagi film sahifalarining 68% ida chiqardi (0.15), ajratmaydi (foydalanuvchi qarori) |
 | 1.15 | 2026-10-06 | Backlog: dizayn 4-bosqichi (Movie DNA) faqat radial diagrammaga qisqardi; Wrapped tuzilmasi va brauzerdagi ulashish rasmi backlog'ga (foydalanuvchi qarori) |

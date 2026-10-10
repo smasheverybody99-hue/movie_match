@@ -75,7 +75,7 @@ defect (a) below was fixed on 2026-10-08.
 
 | Item | Who | Result |
 |---|---|---|
-| 1. Onboarding as a brand-new user, timed (< 3 min, TZ FR-3) | user | **3 min 10 s — over the 3 min target.** New account `+onb1`, the user's own pace, timer from the first onboarding screen to "done". A lower bound: the user designed the app, a real new user is slower. Of that, **58 s** was waiting for the 10 ratings to save (3.5–8.5 s each, median 6.4 s; API log). Two defects seen: (a) "See my recommendations" returned to the pick screen; (b) 5–6 s after each "Next". Diagnosis and decisions below. **FR-3 verdict deferred** to a re-run after deploy |
+| 1. Onboarding as a brand-new user, timed (< 3 min, TZ FR-3) | user | **3 min 10 s — over the 3 min target.** New account `+onb1`, the user's own pace, timer from the first onboarding screen to "done". A lower bound: the user designed the app, a real new user is slower. Of that, **58 s** was waiting for the 10 ratings to save (3.5–8.5 s each, median 6.4 s; API log). Two defects seen: (a) "See my recommendations" returned to the pick screen; (b) 5–6 s after each "Next". Diagnosis and decisions below. **FR-3 verdict deferred** to a re-run after deploy. **2026-10-10: passed.** The user went through onboarding on the live site: no wait noticeable between pages. No separate timing (user decision) |
 | 2. Every screen at 320px: nothing clipped, no horizontal scroll | Claude | **Pass.** 9 screens (Home, Search, Search "harry" — the longest real titles, e.g. "Harry Potter and the Deathly Hallows: Part 2" —, film page, Watchlist, DNA, Profile, About, 404) at 320 and 1440, English; 7 of them in Russian at 320 and 1440 (not the film page: its Russian explanation is not cached and would call the LLM). `scrollWidth` ≤ viewport everywhere, 0 overflowing elements, 0 clipped labels |
 | 3. Keyboard only | user (by hand), 2026-10-08 | **Pass.** Feed, film page, rating dialog, search, watchlist, DNA, profile, with Tab / Shift+Tab / Enter / Space / Escape only: focus visible everywhere, logical order, dialogs close on Escape and keep focus inside while open. No defects |
 | 4. axe 4.10.2, contrast and label violations zero | Claude | **Pass: 0 violations** on all of the above. One note: while Movie DNA loads (~3.5 s on this connection) its skeleton has no `h1` — axe `page-has-heading-one` (best practice) fires if run during loading; 0 once loaded |
@@ -131,6 +131,8 @@ ichida", "optimistik UI") is not met in onboarding from this machine.
    round trip is ~1–2 ms, so the wait should go away by itself. Re-measure after deploy;
    if it is still slow then, come back to it.
 3. **FR-3 verdict deferred.** Onboarding is timed again after deploy, on the live URL.
+   **Closed 2026-10-10:** on the live site onboarding went through with no noticeable
+   wait; FR-3 counts as met without a separate timing (user decision).
    3:10 minus the 58 s of saves is ~2:12, but that is an estimate, not a measurement.
 4. **Lighthouse (item 5) deferred to after deploy**, on the live URL: a localhost build
    talking to a database in Singapore does not show production. The `lighthouse` package
