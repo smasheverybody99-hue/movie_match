@@ -123,9 +123,9 @@ Dashboard → loyiha → **Resume project** bilan qaytariladi (ma'lumot saqlanad
 ichida). Alfa davomida testerlar kunda so'rov yuboradi — xavf faqat tanaffuslarda. Test
 loyihasi (Frankfurt) har push'da CI tomonidan ishlatiladi. Pauzasiz: Supabase Pro, $25/oy.
 
-## 5. Haqiqiy foydalanuvchi uchun uyg'onish muammosi (F4 dan oldin hal qilinadi)
+## 5. Haqiqiy foydalanuvchi uchun uyg'onish muammosi
 
-Hozir hech biri qilinmaydi.
+Tanlangan: B (2026-10-10, pastda).
 
 | Variant | Narx | Afzalligi | Kamchiligi |
 |---|---|---|---|
@@ -133,7 +133,13 @@ Hozir hech biri qilinmaydi.
 | B. Free + tashqi "ping" har ≤ 14 daqiqada (masalan bepul uptime monitor) | $0 | Kod va hisob o'zgarmaydi | Oyiga ~744 soat — 750 soatlik bepul limitning deyarli hammasi, ya'ni faqat bitta bepul servis; CPU 0.1 qoladi; Render shartlari bunga qanday qarashini tekshirmadim |
 | C. Fly.io, Singapur, shared-cpu-1x 512 MB | ~$4.7/oy (taxmin: AQSh narxi $3.69 + Singapur ustamasi) | To'xtamaydi | Karta kerak; yangi platforma, `render.yaml` o'rniga boshqa sozlama; bepul tarif yo'q |
 
-**Qaror (2026-10-09):** alfa testerlar chaqirilishidan oldin **A** (Render Starter). Ungacha Free, server sinovdan oldin qo'lda uyg'otiladi (3-bo'lim). B (ping) qilinmaydi: Render shartlari aniq emas, 750 soatning hammasini oladi.
+~~**Qaror (2026-10-09):** alfa testerlar chaqirilishidan oldin **A** (Render Starter).~~
+
+**Qaror (2026-10-10, foydalanuvchi):** **B** — cron-job.org har 10 daqiqada `/health` ga so'rov
+yuboradi. Render uxlatadi 15 daqiqa trafiksiz (render.com/docs/free, 2026-10-10). Oyiga
+~744 / 750 soat: workspace'da boshqa bepul servis bo'lmasligi shart. CPU 0.1 qoladi. **A**
+(Starter) haqiqiy foydalanuvchilar paydo bo'lganda yoki soat limiti tig'izlashganda; zaxira —
+Google Cloud Run, Singapur (`docs/costs.md`).
 
 ## 6. Web: Cloudflare Pages
 

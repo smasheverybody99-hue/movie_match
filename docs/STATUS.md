@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-10-10 (**FR-3 bajarildi**: foydalanuvchi jonli saytda onboarding'dan o'tdi, kutish sezilmadi — alohida vaqt o'lchovi qilinmaydi, foydalanuvchi qarori); 2026-10-09 (**logo, yuklanish holatlari va o'tish effektlari tugadi**, dialog portal tuzatishi; oxirgi commit `a6dffc6`, CI run 61 yashil); 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-10-10 (**uyqu: Render Starter o'rniga cron-job.org ping**, foydalanuvchi qarori); 2026-10-10 (**FR-3 bajarildi**: foydalanuvchi jonli saytda onboarding'dan o'tdi, kutish sezilmadi — alohida vaqt o'lchovi qilinmaydi, foydalanuvchi qarori); 2026-10-09 (**logo, yuklanish holatlari va o'tish effektlari tugadi**, dialog portal tuzatishi; oxirgi commit `a6dffc6`, CI run 61 yashil); 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -86,8 +86,8 @@ secret yo'q (`.github/workflows/gate.yml`).
    oldindan uyg'otilgan holda (`docs/deploy.md`, 3-bo'lim): yangi logo, favicon, yuklanish
    holatlari va o'tishlar (onboarding qadam almashinuvi brauzerda o'lchanmagan — shu yerda
    ko'riladi). Keyin jonli URL'dagi F3 o'lchovlari: ~~onboarding vaqti (FR-3 verdikti), har
-   baho saqlanishi~~ — bajarildi (2026-10-10, yuqorida), Lighthouse (mobil va desktop). **Alfa testerlardan oldin** Render
-   Starter'ga o'tiladi (quyida). Keyin — F4.
+   baho saqlanishi~~ — bajarildi (2026-10-10, yuqorida), Lighthouse (mobil va desktop). Server uxlamaydi: cron-job.org ping
+   (quyida, 2026-10-10). Keyin — F4.
    **F3 qo'lda tekshiruvi** (`docs/phase-3-status.md`): oltala band bajarildi (2026-10-08).
    2, 3, 4, 6 o'tdi; 1-band (FR-3) jonli saytda o'tdi (2026-10-10, foydalanuvchi); 5 (Lighthouse) — jonli URL'da.
 2. **Dizayn v2 yopildi** (2026-10-06, foydalanuvchi tasdiqladi): olti bosqichning
@@ -197,9 +197,13 @@ Deploy tugadi (2026-10-08): web https://movie-match.pages.dev, API
 https://movie-match-api-mgdn.onrender.com; CORS va Supabase redirect yangilangan. Keyingi
 qadam — yuqoridagi "Keyingi qadam" 1: foydalanuvchi jonli saytni tekshiradi.
 
-**Alfa testerlardan OLDIN Render Starter'ga o'tiladi** ($7/oy, karta kerak; foydalanuvchi
-qarori, 2026-10-09). Free instance 15 daqiqada uxlaydi va uyg'onishi ~34 s (DevTools,
-`docs/phase-3-status.md`); Starter uxlamaydi va CPU 5 baravar ko'p (0.5). Hozircha hech
-narsa qilinmaydi: ilovani faqat foydalanuvchi sinaydi va serverni oldindan uyg'otadi.
-Ping qilinmaydi: Render shartlari aniq emas va u 750 soatlik bepul limitning hammasini
-oladi. Max-Age 7200 qilindi (2026-10-10); feed keshi — backlog'da (TZ, 2-bo'lim).
+**Uyqu: Render Starter o'rniga bepul yechim** (foydalanuvchi qarori, 2026-10-10;
+2026-10-09 dagi "testerlardan oldin Starter" qarorini almashtiradi). cron-job.org har 10
+daqiqada `/health` ga so'rov yuboradi: Free instance 15 daqiqa trafiksiz uxlardi va
+uyg'onishi ~34 s edi (DevTools, `docs/phase-3-status.md`) — endi uxlamaydi. Narxi $0, lekin:
+oyiga ~744 soat 750 lik bepul limitdan (zaxira 6 soat), shuning uchun **workspace'da boshqa
+bepul servis bo'lmasligi shart** — soatlar bo'linadi, limit tugasa hamma bepul servis oy
+oxirigacha to'xtaydi. CPU 0.1 qoladi: feed ~3.1 s o'zgarmaydi. Trafik 5 GB/oy. **Starter**
+($7/oy, 0.5 CPU) haqiqiy foydalanuvchilar paydo bo'lganda yoki soat limiti tig'izlashganda
+ko'rib chiqiladi. Zaxira: Google Cloud Run, Singapur (uyg'onish 1–3 s, karta kerak,
+ko'chirish 1–2 soat). Tafsilot: `docs/costs.md`, `docs/deploy.md` 5-bo'lim. Max-Age 7200 qilindi (2026-10-10); feed keshi — backlog'da (TZ, 2-bo'lim).
