@@ -18,12 +18,10 @@ services:
     healthCheckPath: /health
     # Deploy only commits that passed the GitHub gate.
     autoDeployTrigger: checksPass
-    # A web-only or docs-only commit does not redeploy the API.
-    buildFilter:
-      paths:
-        - services/api/**
-        - packages/shared/**
-        - render.yaml
+    # No buildFilter: every green push to main redeploys the API. With checksPass, Render
+    # judged the filter by the push's tip commit only, so an API commit under a later web
+    # commit was never deployed (2026-10-10: 81c29a7 under 49207fa). /health reports the
+    # deployed commit, to check each push (docs/deploy.md, "Auto-deploy").
     envVars:
       # Fully qualified, as Render requires; the minor version follows pyproject.toml.
       - key: PYTHON_VERSION

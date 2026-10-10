@@ -68,6 +68,29 @@ Demak, API bazaning (`aws-0-ap-southeast-1`) yonida. DNS nomi servis mintaqasini
 ko'rsatmaydi: u Render'ning kirish nuqtasi nomi. Panelda "Settings → Region" alohida
 ko'rilmadi, foydalanuvchi qarori bilan: o'lchov yetarli dalil.
 
+## 1b. Auto-deploy (2026-10-10)
+
+**Qoida:** `main` ga har push, GitHub gate'i (CI) yashil bo'lgach, API'ni qayta deploy qiladi
+(`autoDeployTrigger: checksPass`, `buildFilter` yo'q). Veb — Cloudflare Pages, har push'da
+alohida.
+
+**Nega filtr olib tashlandi.** Avval `buildFilter` faqat `services/api/**`,
+`packages/shared/**` va `render.yaml` o'zgarganda deploy qilardi. 2026-10-10 dagi push
+(`5c8264a..49207fa`, to'rt commit) ichida `81c29a7` `services/api/app/main.py` ni o'zgartirgan,
+lekin push'ning oxirgi commiti `49207fa` veb edi — Render deploy qilmadi, foydalanuvchi qo'lda
+ishga tushirdi. Dalillar shunga mos: Render filtrni push'ning **tip commiti** bo'yicha
+baholaydi (butun push yoki oxirgi deploy'dan beri bo'yicha emas: ikkala oraliqda ham
+`main.py` bor edi). Render hujjati buni ochiq aytmaydi (`render.com/docs/monorepo-support`).
+
+**Tekshiruv har push'dan keyin:** `/health` javobidagi `commit` — deploy qilingan commit
+(Render'ning `RENDER_GIT_COMMIT`). U push'ning tip commitiga teng bo'lishi kerak; lokalda
+`null`.
+
+**Kuzatish kerak: build daqiqalari.** Endi veb va docs push'lari ham API'ni build qiladi.
+Render Billing → Pipeline Minutes (bepul: 500/oy). Daqiqalar tez o'sib ketsa — filtrni
+qaytarish, `/health` dagi `commit` esa xavfsizlik to'ri bo'ladi (API commiti veb commiti
+ostida qolib ketsa, darhol ko'rinadi).
+
 ## 2. O'zgaruvchilar (qiymatlarini faqat Render panelida kiritasiz)
 
 Repoda qiymat yo'q. `render.yaml` da faqat sir bo'lmaganlari bor: `PYTHON_VERSION`
