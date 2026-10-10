@@ -202,4 +202,4 @@ qarori, 2026-10-09). Free instance 15 daqiqada uxlaydi va uyg'onishi ~34 s (DevT
 `docs/phase-3-status.md`); Starter uxlamaydi va CPU 5 baravar ko'p (0.5). Hozircha hech
 narsa qilinmaydi: ilovani faqat foydalanuvchi sinaydi va serverni oldindan uyg'otadi.
 Ping qilinmaydi: Render shartlari aniq emas va u 750 soatlik bepul limitning hammasini
-oladi. Max-Age va feed keshi — backlog'da (TZ, 2-bo'lim).
+oladi. Max-Age 7200 qilindi (2026-10-10); feed keshi — backlog'da (TZ, 2-bo'lim).

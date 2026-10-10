@@ -59,6 +59,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # A browser reuses a preflight this long per URL: 2 hours, Chrome's own ceiling
+    # (Starlette's default is 10 minutes). Every authed GET is preflighted, at ~0.35 s each
+    # from the users' side (docs/phase-3-status.md, "Browser timings").
+    max_age=7200,
 )
 
 app.include_router(health.router)
