@@ -326,6 +326,57 @@ Notes on the runs:
 | Poster `srcset` / smaller poster | The poster is not the LCP element (the hero backdrop or the text is), and the backdrop already has `srcset` and `fetchpriority="high"`. The gain is small. |
 | Same-origin API through a Cloudflare proxy | Would remove CORS preflights, one round trip per new URL. It changes the deploy and CORS setup: 1–2 hours of work and medium risk. The preconnect covers the connection part. |
 
+## Speed work: own fonts, film-page requests together, preflight cache (2026-10-10)
+
+Three changes, each in its own commit:
+- `49207fa` — the fonts are served from our own origin, with metric-matched fallbacks
+  (docs/ui.md, "Shriftlar");
+- `7388c71` — `/me/dna`, `/ratings` and `/watchlist` go out together with `/movies/{id}`,
+  not after it;
+- `81c29a7` — `Access-Control-Max-Age` raised from 600 to 7200.
+
+The API change reached Render only through a manual deploy: Render judged its build filter
+by the push's tip commit, which was a web commit. Since then every green push to main
+deploys (`6e4c40b`), and `/health` reports the deployed commit (`e0720a6`). Live check: the
+preflight now returns `access-control-max-age: 7200`.
+
+**How it was measured.** Lighthouse CLI 13.5.0 on `https://movie-match.pages.dev/`
+(Welcome), with the same setup as 2026-10-09:
+- default mobile preset (simulated 4G, CPU ×4), or `--preset=desktop`;
+- 15 s between runs; API awake.
+
+Welcome makes no API call, so these runs show the fonts. They show neither the film page's
+requests nor the preflight cache.
+
+| Mobile, 5 runs | Score | LCP | FCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|---|
+| Before (live, Google Fonts) | 94 (82–95) | 2.51 s (2.24–3.08) | 2.51 s | 59 ms (0–317) | 2.57 s (2.27–3.76) | 0.001 |
+| After (own fonts) | 98 (98–98) | **2.11 s** (2.02–2.14) | **1.83 s** | 20 ms (14–53) | **2.06 s** (1.99–2.22) | **0.000** |
+
+| Desktop, 3 runs | Score | LCP | FCP | TBT | Speed Index | CLS |
+|---|---|---|---|---|---|---|
+| Before | 97 (96–98) | 0.94 s | 0.94 s | 0 ms | 1.13 s | 0.000 |
+| After | **100** | **0.49 s** (0.47–0.58) | **0.41 s** | 0 ms | **0.71 s** | 0.000 |
+
+What changed in the request chain (mobile, run 3, simulated times):
+
+| | Before | After |
+|---|---|---|
+| Font stylesheet | Google CSS, 508–1021 ms, render-blocking | none: the rules are in our CSS |
+| Inter Latin file | starts at 1107, done at 1551 (fonts.gstatic.com) | starts at **537**, done at 1049 (preload, same origin) |
+| Playfair Latin file | starts at 1240, done at 1671 | starts at **538**, done at 1050 |
+| LCP element | tagline, render delay 803 ms | tagline, render delay 742 ms |
+
+FCP now comes before LCP: text first paints in the metric-matched fallback, then swaps to
+the web font, and nothing moves (CLS 0.000 in every run).
+
+**Read with care:**
+- **TBT.** The fonts do not touch JavaScript. The lower TBT is mostly a faster machine
+  this time (`benchmarkIndex` median 1785 before, 2264 after, with Chrome closed).
+  LCP, FCP and Speed Index come from the font timing above.
+- **What is not measured here:** the film page and the preflight cache need a signed-in
+  session. The user checks them by hand.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
