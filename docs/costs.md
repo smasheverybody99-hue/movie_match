@@ -168,6 +168,18 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 - Kerak bo'ladigan payt: **monetizatsiyadan oldin**. Alfa va bepul launch uchun emas.
 - Bepul tarifda ham atributsiya shart: TMDB logosi va "not endorsed or certified by
   TMDB" jumlasi (web'da `/about` va Profil sahifasida bor, logo hali qo'shilmagan).
+- **Watch providers** ("qayerdan ko'rish mumkin", `GET /movie/{id}/watch/providers`) bepul
+  API ichida, qo'shimcha narxsiz. Ikki shart
+  ([developer.themoviedb.org/reference/movie-watch-providers](https://developer.themoviedb.org/reference/movie-watch-providers),
+  o'qildi 2026-10-12):
+  - manba sifatida **JustWatch ko'rsatilishi shart**: "In order to use this data you must
+    attribute the source of the data as JustWatch.";
+  - buzilsa TMDB **kalitni bekor qiladi**: "If we find any usage not complying with these
+    terms we will revoke access to the API."
+  Deep link berilmaydi: javobdagi `link` — TMDB'ning o'z "qayerda ko'rish" sahifasi
+  (masalan `themoviedb.org/movie/11324-shutter-island/watch?locale=RU`). Attributsiya qanday
+  ko'rinishda bo'lishi (logo, joy) sahifada aytilmagan. O'zbekiston uchun ma'lumot yo'q,
+  funksiya hozir qurilmaydi (TZ, 2-bo'lim backlog, 2026-10-12).
 
 ## 4. Umumiy manzara
 
@@ -188,5 +200,6 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-01 | Trait tokenlari o'lchov bilan almashtirildi: 50 film, 380/195 film boshiga; haqiqiy run $0.0301 standart tarifda, bepul tarifda $0. Gemini 500/5 000 film qayta hisoblandi |
 | 2026-10-02 | Izoh tokenlari o'lchov bilan almashtirildi: 187 / 30 (19 ta run, F2 qo'lda tekshiruvi); Gemini standart tarifda $0.00013 bitta izoh, oyiga ≤ $0.08. Boshqa provayderlar qatori shu tokenlar bilan qayta hisoblandi |
 | 2026-10-01 | 2-bosqich: davomi 260 so'rov, 94 800 / 47 199 token, $0.1464 standart tarifda (o'lchangan); birinchi urinish ≈ $0.12 (taxmin); jami ≈ $0.27, bepul tarifda $0 |
+| 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
