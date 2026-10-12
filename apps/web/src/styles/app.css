@@ -260,7 +260,7 @@ select.field { appearance: auto; }
   font-family: var(--font-head); font-weight: 800; color: var(--text);
   font-size: clamp(12px, 11cqi, 20px); line-height: 1.15;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .poster-fallback[data-meta]::after {
   content: attr(data-meta);
