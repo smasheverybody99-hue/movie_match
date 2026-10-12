@@ -71,7 +71,7 @@ function PickGrid({
             aria-label={on ? t("onboarding.pick.selected", { title: movie.title }) : movie.title}
             onClick={() => onToggle(movie)}
           >
-            <Poster title={movie.title} path={movie.poster_path} size="w185" />
+            <Poster movie={movie} size="w185" />
             {on && (
               <span className="check" aria-hidden="true">
                 <Icon as={Check} size={14} />
@@ -269,7 +269,7 @@ function RateStep({
         </span>
       </div>
       <div className="rate-card">
-        <Poster title={movie.title} path={movie.poster_path} eager />
+        <Poster movie={movie} eager />
         <div>
           <h2 className="film-title" style={{ fontSize: 22 }}>
             {movie.title}

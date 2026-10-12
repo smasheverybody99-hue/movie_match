@@ -52,8 +52,12 @@ export function movie(i: number, patch: Partial<Movie> = {}): Movie {
     poster_path: null,
     backdrop_path: null,
     ...patch,
+    genres: patch.genres ?? [FIXTURE_GENRES[i % FIXTURE_GENRES.length] ?? "Drama"],
   };
 }
+
+/** One genre per fixture film, so a poster without an image shows one. */
+const FIXTURE_GENRES = ["Drama", "Thriller", "Science Fiction", "Mystery", "Comedy", "Animation"];
 
 export const MOVIES: Movie[] = TITLES.map((_, i) => movie(i));
 

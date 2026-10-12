@@ -101,6 +101,22 @@ async def search(session: AsyncSession, filters: SearchFilters, limit: int) -> l
     return list((await session.scalars(stmt)).all())
 
 
+async def genre_names(session: AsyncSession, movie_ids: list[int]) -> dict[int, list[str]]:
+    """Each film's genre names, alphabetical (as on the film page). One query for a list."""
+    if not movie_ids:
+        return {}
+    rows = await session.execute(
+        select(MovieGenre.movie_id, Genre.name)
+        .join(Genre, Genre.id == MovieGenre.genre_id)
+        .where(MovieGenre.movie_id.in_(movie_ids))
+        .order_by(MovieGenre.movie_id, Genre.name)
+    )
+    names: dict[int, list[str]] = {}
+    for movie_id, name in rows.all():
+        names.setdefault(movie_id, []).append(name)
+    return names
+
+
 async def get_detail(session: AsyncSession, movie_id: int) -> MovieDetail | None:
     movie = await session.get(Movie, movie_id)
     if movie is None:

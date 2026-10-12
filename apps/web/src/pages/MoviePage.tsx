@@ -320,7 +320,7 @@ export default function MoviePage() {
     <article className={waited ? "film-page arrive" : "film-page"}>
       <Hero detail={detail} />
       <header className="film-head">
-        <Poster title={detail.title} path={detail.poster_path} describe eager />
+        <Poster movie={detail} describe eager />
         <div className="film-head-text">
           <h1 className="film-title">{detail.title}</h1>
           <Tags detail={detail} />

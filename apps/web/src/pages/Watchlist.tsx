@@ -59,7 +59,7 @@ function Row({ item, onChange }: { item: WatchlistItem; onChange: (change: Chang
   const { movie } = item;
   return (
     <li className="list-row">
-      <Poster title={movie.title} path={movie.poster_path} size="w185" />
+      <Poster movie={movie} size="w185" />
       <div className="list-row-meta">
         <Link to={`/movie/${movie.id}`} className="list-row-title">
           {movie.title}

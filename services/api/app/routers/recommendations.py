@@ -13,16 +13,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import Settings, get_settings
 from app.db import get_session
 from app.deps import current_user, get_explainer
+from app.routers.common import movie_out
 from app.schemas import (
     DismissalIn,
     ExplanationOut,
     Lang,
-    MovieOut,
     RecommendationOut,
     RecommendationsOut,
     SectionOut,
 )
-from app.services import dismissals, explain, recommend
+from app.services import dismissals, explain, movies, recommend
 from app.services.explain import Explainer
 from app.services.ratings import MovieNotFound
 
@@ -41,16 +41,18 @@ async def get_recommendations(
         return RecommendationsOut(status="not_enough_data", ratings_needed=result.ratings_needed)
     ids = [item.movie_id for section in result.sections for item in section.items]
     texts = await explain.cached(session, user_id, ids, lang)
+    seeds = [section.seed.id for section in result.sections if section.seed]
+    genres = await movies.genre_names(session, ids + seeds)
     return RecommendationsOut(
         status="ok",
         ratings_needed=0,
         sections=[
             SectionOut(
                 key=section.key,
-                seed=MovieOut.model_validate(section.seed) if section.seed else None,
+                seed=movie_out(section.seed, genres) if section.seed else None,
                 items=[
                     RecommendationOut(
-                        movie=MovieOut.model_validate(item.candidate.movie),
+                        movie=movie_out(item.candidate.movie, genres),
                         match=item.match,
                         band=item.band,
                         reasons=item.reasons,

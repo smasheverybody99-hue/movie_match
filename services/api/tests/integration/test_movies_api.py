@@ -72,6 +72,15 @@ async def test_search_without_filters_is_by_popularity(seeded: AsyncSession) -> 
         assert await _ids(client) == [DARK, UNSCORED, LIGHT]
 
 
+async def test_search_results_carry_their_genres(seeded: AsyncSession) -> None:
+    """A poster that cannot load shows the genre instead (tester 1, 2026-10-12)."""
+    async with api_client(seeded) as client:
+        response = await client.get("/movies", params={"q": "Film", "limit": 100})
+    by_id = {m["id"]: m for m in response.json()}
+    assert by_id[DARK]["genres"] == ["Drama", "Thriller"]  # alphabetical, as on the film page
+    assert by_id[LIGHT]["genres"] == []
+
+
 async def test_search_by_year_range(seeded: AsyncSession) -> None:
     async with api_client(seeded) as client:
         assert await _ids(client, year_from=2000) == [DARK]

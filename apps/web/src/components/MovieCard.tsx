@@ -34,7 +34,7 @@ export function MovieCard({
   return (
     <div className={quick ? "movie-card has-quick" : "movie-card"}>
       <Link to={`/movie/${movie.id}`} className="card-link">
-        <Poster title={movie.title} path={movie.poster_path} band={band} />
+        <Poster movie={movie} band={band} />
         <div className="movie-card-title">{movie.title}</div>
         {meta && <div className="meta">{meta}</div>}
       </Link>

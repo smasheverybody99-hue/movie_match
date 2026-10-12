@@ -30,6 +30,8 @@ async def test_genres_take_turns_and_rated_films_drop_out(db_session: AsyncSessi
     ours = {f["id"] for f in FILMS}
     first_ids = [m["id"] for m in first.json() if m["id"] in ours]
     assert first_ids[:4] == [9_730_001, 9_730_004, 9_730_002, 9_730_005]
+    genres = {m["id"]: m["genres"] for m in first.json() if m["id"] in ours}
+    assert genres[9_730_001] == [DRAMA[1]] and genres[9_730_004] == [COMEDY[1]]
     assert 9_730_001 not in [m["id"] for m in after.json()]
     assert len(limited.json()) == 2
 

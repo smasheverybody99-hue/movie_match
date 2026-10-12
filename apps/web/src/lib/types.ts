@@ -10,6 +10,8 @@ export interface Movie {
   poster_path: string | null;
   /** Every film carries it: the Home hero shows the top picks' backdrops. */
   backdrop_path: string | null;
+  /** TMDB's names, alphabetical: a poster that cannot load shows the first one. */
+  genres: string[];
 }
 
 /**

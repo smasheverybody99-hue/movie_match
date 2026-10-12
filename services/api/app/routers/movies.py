@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.deps import optional_user_id
+from app.routers.common import movie_out
 from app.schemas import MovieDetailOut, MovieOut, TraitScores
 from app.services import movies
 
@@ -48,7 +49,9 @@ async def search_movies(
         max_runtime=max_runtime,
         traits=_trait_filters(trait),
     )
-    return [MovieOut.model_validate(m) for m in await movies.search(session, filters, limit)]
+    found = await movies.search(session, filters, limit)
+    genres = await movies.genre_names(session, [m.id for m in found])
+    return [movie_out(m, genres) for m in found]
 
 
 @router.get("/{movie_id}", response_model=MovieDetailOut)
@@ -66,9 +69,9 @@ async def get_movie(
         if user_id is not None
         else None
     )
-    base = MovieOut.model_validate(detail.movie)
+    base = MovieOut.model_validate(detail.movie).model_dump(exclude={"genres"})
     return MovieDetailOut(
-        **base.model_dump(),  # backdrop_path included: every MovieOut carries it
+        **base,  # backdrop_path included: every MovieOut carries it
         traits=(
             TraitScores(scores=detail.scores, summary=detail.summary)
             if detail.scores is not None

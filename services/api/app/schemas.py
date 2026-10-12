@@ -23,6 +23,9 @@ class MovieOut(BaseModel):
     # Every film carries it (not only the detail): the Home hero shows the top picks'
     # backdrops from the recommendations response (docs/ui.md, 4a).
     backdrop_path: str | None = None
+    # Alphabetical. Lists carry them too: a poster that cannot load shows the title, the
+    # year and the genre instead (tester 1, 2026-10-12).
+    genres: list[str] = Field(default_factory=list)
 
 
 # Where the match places the film in the catalogue for this user (FR-5, TZ 1.13): one of

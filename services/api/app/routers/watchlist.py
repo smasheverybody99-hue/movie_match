@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.deps import current_user
 from app.models import Movie, WatchlistItem
-from app.schemas import MovieOut, WatchlistIn, WatchlistItemOut
+from app.routers.common import movie_out
+from app.schemas import WatchlistIn, WatchlistItemOut
 from app.services import movies, watchlist
 from app.services.ratings import MovieNotFound
 
@@ -16,10 +17,13 @@ router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 
 
 def _out(
-    item: WatchlistItem, movie: Movie, personal: movies.PersonalMatch | None = None
+    item: WatchlistItem,
+    movie: Movie,
+    personal: movies.PersonalMatch | None = None,
+    genres: dict[int, list[str]] | None = None,
 ) -> WatchlistItemOut:
     return WatchlistItemOut(
-        movie=MovieOut.model_validate(movie),
+        movie=movie_out(movie, genres or {}),
         added_at=item.created_at,
         watched_at=item.watched_at,
         match=personal.match if personal else None,
@@ -34,8 +38,10 @@ async def list_watchlist(
 ) -> list[WatchlistItemOut]:
     """Unwatched first. Each row carries the caller's match and band, as on the film page."""
     rows = await watchlist.list_items(session, user_id)
-    matches = await movies.personal_matches(session, user_id, [movie.id for _, movie in rows])
-    return [_out(item, movie, matches.get(movie.id)) for item, movie in rows]
+    ids = [movie.id for _, movie in rows]
+    matches = await movies.personal_matches(session, user_id, ids)
+    genres = await movies.genre_names(session, ids)
+    return [_out(item, movie, matches.get(movie.id), genres) for item, movie in rows]
 
 
 @router.post("", response_model=WatchlistItemOut)

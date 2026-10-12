@@ -24,16 +24,6 @@ export function movieMeta(movie: Movie, t: Translate): string {
   return parts.join(" · ");
 }
 
-/** Up to two initials for a poster placeholder. */
-export function initials(title: string): string {
-  const words = title.split(/\s+/).filter((w) => /\p{L}|\p{N}/u.test(w));
-  return words
-    .slice(0, 2)
-    .map((w) => [...w][0] ?? "")
-    .join("")
-    .toUpperCase();
-}
-
 /** One decimal in the language's own way: 8 -> "8.0" in English, "8,0" in Russian and Uzbek. */
 export function score(value: number, lang: Lang): string {
   return new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
