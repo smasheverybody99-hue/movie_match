@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
 import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
@@ -16,6 +16,7 @@ import {
   loadProgress,
   saveProgress,
   type OnboardingProgress,
+  type UnsavedRating,
 } from "../lib/onboardingStore";
 import {
   ONBOARDING_PAGE,
@@ -201,13 +202,15 @@ function RateStep({
   progress,
   update,
   ratedCount,
+  onRate,
 }: {
   progress: OnboardingProgress;
   update: (next: Partial<OnboardingProgress>) => void;
   ratedCount: number;
+  /** Hands the score to Flow, which saves it under this film's id. */
+  onRate: (rating: UnsavedRating) => void;
 }) {
   const t = useT();
-  const rate = useRate();
   const [value, setValue] = useState(DEFAULT_SCORE);
   const [aspects, setAspects] = useState<TraitKey[]>([]);
   const movie = progress.picks[progress.index];
@@ -233,17 +236,20 @@ function RateStep({
     else update({ picks: [], index: 0 });
   }
 
-  async function next() {
-    if (!movie || rate.isPending) return; // a second press while it saves does nothing
-    try {
-      await rate.mutateAsync({
-        movie_id: movie.id,
-        score: value,
-        liked_aspects: showsLikedAspects(value) ? aspects : [],
-      });
-    } catch {
-      return; // the error message is shown; the user can try again
-    }
+  // Next moves on at once: the score is captured here, tied to this film's id, and saved
+  // in the background (Flow). Waiting for the save kept this film on screen, so a number
+  // pressed for the next film changed this one's score instead (tester 1, 2026-10-12).
+  function next(event: MouseEvent) {
+    if (!movie) return;
+    // The second click of a double click lands on the next film's button: ignore it, or that
+    // film would be rated at the default without being looked at.
+    if (event.detail > 1) return;
+    onRate({
+      movie_id: movie.id,
+      title: movie.title,
+      score: value,
+      liked_aspects: showsLikedAspects(value) ? aspects : [],
+    });
     advance(progress.picks, progress.index + 1, ratedCount + 1);
   }
 
@@ -271,22 +277,14 @@ function RateStep({
         </div>
       </div>
       <RatingInput value={value} onChange={onChange} aspects={aspects} onAspectsChange={setAspects} />
-      {rate.isError && (
-        <FieldError>{t("onboarding.rate.saveError")}</FieldError>
-      )}
 
       <div className="sticky-foot">
         <div className="sticky-foot-inner foot-actions">
-          <button type="button" className="btn btn-ghost" onClick={notSeen} disabled={rate.isPending}>
+          <button type="button" className="btn btn-ghost" onClick={notSeen}>
             {t("onboarding.rate.notSeen")}
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => void next()}
-            aria-disabled={rate.isPending || undefined}
-          >
-            <SavingLabel saving={rate.isPending}>{t("onboarding.rate.next")}</SavingLabel>
+          <button type="button" className="btn btn-primary" onClick={next}>
+            {t("onboarding.rate.next")}
           </button>
         </div>
       </div>
@@ -308,7 +306,10 @@ function Flow({ userId }: { userId: string }) {
   const ratings = useRatings();
   const forgetRecommendations = useForgetRecommendations();
   const ratedCount = ratings.data?.length ?? 0;
+  const { mutateAsync: rate } = useRate();
   const [progress, setProgress] = useState<OnboardingProgress>(() => loadProgress(userId));
+  // Films whose last save failed: named in the alert, sent again by its button.
+  const [failed, setFailed] = useState<ReadonlySet<number>>(() => new Set());
   // Which way the last step change went, for the slide (docs/ui.md 7): forward from the
   // right, back from the left. Nothing slides on the first screen (also after a reload).
   const [shown, setShown] = useState(progress.step);
@@ -318,18 +319,63 @@ function Flow({ userId }: { userId: string }) {
     setShown(progress.step);
   }
 
-  const update = useCallback(
-    (next: Partial<OnboardingProgress>) => {
+  const patch = useCallback(
+    (change: (current: OnboardingProgress) => OnboardingProgress) => {
       setProgress((current) => {
-        const merged = { ...current, ...next };
-        saveProgress(userId, merged);
-        return merged;
+        const next = change(current);
+        saveProgress(userId, next);
+        return next;
       });
     },
     [userId],
   );
+  const update = useCallback(
+    (next: Partial<OnboardingProgress>) => patch((current) => ({ ...current, ...next })),
+    [patch],
+  );
+
+  /** Sends one film's score; it stays in `unsaved` (and in storage) until the server has it. */
+  const send = useCallback(
+    (rating: UnsavedRating) => {
+      setFailed((current) => without(current, rating.movie_id));
+      const { title: _title, ...body } = rating;
+      rate(body).then(
+        () =>
+          patch((current) => ({
+            ...current,
+            unsaved: (current.unsaved ?? []).filter((u) => u.movie_id !== rating.movie_id),
+          })),
+        () => setFailed((current) => new Set(current).add(rating.movie_id)),
+      );
+    },
+    [rate, patch],
+  );
+
+  const onRate = useCallback(
+    (rating: UnsavedRating) => {
+      patch((current) => ({
+        ...current,
+        unsaved: [...(current.unsaved ?? []).filter((u) => u.movie_id !== rating.movie_id), rating],
+      }));
+      send(rating);
+    },
+    [patch, send],
+  );
+
+  // Scores the last visit left unconfirmed (closed tab, lost connection) go out again, once.
+  const resent = useRef(false);
+  useEffect(() => {
+    if (resent.current) return;
+    resent.current = true;
+    for (const rating of progress.unsaved ?? []) send(rating);
+  }, [progress.unsaved, send]);
+
+  const unsaved = progress.unsaved ?? [];
+  const failedRatings = unsaved.filter((u) => failed.has(u.movie_id));
+  const saving = unsaved.length > failedRatings.length;
 
   function finish() {
+    if (unsaved.length > 0) return; // every score is on the server first
     clearProgress(userId);
     // The feed loads afresh: a cached one from before these ratings would send us back here.
     forgetRecommendations();
@@ -352,6 +398,7 @@ function Flow({ userId }: { userId: string }) {
               progress={progress}
               update={update}
               ratedCount={ratedCount}
+              onRate={onRate}
             />
           )}
           {progress.step === "done" && (
@@ -359,13 +406,35 @@ function Flow({ userId }: { userId: string }) {
               <Progress step={3} />
               <h1 className="screen-title">{t("onboarding.done.title")}</h1>
               <p>{t("onboarding.done.body", { n: ratedCount })}</p>
-              <button type="button" className="btn btn-primary" onClick={finish} autoFocus>
-                {t("onboarding.done.cta")}
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={finish}
+                aria-disabled={unsaved.length > 0 || undefined}
+                autoFocus
+              >
+                <SavingLabel saving={saving}>{t("onboarding.done.cta")}</SavingLabel>
               </button>
             </>
           )}
         </div>
+        {failedRatings.length > 0 && (
+          // Fixed above the foot bar: it appears without moving the page (CLS 0).
+          <div className="save-alert" role="alert">
+            <span>{t("onboarding.rate.unsaved", { titles: failedRatings.map((u) => u.title).join(", ") })}</span>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => failedRatings.forEach(send)}>
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
       </main>
     </>
   );
+}
+
+function without(set: ReadonlySet<number>, id: number): ReadonlySet<number> {
+  if (!set.has(id)) return set;
+  const next = new Set(set);
+  next.delete(id);
+  return next;
 }

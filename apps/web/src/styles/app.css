@@ -876,3 +876,16 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 
 .aspects { border: none; padding: 0; margin: var(--space-3) 0 0; }
 .aspects legend { padding: 0; }
+
+/* Onboarding: a score that did not save. Fixed above the foot bar, so it appears without
+   moving the page; it stays until the score is saved (its button sends it again). */
+.save-alert {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 60;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  width: min(688px, calc(100% - 32px));
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--gold); border-radius: 10px;
+  padding: 10px var(--space-3); font-size: 14px;
+  animation: toast-up 160ms ease-out both;
+}

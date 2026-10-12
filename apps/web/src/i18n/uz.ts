@@ -77,7 +77,7 @@ export const uz: Record<MessageKey, Message> = {
   "onboarding.rate.notSeen": "Ko'rmadim",
   "onboarding.rate.next": "Keyingisi",
   "onboarding.rate.previous": "Oldingisi",
-  "onboarding.rate.saveError": "Bahoni saqlab bo'lmadi. Qayta urining.",
+  "onboarding.rate.unsaved": "{titles} uchun bahoni saqlab bo'lmadi. Internetni tekshiring.",
   "onboarding.rate.needMore":
     "Tavsiya uchun yana {n} ta baho kerak. Yana bir nechta film tanlang.",
   "onboarding.rate.pickMore": "Yana film tanlash",

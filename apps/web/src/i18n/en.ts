@@ -85,7 +85,7 @@ export const en = {
   "onboarding.rate.notSeen": "Haven't seen it",
   "onboarding.rate.next": "Next",
   "onboarding.rate.previous": "Previous",
-  "onboarding.rate.saveError": "Couldn't save the score. Try again.",
+  "onboarding.rate.unsaved": "Couldn't save your score for {titles}. Check your connection.",
   "onboarding.rate.needMore": {
     one: "Recommendations need {n} more rating. Pick a few more films.",
     other: "Recommendations need {n} more ratings. Pick a few more films.",

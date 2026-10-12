@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,17 @@ import { api, ApiError } from "../lib/api";
 import { loadProgress, saveProgress } from "../lib/onboardingStore";
 import type { RatingIn, Recommendations } from "../lib/types";
 import { createTestQueryClient, navigatedTo, pending, renderWithProviders, TEST_SESSION } from "../test/utils";
+
+/** A promise the test settles by hand. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 import Onboarding from "./Onboarding";
 
 vi.mock("../lib/api", async () => {
@@ -166,13 +177,52 @@ describe("Onboarding", () => {
     expect(slider().value).toBe("10");
   });
 
-  it("stays on the film and says so when the rating fails", async () => {
+  it("says which film's score did not save, and Try again sends that same score", async () => {
     rate.mockRejectedValueOnce(new ApiError(0, "Failed to fetch"));
     saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
     renderWithProviders(<Onboarding />, ROUTE);
-    await userEvent.click(await screen.findByRole("button", { name: "Next" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't save the score.");
-    expect(screen.getByRole("heading", { name: "The Prestige" })).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "The Prestige" });
+    fireEvent.change(slider(), { target: { value: "9" } });
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't save your score for The Prestige. Check your connection.",
+    );
+    expect(screen.getByRole("heading", { name: "Memento" })).toBeInTheDocument(); // not held back
+    // kept for a reload until the server has it
+    expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([
+      { movie_id: 1000, title: "The Prestige", score: 9, liked_aspects: [] },
+    ]);
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(rate).toHaveBeenCalledTimes(2);
+    expect(rate).toHaveBeenLastCalledWith({ movie_id: 1000, score: 9, liked_aspects: [] });
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([]);
+  });
+
+  it("a double click on Next rates one film, not the next one too", async () => {
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "The Prestige" });
+    await userEvent.dblClick(screen.getByRole("button", { name: "Next" }));
+    expect(await screen.findByRole("heading", { name: "Memento" })).toBeInTheDocument();
+    expect(rate).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends a score the last visit left unconfirmed", async () => {
+    saveProgress(TEST_SESSION.userId, {
+      step: "rate",
+      picks: MOVIES.slice(1, 10),
+      index: 0,
+      offset: 0,
+      unsaved: [{ movie_id: 1000, title: "The Prestige", score: 9, liked_aspects: ["plot_twist"] }],
+    });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "Memento" });
+    await waitFor(() => expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 9, liked_aspects: ["plot_twist"] }));
+    expect(rate).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([]));
   });
 
   it("restores progress after a remount", async ({ signal }) => {
@@ -190,18 +240,25 @@ describe("Onboarding", () => {
     expect(loadProgress(TEST_SESSION.userId).picks.map((m) => m.id)).toEqual([1000, 1001, 1002]);
   });
 
-  it("while a rating saves, Next says so inside, stays enabled and a second press sends nothing", async () => {
-    rate.mockReturnValue(pending());
-    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+  it("while the last score saves, the done button says so and waits; then it goes on", async () => {
+    const save = deferred<ReturnType<typeof rating>>();
+    rate.mockReturnValueOnce(save.promise);
+    ratings.mockResolvedValue(MOVIES.slice(10, 19).map((m) => rating(m.id, 8)));
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 1), index: 0, offset: 0 });
     renderWithProviders(<Onboarding />, ROUTE);
-    const next = await screen.findByRole("button", { name: "Next" });
-    await userEvent.click(next);
+    await screen.findByRole("heading", { name: "The Prestige" });
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
 
-    expect(next).not.toBeDisabled();
-    expect(next).toHaveAttribute("aria-disabled", "true");
-    expect(within(next).getByTestId("saving")).toHaveTextContent("Saving…");
-    await userEvent.click(next);
-    expect(rate).toHaveBeenCalledTimes(1);
+    const done = await screen.findByRole("button", { name: /See my recommendations/ });
+    expect(done).toHaveAttribute("aria-disabled", "true");
+    expect(within(done).getByTestId("saving")).toHaveTextContent("Saving…");
+    await userEvent.click(done);
+    expect(screen.getByRole("heading", { name: "All set!" })).toBeInTheDocument(); // still here
+
+    save.resolve(rating(1000, 7));
+    await waitFor(() => expect(done).not.toHaveAttribute("aria-disabled"));
+    await userEvent.click(done);
+    expect(await navigatedTo()).toBe("/");
   });
 
   it("slides a new step in from the right going forward, from the left going back, not on arrival", async () => {
@@ -222,6 +279,48 @@ describe("Onboarding", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Pick more films" }));
     const pick = await screen.findByRole("heading", { level: 1, name: "Which ones did you love?" });
     expect(pick.closest(".step")).toHaveClass("step-back");
+  });
+
+  // Tester 1 (2026-10-12): rated fast, "Next did not work", the next number replaced the
+  // previous film's score; Arrival's 9 and two tags became 8.0.
+  it("a number pressed after Next goes to the next film, even while the save is slow", async () => {
+    const save = deferred<ReturnType<typeof rating>>();
+    rate.mockReturnValueOnce(save.promise);
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "The Prestige" });
+
+    fireEvent.change(slider(), { target: { value: "9" } });
+    await userEvent.click(screen.getByRole("button", { name: "Plot twists" }));
+    await userEvent.click(screen.getByRole("button", { name: "Mystery" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.keyboard("8"); // meant for the next film
+
+    expect(await screen.findByRole("heading", { name: "Memento" })).toBeInTheDocument();
+    expect(slider().value).toBe("8");
+    save.resolve(rating(1000, 9));
+    expect(rate).toHaveBeenCalledTimes(1);
+    expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 9, liked_aspects: ["plot_twist", "mystery"] });
+  });
+
+  it("a failed save never turns into another score for that film", async () => {
+    const save = deferred<ReturnType<typeof rating>>();
+    rate.mockReturnValueOnce(save.promise);
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "The Prestige" });
+
+    fireEvent.change(slider(), { target: { value: "9" } });
+    await userEvent.click(screen.getByRole("button", { name: "Plot twists" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.keyboard("8");
+    save.reject(new ApiError(0, "Failed to fetch"));
+    await userEvent.click(await screen.findByRole("button", { name: "Next" }));
+
+    // whatever happens next, The Prestige is only ever sent as 9 with its tag
+    for (const [body] of rate.mock.calls.filter(([b]) => b.movie_id === 1000)) {
+      expect(body).toEqual({ movie_id: 1000, score: 9, liked_aspects: ["plot_twist"] });
+    }
   });
 
   it("restores the rating position after a remount", async () => {

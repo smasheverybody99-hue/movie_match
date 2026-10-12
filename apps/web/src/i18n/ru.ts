@@ -79,7 +79,7 @@ export const ru: Record<MessageKey, Message> = {
   "onboarding.rate.notSeen": "Не смотрел(а)",
   "onboarding.rate.next": "Далее",
   "onboarding.rate.previous": "Назад",
-  "onboarding.rate.saveError": "Не удалось сохранить оценку. Попробуйте снова.",
+  "onboarding.rate.unsaved": "Не удалось сохранить оценку: {titles}. Проверьте подключение.",
   "onboarding.rate.needMore": {
     one: "Для рекомендаций нужна ещё {n} оценка. Выберите ещё несколько фильмов.",
     few: "Для рекомендаций нужны ещё {n} оценки. Выберите ещё несколько фильмов.",
