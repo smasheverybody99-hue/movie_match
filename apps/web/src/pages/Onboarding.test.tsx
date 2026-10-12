@@ -9,6 +9,14 @@ import { loadProgress, saveProgress } from "../lib/onboardingStore";
 import type { RatingIn, Recommendations } from "../lib/types";
 import { createTestQueryClient, navigatedTo, pending, renderWithProviders, TEST_SESSION } from "../test/utils";
 
+const QUEUE_KEY = `mm.ratingQueue.v1.${TEST_SESSION.userId}`;
+
+/** What the rating queue keeps in storage, without its version numbers. */
+function queued(): { movie_id: number; title: string; score: number; liked_aspects: string[] }[] {
+  const raw = JSON.parse(localStorage.getItem(QUEUE_KEY) ?? "[]") as { seq: number }[];
+  return raw.map(({ seq: _seq, ...rest }) => rest as never);
+}
+
 /** A promise the test settles by hand. */
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -190,15 +198,13 @@ describe("Onboarding", () => {
     );
     expect(screen.getByRole("heading", { name: "Memento" })).toBeInTheDocument(); // not held back
     // kept for a reload until the server has it
-    expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([
-      { movie_id: 1000, title: "The Prestige", score: 9, liked_aspects: [] },
-    ]);
+    expect(queued()).toEqual([{ movie_id: 1000, title: "The Prestige", score: 9, liked_aspects: [] }]);
 
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(rate).toHaveBeenCalledTimes(2);
     expect(rate).toHaveBeenLastCalledWith({ movie_id: 1000, score: 9, liked_aspects: [] });
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([]);
+    expect(queued()).toEqual([]);
   });
 
   it("a double click on Next rates one film, not the next one too", async () => {
@@ -210,7 +216,19 @@ describe("Onboarding", () => {
     expect(rate).toHaveBeenCalledTimes(1);
   });
 
-  it("sends a score the last visit left unconfirmed", async () => {
+  it("sends a score the last visit left queued", async () => {
+    localStorage.setItem(
+      QUEUE_KEY,
+      JSON.stringify([{ movie_id: 1000, title: "The Prestige", score: 9, liked_aspects: ["plot_twist"], seq: 1 }]),
+    );
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(1, 10), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "Memento" });
+    await waitFor(() => expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 9, liked_aspects: ["plot_twist"] }));
+    await waitFor(() => expect(queued()).toEqual([]));
+  });
+
+  it("moves scores the 2026-10-12 version kept in the progress to the queue", async () => {
     saveProgress(TEST_SESSION.userId, {
       step: "rate",
       picks: MOVIES.slice(1, 10),
@@ -222,7 +240,49 @@ describe("Onboarding", () => {
     await screen.findByRole("heading", { name: "Memento" });
     await waitFor(() => expect(rate).toHaveBeenCalledWith({ movie_id: 1000, score: 9, liked_aspects: ["plot_twist"] }));
     expect(rate).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(loadProgress(TEST_SESSION.userId).unsaved).toEqual([]));
+    await waitFor(() => expect(queued()).toEqual([]));
+    expect(loadProgress(TEST_SESSION.userId).unsaved).toBeUndefined();
+  });
+
+  it("with 10 scores on the server, one that never saves does not keep the user in", async () => {
+    rate.mockRejectedValue(new ApiError(0, "Failed to fetch")); // this one never saves
+    ratings.mockResolvedValue(MOVIES.slice(10, 20).map((m) => rating(m.id, 8))); // 10 already saved
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 1), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "The Prestige" });
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("The Prestige");
+    const done = screen.getByRole("button", { name: /See my recommendations/ });
+    expect(done).not.toHaveAttribute("aria-disabled");
+    await userEvent.click(done);
+    expect(await navigatedTo()).toBe("/");
+    // it stays queued, to be sent again from the app
+    expect(queued().map((u) => u.movie_id)).toEqual([1000]);
+  });
+
+  it("below 10 saved, says what it waits for and lets nobody past a feed that would send them back", async () => {
+    rate.mockRejectedValue(new ApiError(0, "Failed to fetch"));
+    ratings.mockResolvedValue(MOVIES.slice(10, 19).map((m) => rating(m.id, 8))); // 9 saved
+    saveProgress(TEST_SESSION.userId, { step: "rate", picks: MOVIES.slice(0, 1), index: 0, offset: 0 });
+    renderWithProviders(<Onboarding />, ROUTE);
+    await screen.findByRole("heading", { name: "The Prestige" });
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(
+      await screen.findByText(
+        "Recommendations need 10 saved scores: 1 more is waiting to be sent. We'll send it again when the connection is back.",
+      ),
+    ).toBeInTheDocument();
+    const done = screen.getByRole("button", { name: /See my recommendations/ });
+    expect(done).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(done);
+    expect(screen.getByRole("heading", { name: "All set!" })).toBeInTheDocument();
+
+    // back online: the queue sends it again by itself
+    rate.mockImplementation(async (body: RatingIn) => rating(body.movie_id, body.score));
+    window.dispatchEvent(new Event("online"));
+    await waitFor(() => expect(queued()).toEqual([]));
   });
 
   it("restores progress after a remount", async ({ signal }) => {

@@ -1,18 +1,14 @@
-import type { Movie, RatingIn } from "./types";
+import type { UnsavedRating } from "./ratingQueue";
+import type { Movie } from "./types";
 
 /**
  * Onboarding progress that survives a reload (FR-3: "a user who leaves mid-way resumes
- * where they were"). Ratings are saved on the server as they are given; this keeps what
- * the server does not know: the picks, the step, the position, and the scores it has not
- * confirmed yet (so a slow or failed save loses nothing, even over a reload).
+ * where they were"). Ratings are saved on the server as they are given (through the rating
+ * queue, lib/ratingQueue.ts); this keeps what the server does not know: the picks, the
+ * step, the position.
  * Kept per user, so two accounts in one browser do not share a half-done onboarding.
  */
 export type OnboardingStep = "pick" | "rate" | "done";
-
-/** A score given but not yet confirmed by the server, with the title to name it by. */
-export interface UnsavedRating extends RatingIn {
-  title: string;
-}
 
 export interface OnboardingProgress {
   step: OnboardingStep;
@@ -22,11 +18,11 @@ export interface OnboardingProgress {
   index: number;
   /** Which page of onboarding films is showing ("none of these" moves it on). */
   offset: number;
-  /** Scores sent but not confirmed, one per film (absent in progress saved before 2026-10-12). */
+  /** Only in progress saved by the 2026-10-12 version: moved to the rating queue on load. */
   unsaved?: UnsavedRating[];
 }
 
-export const EMPTY_PROGRESS: OnboardingProgress = { step: "pick", picks: [], index: 0, offset: 0, unsaved: [] };
+export const EMPTY_PROGRESS: OnboardingProgress = { step: "pick", picks: [], index: 0, offset: 0 };
 
 const VERSION = 1;
 

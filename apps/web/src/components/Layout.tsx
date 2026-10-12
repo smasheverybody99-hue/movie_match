@@ -5,8 +5,10 @@ import { NavLink, Outlet, useLocation, useMatch, useNavigate } from "react-route
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { useOnline } from "../lib/useOnline";
+import { useRatingQueue } from "../lib/useRatingQueue";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
+import { SaveAlert } from "./SaveAlert";
 
 /**
  * Four of the design's five sections: the Assistant arrives in Phase 4. Web: left
@@ -144,7 +146,19 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+        <PendingRatings />
       </div>
     </div>
   );
+}
+
+/** Scores left queued after onboarding keep going out from here (lib/ratingQueue.ts). */
+function PendingRatings() {
+  const { session } = useAuth();
+  return session ? <QueueFor userId={session.userId} /> : null;
+}
+
+function QueueFor({ userId }: { userId: string }) {
+  const queue = useRatingQueue(userId);
+  return <SaveAlert failed={queue.failed} onRetry={queue.retry} />;
 }

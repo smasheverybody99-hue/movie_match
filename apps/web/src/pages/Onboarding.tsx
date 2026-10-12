@@ -8,6 +8,7 @@ import { Poster } from "../components/Poster";
 import { RatingInput, showsLikedAspects } from "../components/RatingInput";
 import { EmptyState, ErrorState, Loading, SavingLabel, Skeleton } from "../components/States";
 import { OfflineBanner } from "../components/Layout";
+import { SaveAlert } from "../components/SaveAlert";
 import { useT } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { movieMeta } from "../lib/format";
@@ -16,17 +17,17 @@ import {
   loadProgress,
   saveProgress,
   type OnboardingProgress,
-  type UnsavedRating,
 } from "../lib/onboardingStore";
 import {
   ONBOARDING_PAGE,
   useForgetRecommendations,
   useOnboardingFilms,
-  useRate,
   useRatings,
   useSearch,
 } from "../lib/queries";
+import type { UnsavedRating } from "../lib/ratingQueue";
 import type { TraitKey } from "../lib/traits";
+import { useRatingQueue } from "../lib/useRatingQueue";
 import type { Movie } from "../lib/types";
 
 /** The steps in order: a higher number is forward. */
@@ -306,10 +307,8 @@ function Flow({ userId }: { userId: string }) {
   const ratings = useRatings();
   const forgetRecommendations = useForgetRecommendations();
   const ratedCount = ratings.data?.length ?? 0;
-  const { mutateAsync: rate } = useRate();
+  const queue = useRatingQueue(userId);
   const [progress, setProgress] = useState<OnboardingProgress>(() => loadProgress(userId));
-  // Films whose last save failed: named in the alert, sent again by its button.
-  const [failed, setFailed] = useState<ReadonlySet<number>>(() => new Set());
   // Which way the last step change went, for the slide (docs/ui.md 7): forward from the
   // right, back from the left. Nothing slides on the first screen (also after a reload).
   const [shown, setShown] = useState(progress.step);
@@ -334,48 +333,27 @@ function Flow({ userId }: { userId: string }) {
     [patch],
   );
 
-  /** Sends one film's score; it stays in `unsaved` (and in storage) until the server has it. */
-  const send = useCallback(
-    (rating: UnsavedRating) => {
-      setFailed((current) => without(current, rating.movie_id));
-      const { title: _title, ...body } = rating;
-      rate(body).then(
-        () =>
-          patch((current) => ({
-            ...current,
-            unsaved: (current.unsaved ?? []).filter((u) => u.movie_id !== rating.movie_id),
-          })),
-        () => setFailed((current) => new Set(current).add(rating.movie_id)),
-      );
-    },
-    [rate, patch],
-  );
-
-  const onRate = useCallback(
-    (rating: UnsavedRating) => {
-      patch((current) => ({
-        ...current,
-        unsaved: [...(current.unsaved ?? []).filter((u) => u.movie_id !== rating.movie_id), rating],
-      }));
-      send(rating);
-    },
-    [patch, send],
-  );
-
-  // Scores the last visit left unconfirmed (closed tab, lost connection) go out again, once.
-  const resent = useRef(false);
+  // Scores the 2026-10-12 version kept inside the progress move to the queue, once.
+  const migrated = useRef(false);
   useEffect(() => {
-    if (resent.current) return;
-    resent.current = true;
-    for (const rating of progress.unsaved ?? []) send(rating);
-  }, [progress.unsaved, send]);
+    if (migrated.current) return;
+    migrated.current = true;
+    if (!progress.unsaved?.length) return;
+    progress.unsaved.forEach((rating) => queue.enqueue(rating));
+    patch(({ unsaved: _unsaved, ...rest }) => rest);
+  }, [progress.unsaved, queue, patch]);
 
-  const unsaved = progress.unsaved ?? [];
-  const failedRatings = unsaved.filter((u) => failed.has(u.movie_id));
-  const saving = unsaved.length > failedRatings.length;
+  // The server's count: the ratings list minus what is still on its way (the list also
+  // holds the optimistic entries useRate adds before the server answers).
+  const waiting = new Set(queue.unsaved.map((u) => u.movie_id));
+  const confirmed = (ratings.data ?? []).filter((r) => !waiting.has(r.movie_id)).length;
+  // Every score saved, or 10 already on the server: the rest stay queued and keep being
+  // retried from the app shell. Below 10 the feed could only send us back here.
+  const canFinish = queue.unsaved.length === 0 || confirmed >= REQUIRED_RATINGS;
+  const saving = queue.unsaved.length > queue.failed.length;
 
   function finish() {
-    if (unsaved.length > 0) return; // every score is on the server first
+    if (!canFinish) return;
     clearProgress(userId);
     // The feed loads afresh: a cached one from before these ratings would send us back here.
     forgetRecommendations();
@@ -398,7 +376,7 @@ function Flow({ userId }: { userId: string }) {
               progress={progress}
               update={update}
               ratedCount={ratedCount}
-              onRate={onRate}
+              onRate={queue.enqueue}
             />
           )}
           {progress.step === "done" && (
@@ -406,35 +384,24 @@ function Flow({ userId }: { userId: string }) {
               <Progress step={3} />
               <h1 className="screen-title">{t("onboarding.done.title")}</h1>
               <p>{t("onboarding.done.body", { n: ratedCount })}</p>
+              {!canFinish && queue.failed.length > 0 && (
+                <p className="muted">{t("onboarding.done.waiting", { n: REQUIRED_RATINGS - confirmed })}</p>
+              )}
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={finish}
-                aria-disabled={unsaved.length > 0 || undefined}
+                aria-disabled={!canFinish || undefined}
                 autoFocus
               >
-                <SavingLabel saving={saving}>{t("onboarding.done.cta")}</SavingLabel>
+                <SavingLabel saving={!canFinish && saving}>{t("onboarding.done.cta")}</SavingLabel>
               </button>
             </>
           )}
         </div>
-        {failedRatings.length > 0 && (
-          // Fixed above the foot bar: it appears without moving the page (CLS 0).
-          <div className="save-alert" role="alert">
-            <span>{t("onboarding.rate.unsaved", { titles: failedRatings.map((u) => u.title).join(", ") })}</span>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => failedRatings.forEach(send)}>
-              {t("common.retry")}
-            </button>
-          </div>
-        )}
+        <SaveAlert failed={queue.failed} onRetry={queue.retry} />
       </main>
     </>
   );
 }
 
-function without(set: ReadonlySet<number>, id: number): ReadonlySet<number> {
-  if (!set.has(id)) return set;
-  const next = new Set(set);
-  next.delete(id);
-  return next;
-}

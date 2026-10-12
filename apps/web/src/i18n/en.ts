@@ -98,6 +98,10 @@ export const en = {
     other: "You rated {n} films. Your recommendations are ready.",
   },
   "onboarding.done.cta": "See my recommendations",
+  "onboarding.done.waiting": {
+    one: "Recommendations need 10 saved scores: {n} more is waiting to be sent. We'll send it again when the connection is back.",
+    other: "Recommendations need 10 saved scores: {n} more are waiting to be sent. We'll send them again when the connection is back.",
+  },
 
   "feed.section.for_you": "For you",
   "feed.section.because_you_loved": "Because you loved {title}",

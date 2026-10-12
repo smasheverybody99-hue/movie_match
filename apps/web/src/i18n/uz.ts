@@ -86,6 +86,8 @@ export const uz: Record<MessageKey, Message> = {
   "onboarding.done.title": "Tayyor!",
   "onboarding.done.body": "{n} ta baho qo'ydingiz. Tavsiyalaringiz tayyor.",
   "onboarding.done.cta": "Tavsiyalarni ko'rish",
+  "onboarding.done.waiting":
+    "Tavsiya uchun 10 ta saqlangan baho kerak: yana {n} tasi yuborilishini kutyapti. Internet qaytganda qayta yuboramiz.",
 
   // Feed
   "feed.section.for_you": "Siz uchun",
