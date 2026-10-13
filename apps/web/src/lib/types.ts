@@ -82,11 +82,23 @@ export interface Recommendations {
   sections: Section[];
 }
 
+/** Why there is no sentence. Mirrors app/schemas.py ExplanationReason. */
+export type ExplanationReason =
+  | "no_generator"
+  | "daily_cap"
+  | "no_taste"
+  | "no_traits"
+  | "no_reasons"
+  | "failed"
+  | "rejected";
+
 export interface Explanation {
   movie_id: number;
   lang: Lang;
-  /** Null when it could not be generated; try later. */
+  /** Null when there is none to give; `reason` says why. */
   text: string | null;
+  /** Why `text` is null; null when there is a text. */
+  reason: ExplanationReason | null;
 }
 
 export interface DismissalIn {

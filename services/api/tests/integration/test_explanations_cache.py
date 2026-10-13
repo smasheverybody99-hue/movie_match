@@ -107,6 +107,7 @@ async def test_second_request_makes_no_llm_call(catalogue: AsyncSession) -> None
             "movie_id": TARGETS[0],
             "lang": "uz",
             "text": "Dark and twisty, the way you like it.",
+            "reason": None,  # a text and a reason never come together
         }
     )
     assert len(fake.prompts) == 1
@@ -164,7 +165,7 @@ async def test_a_failure_returns_null_and_caches_nothing(
     monkeypatch.setattr("app.services.explain.TIMEOUT_SECONDS", 0.05)
     me = await _user(catalogue)
     body = await _get(catalogue, me, TARGETS[2], explainer=explainer_class())
-    assert body["text"] is None
+    assert (body["text"], body["reason"]) == (None, "failed")
     stored = await catalogue.scalar(
         select(func.count()).select_from(Explanation).where(Explanation.user_id == me)
     )
@@ -174,34 +175,38 @@ async def test_a_failure_returns_null_and_caches_nothing(
 async def test_an_overlong_answer_is_not_stored(catalogue: AsyncSession) -> None:
     me = await _user(catalogue)
     body = await _get(catalogue, me, TARGETS[2], explainer=FakeExplainer("word " * 200))
-    assert body["text"] is None
+    assert (body["text"], body["reason"]) == (None, "rejected")
 
 
 async def test_nothing_shared_means_no_call(catalogue: AsyncSession) -> None:
     me, fake = await _user(catalogue), FakeExplainer()
     body = await _get(catalogue, me, NOTHING_SHARED, explainer=fake)
-    assert body["text"] is None
+    assert (body["text"], body["reason"]) == (None, "no_reasons")
     assert fake.prompts == []
 
 
 async def test_the_daily_cap_stops_generation(catalogue: AsyncSession) -> None:
     me, fake = await _user(catalogue), FakeExplainer()
     cap = {"explanation_daily_calls_per_user": 2}
-    for movie_id in TARGETS[:3]:
-        await _get(catalogue, me, movie_id, explainer=fake, settings=cap)
+    bodies = [await _get(catalogue, me, m, explainer=fake, settings=cap) for m in TARGETS[:3]]
     assert len(fake.prompts) == 2
+    # The third is refused by the cap, and says so: the interface can tell the user that
+    # today's explanations are used up instead of falling back silently.
+    assert [b["reason"] for b in bodies] == [None, None, "daily_cap"]
     # the cached ones are still served
     assert (await _get(catalogue, me, TARGETS[0], explainer=fake, settings=cap))["text"]
 
 
 async def test_without_a_generator_the_text_is_null(catalogue: AsyncSession) -> None:
     me = await _user(catalogue)
-    assert (await _get(catalogue, me, TARGETS[3]))["text"] is None
+    body = await _get(catalogue, me, TARGETS[3])
+    assert (body["text"], body["reason"]) == (None, "no_generator")
 
 
 async def test_a_user_without_taste_gets_null(catalogue: AsyncSession) -> None:
     fake = FakeExplainer()
-    assert (await _get(catalogue, uuid.uuid4(), TARGETS[3], explainer=fake))["text"] is None
+    body = await _get(catalogue, uuid.uuid4(), TARGETS[3], explainer=fake)
+    assert (body["text"], body["reason"]) == (None, "no_taste")
     assert fake.prompts == []
 
 

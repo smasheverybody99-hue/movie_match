@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-query";
 
 import { useI18n } from "../i18n";
+import { explanationsOff, noteExplanation } from "./explanations";
 import { api, type SearchParams } from "./api";
 import type { Lang, Movie, Rating, RatingIn, WatchlistItem } from "./types";
 
@@ -59,13 +60,20 @@ export function useMovie(id: number) {
  * "Why you'll like this". The API serves the cached sentence or makes one (capped per
  * user per day, cached for good), so it is asked for once per film and language and
  * never refetched in the background.
+ *
+ * Every answer is reported to `noteExplanation`, which is how the page learns to stop
+ * asking once the API has said no sentence is coming (lib/explanations.ts).
  */
 export function useExplanation(id: number, enabled: boolean) {
   const { lang } = useI18n();
   return useQuery({
     queryKey: keys.explanation(id, lang),
-    queryFn: () => api.explanation(id, lang),
-    enabled,
+    queryFn: async () => {
+      const answer = await api.explanation(id, lang);
+      noteExplanation(answer.reason);
+      return answer;
+    },
+    enabled: enabled && explanationsOff() === null,
     staleTime: Infinity,
     retry: false,
   });

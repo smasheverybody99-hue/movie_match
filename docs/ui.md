@@ -815,6 +815,7 @@ Belgi bilan yuklanish: `components/States.tsx` — `LoadingMark` (belgi va matn)
 |---|---|---|
 | Feed, birinchi yuklanish — kontent maydoni markazida | 72px full, aylanadi | 0–5 s: "Picking your films…" / "Filmlaringiz tanlanmoqda…" / "Подбираем ваши фильмы…"; 5–15 s: "Still looking…" / "Hali ham qidiryapmiz…" / "Всё ещё ищем…"; 15 s+: "The server is waking up, just a moment…" / "Server uyg'onmoqda, biroz kuting…" / "Сервер просыпается, подождите немного…" |
 | Film sahifasi, izoh yozilayotganda — izoh slotining o'rnida | 32px compact, pulsatsiya | "Writing the explanation…" / "Izoh tayyorlanmoqda…" / "Готовим объяснение…" |
+| ↑ **faqat jumla kelishi mumkin bo'lganda** (2026-10-13, tester fikri): API jumla yo'qligining sababini aytadi (`reason`), va sabab seansda o'zgarmaydigan xildan bo'lsa (`no_generator`, `daily_cap`, `no_taste`; `failed` ikki marta ketma-ket) sahifa so'rashni ham, indikatorni ham ko'rsatishni to'xtatadi — zaxira jumla darhol chiqadi va slot uchun joy ham ushlab turilmaydi (`lib/explanations.ts`). Oldin indikator har film sahifasida chiqib, 10 s gacha kutib, keyin bir xil shablon jumlaga o'tardi | — |
 | Baho saqlanayotganda — tugma ichida (film sahifasi Rate, onboarding Next) | 20px compact, pulsatsiya | "Saving…" / "Saqlanmoqda…" / "Сохраняем…" |
 | Qidiruv natijalari | Belgi yo'q, skeleton qoladi | — |
 | Kartalardagi tez baholash (Home, Qidiruv) | Belgi yo'q: dialog darhol yopiladi, baho optimistik; xato bo'lsa toast (foydalanuvchi, 2026-10-09) | — |

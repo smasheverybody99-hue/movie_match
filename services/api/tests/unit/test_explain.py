@@ -14,7 +14,9 @@ from app.services.explain import (
     MAX_CHARS,
     RUSSIAN_STYLE,
     SYSTEM_PROMPT,
+    Explained,
     Lang,
+    Reason,
     build_prompt,
     clean,
 )
@@ -84,6 +86,16 @@ def test_russian_prompt_names_the_qualities_in_russian_and_asks_for_natural_russ
 def test_the_service_and_the_api_accept_the_same_languages() -> None:
     assert get_args(Lang) == get_args(schemas.Lang) == ("en", "uz", "ru")
     assert set(LANGUAGE_NAMES) == set(get_args(Lang))
+
+
+def test_the_service_and_the_api_name_the_same_reasons() -> None:
+    assert get_args(Reason) == get_args(schemas.ExplanationReason)
+
+
+def test_a_sentence_and_a_reason_never_come_together() -> None:
+    assert Explained(text="a sentence").reason is None
+    assert Explained(reason="failed").text is None
+    assert Explained() == Explained(text=None, reason=None)
 
 
 @pytest.mark.parametrize("lang", ["en", "uz", "ru"])

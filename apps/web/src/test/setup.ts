@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+import { resetExplanations } from "../lib/explanations";
 import { resetRatingQueues } from "../lib/ratingQueue";
 
 // findBy* / waitFor give up after this long (the library's default is 1000 ms). A wait here
@@ -17,4 +18,6 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   resetRatingQueues();
+  // Session state, so one test's "no sentence is coming" must not reach the next.
+  resetExplanations();
 });

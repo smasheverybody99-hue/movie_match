@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { setAccessToken } from "./api";
+import { resetExplanations } from "./explanations";
 import type { AuthClient, OAuthProvider, Session } from "./supabase";
 
 export type AuthStatus = "loading" | "signedOut" | "signedIn" | "unconfigured";
@@ -40,7 +41,13 @@ export function AuthProvider({
     const apply = (next: Session | null) => {
       if (!active) return;
       setAccessToken(next?.accessToken ?? null);
-      setSession(next);
+      // What this session learned about explanations belongs to one account (a used-up
+      // daily allowance, no taste profile), so a different user starts over. A token
+      // refresh keeps the same id and changes nothing.
+      setSession((prev) => {
+        if (prev !== null && prev.userId !== next?.userId) resetExplanations();
+        return next;
+      });
       setStatus(next ? "signedIn" : "signedOut");
     };
     const unsubscribe = client.onChange(apply);

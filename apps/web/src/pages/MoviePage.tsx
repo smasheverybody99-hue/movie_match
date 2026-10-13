@@ -14,6 +14,7 @@ import { AxisLegend, TraitAxis, traitInSentence } from "../components/Traits";
 import { useI18n, useT } from "../i18n";
 import { isNotFound } from "../lib/api";
 import { imageUrl, releaseYear, score } from "../lib/format";
+import { explanationsOff } from "../lib/explanations";
 import { genreLabel } from "../lib/genres";
 import { usePrefersReducedMotion } from "../lib/motion";
 import {
@@ -113,8 +114,11 @@ function Why({ detail }: { detail: MovieDetail }) {
   const reduce = usePrefersReducedMotion();
   const dna = useDna();
   const reasons = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
-  // With no reason the API writes no text (explain.py), so there is nothing to ask for.
-  const asks = detail.match !== null && reasons.length > 0;
+  // With no reason the API writes no text (explain.py), so there is nothing to ask for -
+  // and nor is there once the API has said that no sentence is coming in this session
+  // (lib/explanations.ts). Both keep "Writing the explanation…" off the screen: it must
+  // only ever appear while a sentence can still arrive.
+  const asks = detail.match !== null && reasons.length > 0 && explanationsOff() === null;
   const explanation = useExplanation(detail.id, asks);
   if (detail.match === null) {
     return (

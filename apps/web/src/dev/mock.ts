@@ -124,7 +124,14 @@ export function install(): AuthClient {
       await wait(900);
       const mode = flag("mm.mock.explain");
       const text = mode === "none" ? null : mode === "long" ? EXPLANATION.long : EXPLANATION.typical;
-      return json({ movie_id: Number(explanation[1]), lang: url.searchParams.get("lang"), text });
+      // "none" is the mock standing in for an API with no generator behind it, so it
+      // answers like one: after this the film page stops asking and stops promising.
+      return json({
+        movie_id: Number(explanation[1]),
+        lang: url.searchParams.get("lang"),
+        text,
+        reason: text === null ? "no_generator" : null,
+      });
     }
     const movieMatch = path.match(/^\/movies\/(\d+)$/);
     if (movieMatch) {

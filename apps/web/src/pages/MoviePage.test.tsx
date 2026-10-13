@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DNA, detail, movie, rating } from "../dev/fixtures";
 import type * as ApiModule from "../lib/api";
 import { api, ApiError } from "../lib/api";
-import type { Rating, WatchlistItem } from "../lib/types";
+import { explanationsOff, noteExplanation } from "../lib/explanations";
+import type { Explanation, Rating, WatchlistItem } from "../lib/types";
 import App from "../App";
 import { createTestQueryClient, fakeAuthClient, pending, renderWithProviders } from "../test/utils";
 import { axisPositions, DOT_GAP } from "../components/Traits";
@@ -50,7 +51,7 @@ describe("MoviePage", () => {
   beforeEach(() => {
     for (const fn of [getMovie, explanation, ratings, rate, dna, watchlist, add]) fn.mockReset();
     getMovie.mockResolvedValue(FILM);
-    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty and cerebral, like your favourites." });
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty and cerebral, like your favourites.", reason: null });
     ratings.mockResolvedValue([]);
     dna.mockResolvedValue(DNA);
     watchlist.mockResolvedValue([]);
@@ -118,7 +119,7 @@ describe("MoviePage", () => {
   });
 
   it("shows the pulsing mark and its words in the sentence's place while it is written", async () => {
-    const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
+    const pendingText = deferred<Explanation>();
     explanation.mockReturnValue(pendingText.promise);
     renderWithProviders(<MoviePage />, ROUTE);
     const loading = await screen.findByTestId("explanation-loading");
@@ -130,13 +131,13 @@ describe("MoviePage", () => {
     // the rest of the page does not wait for it (FR-6)
     expect(screen.getByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
 
-    pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here." });
+    pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here.", reason: null });
     expect(await screen.findByText("Now it is here.")).toBeInTheDocument();
     expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
   });
 
   it("keeps the sentence's slot while the explanation loads, then fills that same slot", async () => {
-    const pendingText = deferred<{ movie_id: number; lang: "en"; text: string | null }>();
+    const pendingText = deferred<Explanation>();
     explanation.mockReturnValue(pendingText.promise);
     renderWithProviders(<MoviePage />, ROUTE);
     await screen.findByTestId("explanation-loading");
@@ -144,7 +145,7 @@ describe("MoviePage", () => {
     // the axes are there from the start: they come with the film, not with the text
     expect(within(screen.getByTestId("why-traits")).getAllByTestId(/^axis-/)).toHaveLength(3);
 
-    pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here." });
+    pendingText.resolve({ movie_id: 1000, lang: "en", text: "Now it is here.", reason: null });
     await screen.findByText("Now it is here.");
     expect(screen.getByTestId("why-slot")).toBe(slot); // replaced inside, not remounted
     expect(slot).toHaveClass("why-reserve"); // its height was held for the text
@@ -216,13 +217,41 @@ describe("MoviePage", () => {
   });
 
   it("falls back to the shared traits when there is no explanation", async () => {
-    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null });
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "rejected" });
     renderWithProviders(<MoviePage />, ROUTE);
     expect(
       await screen.findByText(
         "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("answers a settled 'no sentence' with the fallback, and records it for the session", async () => {
+    // The reported bug: the indicator showed on every film page and was always followed
+    // by the template, because text: null said nothing about why.
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "no_generator" });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(
+      await screen.findByText(
+        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+      ),
+    ).toBeInTheDocument();
+    expect(explanation).toHaveBeenCalledTimes(1);
+    expect(explanationsOff()).toBe("no_generator");
+  });
+
+  it("with no sentence coming in this session: the fallback at once, no indicator, no request", async () => {
+    noteExplanation("no_generator"); // as an earlier film page in this session would have
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(
+      await screen.findByText(
+        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
+    // nothing is coming, so no space is held for it either
+    expect(screen.getByTestId("why-slot")).not.toHaveClass("why-reserve");
+    expect(explanation).not.toHaveBeenCalled();
   });
 
   it("says it suits overall when the match has no standout reason: same slot, no axes, no request", async () => {
@@ -418,7 +447,7 @@ describe("motion in Why you", () => {
   beforeEach(() => {
     for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
     getMovie.mockResolvedValue(FILM);
-    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty." });
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty.", reason: null });
     ratings.mockResolvedValue([]);
     dna.mockResolvedValue(DNA);
     watchlist.mockResolvedValue([]);
@@ -480,7 +509,7 @@ describe("comparedTraits", () => {
 describe("match band as the Why you heading", () => {
   beforeEach(() => {
     for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
-    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty." });
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty.", reason: null });
     ratings.mockResolvedValue([]);
     dna.mockResolvedValue(DNA);
     watchlist.mockResolvedValue([]);

@@ -8,8 +8,9 @@ Money rules (CLAUDE.md "Keep the running cost down"):
   drive the match (matching.top_reasons). A film with no shared dimension gets no
   explanation rather than a generic compliment.
 
-Generation never blocks or breaks a recommendation: any failure returns None, and the
-client shows the recommendation without the sentence.
+Generation never blocks or breaks a recommendation: any failure answers with a `Reason`
+instead of a sentence, and the client shows the recommendation with its free fallback.
+The reason is what lets the interface stop promising a sentence that is not coming.
 
 The configured provider's explainer (`LLM_PROVIDER`, ADR 0006) on its standard (not
 batch) API, since a user is waiting. Every generation writes one cost line.
@@ -18,6 +19,7 @@ batch) API, since a user is waiting. Every generation writes one cost line.
 import asyncio
 import logging
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
@@ -34,12 +36,40 @@ from app.traits import TRAIT_KEYS, to_dict, trait_labels
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Explainer", "build_prompt", "cached", "clean", "explain"]
+__all__ = ["Explained", "Explainer", "Reason", "build_prompt", "cached", "clean", "explain"]
 
 TIMEOUT_SECONDS = 10.0
 MAX_CHARS = 400  # longer than two sentences means the model ignored the brief
 
 Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test checks)
+
+# Why there is no sentence. Until 2026-10-13 all six answered with the same `text: null`,
+# so neither the client nor a log could tell "nothing is configured" from "the model timed
+# out" - the interface showed "Writing the explanation..." for up to TIMEOUT_SECONDS and
+# then the free fallback, which is what a tester reported (TZ backlog, 2026-10-02).
+#
+#   no_generator  no provider key, so nothing can be generated at all
+#   daily_cap     this user's `explanation_daily_calls_per_user` is used up until tomorrow
+#   no_taste      the user has no taste profile yet
+#   no_traits     this film has no trait vector, or no film has any (no catalogue stats)
+#   no_reasons    no trait stands out, so there is nothing truthful to write about
+#   failed        the provider raised or timed out; worth trying again later
+#   rejected      the answer came back empty or longer than the brief allows
+#
+# The same set is mirrored in app.schemas.ExplanationReason (a unit test checks), as Lang is.
+Reason = Literal[
+    "no_generator", "daily_cap", "no_taste", "no_traits", "no_reasons", "failed", "rejected"
+]
+
+
+@dataclass(frozen=True)
+class Explained:
+    """A sentence, or why there is none. Exactly one of the two is set."""
+
+    text: str | None = None
+    reason: Reason | None = None
+
+
 LANGUAGE_NAMES = {"en": "English", "uz": "Uzbek (Latin script)", "ru": "Russian"}
 
 # Russian answers translated the English brief word for word ("яркого действия" for action,
@@ -127,14 +157,19 @@ async def explain(
     explainer: Explainer | None,
     daily_cap: int,
     now: datetime | None = None,
-) -> str | None:
-    """The cached explanation, else a new one if allowed, else None. Never raises."""
+) -> Explained:
+    """The cached explanation, else a new one if allowed, else why there is none.
+
+    Never raises: a failed explanation must not fail the request it belongs to.
+    """
     now = now or datetime.now(UTC)
     hit = (await cached(session, user_id, [movie_id], lang)).get(movie_id)
     if hit is not None:
-        return hit
-    if explainer is None or await generated_today(session, user_id, now) >= daily_cap:
-        return None
+        return Explained(text=hit)
+    if explainer is None:
+        return Explained(reason="no_generator")
+    if await generated_today(session, user_id, now) >= daily_cap:
+        return Explained(reason="daily_cap")
 
     user = await session.get(User, user_id)
     row = (
@@ -144,18 +179,20 @@ async def explain(
             .where(Movie.id == movie_id)
         )
     ).first()
-    if user is None or user.taste_vector is None or not user.taste_weights or row is None:
-        return None
+    if user is None or user.taste_vector is None or not user.taste_weights:
+        return Explained(reason="no_taste")
+    if row is None:
+        return Explained(reason="no_traits")
     movie, film_vector = row
     taste = [float(v) for v in user.taste_vector]
     film = [float(v) for v in film_vector]
     weights = weights_vector(user.taste_weights)
     rule = await load_rule(session)
     if rule is None:
-        return None
+        return Explained(reason="no_traits")  # no film has traits, so no catalogue stats
     reasons = top_reasons(taste, film, rule, weights=weights)
     if not reasons:
-        return None
+        return Explained(reason="no_reasons")
 
     typical = dict(zip(TRAIT_KEYS, rule.stats.mean, strict=True))
     prompt = build_prompt(movie, reasons, to_dict(taste), to_dict(film), lang, typical)
@@ -165,13 +202,14 @@ async def explain(
         )
     except Exception:  # a failed explanation must never fail the request
         log.warning("explanation failed for movie %s", movie_id, exc_info=True)
-        return None
+        return Explained(reason="failed")
     cost_log.record(
         "explanation", explainer.provider, explainer.model, generated.usage, explainer.pricing
     )
     answer = clean(generated.text)
     if answer is None:
-        return None
+        log.warning("explanation rejected for movie %s: %r", movie_id, generated.text[:120])
+        return Explained(reason="rejected")
 
     await session.execute(
         insert(Explanation)
@@ -179,4 +217,4 @@ async def explain(
         .on_conflict_do_nothing(index_elements=["user_id", "movie_id", "lang"])
     )
     await session.commit()
-    return answer
+    return Explained(text=answer)

@@ -75,10 +75,10 @@ async def get_explanation(
     explainer: Explainer | None = Depends(get_explainer),
     settings: Settings = Depends(get_settings),
 ) -> ExplanationOut:
-    """The cached sentence, or a new one. `text` is null when there is none to give."""
+    """The cached sentence, or a new one, or why there is none (`reason`)."""
     if not await recommend.movie_exists(session, movie_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
-    text = await explain.explain(
+    explained = await explain.explain(
         session,
         user_id,
         movie_id,
@@ -86,7 +86,9 @@ async def get_explanation(
         explainer,
         daily_cap=settings.explanation_daily_calls_per_user,
     )
-    return ExplanationOut(movie_id=movie_id, lang=lang, text=text)
+    return ExplanationOut(
+        movie_id=movie_id, lang=lang, text=explained.text, reason=explained.reason
+    )
 
 
 @router.post("/dismissals", status_code=status.HTTP_204_NO_CONTENT)

@@ -90,10 +90,21 @@ class RecommendationsOut(BaseModel):
     sections: list[SectionOut] = Field(default_factory=list)
 
 
+# The same set as app.services.explain.Reason (a unit test checks), so the client can tell
+# "nothing is configured" from "the model timed out" and stop promising a sentence that is
+# not coming.
+ExplanationReason = Literal[
+    "no_generator", "daily_cap", "no_taste", "no_traits", "no_reasons", "failed", "rejected"
+]
+
+
 class ExplanationOut(BaseModel):
     movie_id: int
     lang: Lang
-    text: str | None = Field(description="Null when it could not be generated; try later")
+    text: str | None = Field(description="Null when there is none to give; see `reason`")
+    reason: ExplanationReason | None = Field(
+        default=None, description="Why `text` is null; null when there is a text"
+    )
 
 
 class DismissalIn(BaseModel):
