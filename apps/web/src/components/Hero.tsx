@@ -47,8 +47,10 @@ function HeroImage({ movie, active, first }: { movie: Movie; active: boolean; fi
  * the recommendations response, else the same free fallback as the film page. The hero
  * never asks for an explanation: a rotation must not spend money or the daily cap.
  * Two neutral buttons: "See why" (the film page) and Save.
- * Rotation: every 7 s; it holds while the pointer or focus is inside and after Pause
- * (WCAG 2.2.2). With reduced motion it never moves on its own and there is no Pause.
+ * Rotation: every 7 s; it holds while the pointer, a touch or focus is inside and after
+ * Pause (WCAG 2.2.2), and it stops once the viewer steers it themselves with the dots,
+ * prev / next or the arrow keys (Play resumes it).
+ * With reduced motion it never moves on its own and there is no Pause.
  * Prev / next buttons, dots (white for the current film, grey otherwise), arrow keys.
  */
 export function Hero({
@@ -66,13 +68,21 @@ export function Hero({
   const [index, setIndex] = useState(0);
   const [reached, setReached] = useState(0); // the furthest slide shown, for image loading
   const [paused, setPaused] = useState(false);
-  const [held, setHeld] = useState(false);
-  const playing = !reduce && !paused && !held && count > 1;
+  // One flag per reason to hold, not one shared flag: a mouse click inside the hero ends
+  // its own touch hold without ending the hover hold, and focus inside survives the
+  // pointer leaving.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [touching, setTouching] = useState(false);
+  const playing = !reduce && !paused && !hovered && !focused && !touching && count > 1;
 
+  // Every caller is a person taking control (dots, prev / next, arrow keys), so the
+  // rotation stops: a slide must never move under someone who is already steering.
   const go = (next: number) => {
     const i = (next + count) % count;
     setIndex(i);
     setReached((r) => Math.max(r, i));
+    setPaused(true);
   };
 
   useEffect(() => {
@@ -110,11 +120,19 @@ export function Hero({
       aria-roledescription="carousel"
       aria-label={t("hero.label")}
       data-testid="home-hero"
-      onMouseEnter={() => setHeld(true)}
-      onMouseLeave={() => setHeld(false)}
-      onFocus={() => setHeld(true)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      // Touch has no hover, so a tap had nothing holding the rotation: the slide could
+      // change between the finger coming down and the click, and "See why" then opened
+      // the next film. The hold starts at pointerdown, which clears the timer before the
+      // click; pointerup restarts the 7 s from zero instead of firing what was left. A
+      // tap also leaves focus inside the hero, which holds it until focus moves away.
+      onPointerDown={() => setTouching(true)}
+      onPointerUp={() => setTouching(false)}
+      onPointerCancel={() => setTouching(false)}
+      onFocus={() => setFocused(true)}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHeld(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
       }}
       onKeyDown={onKeyDown}
     >

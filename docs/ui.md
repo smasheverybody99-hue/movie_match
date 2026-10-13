@@ -136,8 +136,14 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
 - **Tugmalar,** ikkalasi neytral kontur: **"See why"** (uz "Nega mos", ru "Почему
   подходит") — film sahifasini ochadi; **Save**. Rate hero'da yo'q — u karta hover'ida va
   film sahifasida bor.
-- **Aylanish:** har 7 s; sichqoncha yoki fokus ichida bo'lsa va Pause bosilsa to'xtaydi
-  (WCAG 2.2.2). `prefers-reduced-motion` — o'zi aylanmaydi, faqat nuqtalar, ← → tugmalari
+- **Aylanish:** har 7 s; sichqoncha, barmoq yoki fokus ichida bo'lsa va Pause bosilsa
+  to'xtaydi (WCAG 2.2.2). **Tuzatish (2026-10-13, tester fikri):** telefonda hover yo'q,
+  shuning uchun teginishda aylanishni hech narsa to'xtatmasdi — slayd barmoq tushishi va
+  klik orasida almashib, "See why" keyingi filmni ochardi. Endi ushlab turish
+  `pointerdown` da boshlanadi (klikdan oldin taymerni o'chiradi), `pointerup` da 7 s
+  noldan qayta boshlanadi; teginish fokusni ham hero ichida qoldiradi. Nuqtalar, ← →
+  tugmalari yoki strelkalar bilan **o'zi boshqargan** odamda aylanish butunlay to'xtaydi
+  (Play qaytaradi): boshqarib turgan odamning ostidan slayd ketmasligi kerak. `prefers-reduced-motion` — o'zi aylanmaydi, faqat nuqtalar, ← → tugmalari
   va klaviatura; Pause tugmasi bu holatda yo'q. Boshqaruv hero ichida, pastki chap
   burchakda. Mobil'da (< 640) rasm hero chetigacha boradi (pastki gradient chetda
   `--bg` ning 85% i, to'liq emas) — boshqaruv rasm ustida turadi; doiralar 40px, bosish

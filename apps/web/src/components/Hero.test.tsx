@@ -131,6 +131,67 @@ describe("Hero", () => {
     expect(title()).toBe("Memento");
   });
 
+  it("a touch holds it, so the slide cannot change under a tap", () => {
+    motion(false);
+    vi.useFakeTimers();
+    const { hero } = renderHero();
+    // A phone fires no mouseenter, so before this the rotation ran on through a tap and
+    // "See why" could open the next film.
+    fireEvent.pointerDown(hero, { pointerType: "touch" });
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS * 2));
+    expect(title()).toBe("The Prestige");
+    expect(screen.getByRole("link", { name: "See why" })).toHaveAttribute("href", "/movie/1000");
+
+    // Lifting the finger restarts the 7 s from zero rather than firing what was left.
+    fireEvent.pointerUp(hero, { pointerType: "touch" });
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS - 1));
+    expect(title()).toBe("The Prestige");
+    act(() => vi.advanceTimersByTime(1));
+    expect(title()).toBe("Memento");
+  });
+
+  it("a click inside does not release the hover hold", () => {
+    motion(false);
+    vi.useFakeTimers();
+    const { hero } = renderHero();
+    fireEvent.mouseEnter(hero);
+    // pointerup ends the touch hold; hovering still holds, so the cursor sitting in the
+    // hero after a click keeps the slide where it is.
+    fireEvent.pointerDown(hero);
+    fireEvent.pointerUp(hero);
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS * 2));
+    expect(title()).toBe("The Prestige");
+  });
+
+  it("focus inside holds it even after the pointer leaves", () => {
+    motion(false);
+    vi.useFakeTimers();
+    const { hero } = renderHero();
+    fireEvent.mouseEnter(hero);
+    fireEvent.focus(screen.getByRole("button", { name: "Next film" }));
+    fireEvent.mouseLeave(hero);
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS * 2));
+    expect(title()).toBe("The Prestige");
+  });
+
+  it("steering it by hand stops the rotation, and Play starts it again", () => {
+    motion(false);
+    vi.useFakeTimers();
+    const { hero } = renderHero();
+    fireEvent.click(screen.getByRole("button", { name: "Next film" }));
+    expect(title()).toBe("Memento");
+    fireEvent.mouseLeave(hero);
+    fireEvent.blur(screen.getByRole("button", { name: "Next film" }));
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS * 2));
+    expect(title()).toBe("Memento");
+    expect(screen.getByRole("button", { name: "Resume rotation" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Resume rotation" }));
+    fireEvent.blur(screen.getByRole("button", { name: "Pause rotation" }));
+    act(() => vi.advanceTimersByTime(HERO_INTERVAL_MS));
+    expect(title()).toBe("Zodiac");
+  });
+
   it("with reduced motion: never moves on its own, and has no Pause", () => {
     motion(true);
     vi.useFakeTimers();
