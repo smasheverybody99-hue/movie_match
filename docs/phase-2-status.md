@@ -159,6 +159,79 @@ What the number tells the user today: nearly every film reads as a 70–85% matc
 percentage ranks films but says little on its own. A separate decision (FR-5 formula),
 not part of the reasons change.
 
+## Recommendations skew old — measured (2026-10-13, tester feedback; no change applied)
+
+A tester rated Interstellar, Oppenheimer, The Dark Knight, Whiplash and Gone Girl and was
+offered Drunken Angel (1948), Lawrence of Arabia (1962), The Wages of Fear (1953), High
+and Low (1963) and Pickpocket (1959).
+
+**Measured** (read-only, one `READ ONLY` transaction against the main database, no LLM
+call): those five films rated 9 today, the taste profile built by `taste.build_profile`
+exactly as a real account would build it, then the "For you" section assembled exactly as
+`recommend.add()` assembles it — ANN retrieve (300), floor cut, `score`, `shortlist`
+(60), MMR with the director cap. Four of the tester's five films come back in the top 20,
+so the account is reproduced closely enough to reason about.
+
+| Stage | pre-1980 | Year median |
+|---|---|---|
+| Catalogue with traits (500) | **26%** | 1999 |
+| ANN candidates, after the floor cut (265) | **26%** | 2001 |
+| Best 50 by match | **34%** | 2000 |
+| Shortlist for MMR (60) | 32% | 2002 |
+| "For you", the 20 shown | **40%** | 2006 |
+
+Three separate things, and only the middle one was suspected:
+
+1. **Retrieval is neutral.** The candidate set has the catalogue's own decade mix (26%),
+   so the embedding query is not reaching for old films.
+2. **Trait match leans old**, 26% -> 34%. Those five inputs ask for high `realism`,
+   `character_depth`, `plot_twist` and `emotional_intensity`, and mid-century world
+   cinema scores high on exactly those. There is no year or quality term anywhere in the
+   ranking to balance it: `movies.popularity` and `movies.tmdb_vote_count` are stored and
+   never read when ranking.
+3. **MMR makes it worse**, 32% -> 40% — the largest single step, and new information.
+   Diversity is measured as embedding distance, and a 1948 Japanese film is about as far
+   from a modern blockbuster as the catalogue gets, so diversification actively promotes
+   the classics over a nearer modern film of the same match.
+
+**The floor is the catalogue, not the ranking.** 26% of the scored 500 is pre-1980 by
+design (`decade_quotas`, `docs/catalogue-500.md`: 132 of 500), so even a perfectly
+neutral ranking puts one film in four on Home from before 1980. Only re-selecting the
+catalogue moves that floor, and that voids the stage-1 manual review and pays for traits
+again.
+
+**What a tie-break would do** (measured on the same shortlist, applied nowhere). The term
+goes into the MMR relevance, not into the match percentage, so FR-5 stays computable by
+hand:
+
+```
+relevance = match / 100 - w * (1 - (year - 1920) / 106)
+```
+
+| w | pre-1980 | Year median | Dropped from the section |
+|---|---|---|---|
+| 0 (today) | 40% | 2006 | — |
+| **0.02** | **30%** | 2009 | The Wages of Fear, Lawrence of Arabia |
+| 0.05 | 15% | 2012 | + The Third Man, Psycho, The Tin Drum |
+| 0.10 | 5% | 2014 | + Drunken Angel, The Godfather Part II |
+
+`w = 0.02` brings the section back to roughly the catalogue's own mix at the cost of two
+films; 0.10 all but empties it of anything old. The decision (whether, and at what
+weight) is open — TZ backlog, 2026-10-13.
+
+**Popularity is not the problem.** The section's popularity median is 21.9 against the
+catalogue's 19.6, and a 2026 film with popularity 82.4 sits at place 6 while place 1 is a
+1963 film with 11.1: the ranking is indifferent to popularity, not biased by it. Note
+`architecture.md`'s re-rank step names "popularity damping", which was never built and
+points the other way (holding blockbusters back); what the measurement supports is a
+recency term, so building one is not the same as building that.
+
+**Also seen, separately:** obscure brand-new films score high — Disclosure Day (2026,
+place 6) and Elize: Shadows of a Woman (2026, place 8). The 2020s quota (62 films) is
+filled by TMDB popularity, which on recent years means whatever is trending, so a
+recency term alone would promote these. A quality floor (`tmdb_vote_count`, median 4,072
+in the catalogue) is the lever for that, and is a separate decision.
+
 ## Not done / open
 
 1. **Manual checklist** (needs Phase 1 data): rate 30 films and judge the
