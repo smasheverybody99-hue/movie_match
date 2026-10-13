@@ -131,7 +131,7 @@ export const en = {
   "hero.play": "Resume rotation",
 
   "movie.whyKicker": "You and this film",
-  "movie.whyYouFallback": "What you share with it: {traits}.",
+  "movie.whyYouFallback": "Where your taste leans, it goes further than most films: {traits}.",
   "movie.whyYouGeneral": "It suits your taste overall rather than through one standout quality.",
   "movie.explaining": "Writing the explanation…",
   "movie.noMatch": "Rate 10 films first to see how well this one matches you.",

@@ -76,7 +76,8 @@ def build_prompt(
     year = f" ({movie.release_date.year})" if movie.release_date else ""
     prompt = (
         f"Film: {movie.title}{year}\n"
-        f"Shared qualities, strongest first:\n" + "\n".join(lines) + "\n\n"
+        f"Qualities it takes further than most films, the viewer leaning the same way, "
+        f"strongest first:\n" + "\n".join(lines) + "\n\n"
         f"Write the sentences in {LANGUAGE_NAMES[lang]}."
     )
     if lang == "ru":

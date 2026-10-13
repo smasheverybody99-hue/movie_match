@@ -219,7 +219,9 @@ describe("MoviePage", () => {
     explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null });
     renderWithProviders(<MoviePage />, ROUTE);
     expect(
-      await screen.findByText("What you share with it: Psychological, Plot twists, Mystery."),
+      await screen.findByText(
+        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -239,7 +241,7 @@ describe("MoviePage", () => {
     expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
     // the API writes no text without a reason, so the page does not ask
     expect(explanation).not.toHaveBeenCalled();
-    expect(screen.queryByText(/What you share with it/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
   });
 
   it("does not ask for an explanation without a match, and heads the panel with the neutral kicker", async () => {

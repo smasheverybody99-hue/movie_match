@@ -65,7 +65,9 @@ describe("Hero", () => {
     renderHero();
     fireEvent.click(screen.getByRole("button", { name: "Next film" }));
     // rec() gives ["mystery", "plot_twist"]
-    expect(screen.getByText("What you share with it: Mystery, Plot twists.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Where your taste leans, it goes further than most films: Mystery, Plot twists."),
+    ).toBeInTheDocument();
     expect(screen.getByText("You and this film")).not.toHaveClass("kicker-strong");
     expect(screen.queryByText("Good match")).not.toBeInTheDocument();
   });

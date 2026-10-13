@@ -129,7 +129,8 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   FILM" ("good" ko'rsatilmaydi, TZ 1.16); keyin nom (Playfair, film sahifasiga havola),
   yil va davomiylik chiplari, ostida qisqa jumla.
 - **Jumla:** tavsiyalar javobidagi keshlangan izoh; yo'q bo'lsa — film sahifasidagi
-  bepul zaxira ("What you share with it: …", sabab yo'q bo'lsa "It suits your taste
+  bepul zaxira ("Where your taste leans, it goes further than most films: …",
+  sabab yo'q bo'lsa "It suits your taste
   overall…"). **Hero LLM chaqirmaydi:** aylanish izoh so'rasa, har slayd pul va kunlik
   limit sarflardi.
 - **Tugmalar,** ikkalasi neytral kontur: **"See why"** (uz "Nega mos", ru "Почему
