@@ -16,7 +16,7 @@ User actions (ratings, favourites, watchlist)
          candidate retrieval (pgvector ANN + hard filters)
                     │
                     ▼
-         re-rank: trait distance + popularity damping + MMR diversity + seen-exclusion
+         re-rank: trait distance + MMR diversity + recency penalty + seen-exclusion
                     │
                     ▼
          explanation (Gemini Flash-Lite, cached per user+movie)  ──►  API  ──►  web / mobile

@@ -216,8 +216,16 @@ relevance = match / 100 - w * (1 - (year - 1920) / 106)
 | 0.10 | 5% | 2014 | + Drunken Angel, The Godfather Part II |
 
 `w = 0.02` brings the section back to roughly the catalogue's own mix at the cost of two
-films; 0.10 all but empties it of anything old. The decision (whether, and at what
-weight) is open — TZ backlog, 2026-10-13.
+films; 0.10 all but empties it of anything old.
+
+**Applied at `w = 0.02`** (user's decision, 2026-10-13; `recency_weight` in
+`app/config.py`, `recommend.recency_penalty`). Verified on the same account against the
+live catalogue afterwards: pre-1980 **30%**, year median **2009**, decades 1940s 2,
+1960s 2, 1970s 2, 2000s 4, 2010s 7, 2020s 3. The first screen changed from High and Low
+(1963) and Drunken Angel (1948) in the hero's five to High and Low, The Imitation Game
+(2014), The Wave (2008), Disclosure Day (2026) and Black Swan (2010). Match percentages
+and bands are unchanged by construction - a unit test holds that
+(`test_the_weight_does_not_touch_the_match_or_the_band`).
 
 **Popularity is not the problem.** The section's popularity median is 21.9 against the
 catalogue's 19.6, and a 2026 film with popularity 82.4 sits at place 6 while place 1 is a
@@ -242,8 +250,12 @@ in the catalogue) is the lever for that, and is a separate decision.
    From this machine each round trip to Supabase costs ~0.5 s today, so a request takes
    ~5 s here; server-side the ANN query takes ~1 ms. Needs measuring from a host next to
    the database.
-3. **Popularity damping** (architecture.md re-rank step) is not implemented: the phase
-   prompt does not list it. Ranking is match + MMR only.
+3. **Popularity damping** (architecture.md's old re-rank step) is still not implemented
+   and is not planned: the 2026-10-13 measurement found the ranking indifferent to
+   popularity, not biased by it, so damping would correct nothing. The step is now named
+   for what was built instead, the recency penalty. A **quality floor** is the open one:
+   obscure brand-new films (Disclosure Day 2026, Elize: Shadows of a Woman 2026) rank in
+   a section's top ten, and `tmdb_vote_count` (catalogue median 4,072) is the lever.
 4. **Account deletion** removes our rows, not the Supabase Auth identity (that needs the
    service key and belongs with the auth work). TZ FR-1 allows 30 days.
 5. `GET /onboarding/films` is not in TZ §6's endpoint table, nor are `/me` (only

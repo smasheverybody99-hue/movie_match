@@ -10,7 +10,8 @@ Embeddings for retrieval, traits for ranking (docs/architecture.md):
 3. Score every candidate with matching.match_percentage (docs/TZ.md FR-5), give it its
    band (services/bands.py), and drop the user's furthest share of the catalogue
    (match_floor_share; this replaced a fixed 60% cut, TZ 1.13).
-4. Diversify with MMR over the best 3·k of them (relevance = match / 100, similarity =
+4. Diversify with MMR over the best 3·k of them (relevance = match / 100 minus a small
+   penalty for the film's age, `recency_penalty`; similarity =
    embedding cosine similarity between the two films), allowing at most 2 films per
    director in a section. Not trait closeness: the best match sits next to the user's
    taste, so "far from what is picked" would mean "far from the taste" and MMR could
@@ -34,6 +35,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Select
 
+from app.config import get_settings
 from app.models import (
     Credit,
     Dismissal,
@@ -65,6 +67,9 @@ CANDIDATES = 300
 SECTION_SIZE = {"for_you": 20, "because_you_loved": 10, "under_90": 10, "outside_usual": 10}
 SHORT_RUNTIME = 90  # minutes, inclusive
 POOL_FACTOR = 3  # MMR chooses a section of k from the best POOL_FACTOR·k by match
+# The oldest decade the catalogue reaches (docs/catalogue-500.md: 1920s). A film from this
+# year carries the whole recency penalty, this year's film carries none.
+RECENCY_EPOCH = 1920
 # HNSW's search breadth. "Outside your usual taste" reads the ring of films ranked
 # CANDIDATES..2·CANDIDATES by distance, so the index must look at least that far.
 EF_SEARCH = 1000
@@ -152,11 +157,48 @@ def shortlist(scored: Sequence[Scored], k: int, exclude: set[int] | None = None)
     return [s for s in scored if s.movie_id not in exclude][: POOL_FACTOR * k]
 
 
-def pick(pool: Sequence[Scored], k: int, similarity: Similarity) -> list[Scored]:
-    """Up to k films from `pool`: MMR, at most MAX_PER_DIRECTOR per director."""
+def recency_penalty(movie: Movie, now: datetime, weight: float) -> float:
+    """How much this film's age holds it back, 0..weight. 0 for a film from this year.
+
+    Linear in the release year between RECENCY_EPOCH and the current year. A film with no
+    release date carries the full penalty: it cannot be placed, and the catalogue's undated
+    films are old ones. Nothing here touches the match percentage (FR-5) - the penalty is
+    only ever subtracted from the MMR relevance, so a match can still be recomputed by
+    hand from the stored vectors (CLAUDE.md).
+
+    Why a section needs it (measured 2026-10-13, docs/phase-2-status.md): MMR measures
+    diversity as embedding distance, and the films furthest from a modern favourite are
+    mid-century ones, so diversifying raised the pre-1980 share of a section from 32% to
+    40% while the catalogue itself is 26%.
+    """
+    if weight <= 0:
+        return 0.0
+    span = max(now.year - RECENCY_EPOCH, 1)
+    if movie.release_date is None:
+        return weight
+    age = (now.year - movie.release_date.year) / span
+    return weight * min(max(age, 0.0), 1.0)
+
+
+def pick(
+    pool: Sequence[Scored],
+    k: int,
+    similarity: Similarity,
+    *,
+    now: datetime | None = None,
+    recency_weight: float = 0.0,
+) -> list[Scored]:
+    """Up to k films from `pool`: MMR, at most MAX_PER_DIRECTOR per director.
+
+    `recency_weight` 0 (the default) ranks on the match alone, as the pure tests do;
+    recommend() passes the setting.
+    """
+    at = now or datetime.now(UTC)
     return mmr(
         pool,
-        relevance=lambda s: s.match / 100.0,
+        relevance=lambda s: (
+            s.match / 100.0 - recency_penalty(s.candidate.movie, at, recency_weight)
+        ),
         similarity=similarity,
         k=k,
         admissible=_director_cap,
@@ -330,6 +372,7 @@ async def recommend(
         return Recommendations(rating_count=count)
 
     exclude = await seen_ids(session, user_id)
+    recency_weight = get_settings().recency_weight
     rule = await load_rule(session)
     cuts = await load_cuts(session, user_id, user.taste_updated_at, taste, weights)
     await tune_index_search(session)
@@ -340,7 +383,13 @@ async def recommend(
         k = SECTION_SIZE[key]
         pool = shortlist(score(candidates, taste, weights, rule, cuts), k, exclude=shown)
         sims = await embedding_similarities(session, [s.movie_id for s in pool])
-        items = pick(pool, k, lambda x, y: sims.get(frozenset((x.movie_id, y.movie_id)), 0.0))
+        items = pick(
+            pool,
+            k,
+            lambda x, y: sims.get(frozenset((x.movie_id, y.movie_id)), 0.0),
+            now=now,
+            recency_weight=recency_weight,
+        )
         if items:
             sections.append(Section(key=key, items=items, seed=seed))
             shown.update(s.movie_id for s in items)

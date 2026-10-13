@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     # Never recommended: this furthest share of the catalogue (replaced the 60% cut,
     # which removed 2 of 473 films).
     match_floor_share: float = Field(default=0.25, ge=0, lt=1)
+    # How much a film's age holds it back inside a section (recommend.recency_penalty).
+    # It enters the MMR relevance only: the match percentage (FR-5) never sees it, so a
+    # match stays computable from the stored vectors alone. 0 turns it off.
+    # Measured 2026-10-13 on one account (docs/phase-2-status.md, "Recommendations skew
+    # old"): pre-1980 share of the 20 films shown was 40% at 0 (the catalogue's own share
+    # is 26%), 30% at 0.02, 15% at 0.05, 5% at 0.10.
+    recency_weight: float = Field(default=0.02, ge=0, le=1)
     trait_batch_size: int = 200
     # How trait extraction runs (ADR 0006, amendment 2026-09-30). "batch": the provider's
     # batch API, half price, needs an account that allows it. "sync": one film per request

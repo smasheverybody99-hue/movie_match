@@ -1,7 +1,7 @@
 """The pure part of recommend.py: scoring, bands and the floor, the director cap, MMR, the
 query."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
@@ -10,9 +10,11 @@ from app.services.matching import BandCuts, ReasonRule, TraitStats
 from app.services.recommend import (
     MAX_PER_DIRECTOR,
     POOL_FACTOR,
+    RECENCY_EPOCH,
     Candidate,
     Scored,
     pick,
+    recency_penalty,
     score,
     shortlist,
     taste_embedding,
@@ -113,6 +115,58 @@ def test_diversity_beats_a_near_duplicate() -> None:
         return sims[frozenset((a.movie_id, b.movie_id))]
 
     assert [s.movie_id for s in pick(scored, 2, similarity)] == [1, 3]
+
+
+def dated(movie_id: int, year: int | None, vector: list[float]) -> Candidate:
+    return Candidate(
+        movie=Movie(
+            id=movie_id,
+            title=f"Film {movie_id}",
+            release_date=date(year, 6, 1) if year else None,
+        ),
+        vector=vector,
+    )
+
+
+def test_recency_penalty_is_linear_from_the_epoch_to_this_year() -> None:
+    assert recency_penalty(Movie(release_date=date(NOW.year, 1, 1)), NOW, 0.02) == 0.0
+    assert recency_penalty(Movie(release_date=date(RECENCY_EPOCH, 1, 1)), NOW, 0.02) == 0.02
+    middle = (NOW.year + RECENCY_EPOCH) // 2
+    assert recency_penalty(Movie(release_date=date(middle, 1, 1)), NOW, 0.02) == pytest.approx(
+        0.01, abs=1e-4
+    )
+    # Older than the epoch is still only the whole penalty, never more.
+    assert recency_penalty(Movie(release_date=date(1890, 1, 1)), NOW, 0.02) == 0.02
+    # Undated: it cannot be placed, so it is treated as the oldest.
+    assert recency_penalty(Movie(release_date=None), NOW, 0.02) == 0.02
+    # Off by default, so the match alone ranks a section.
+    assert recency_penalty(Movie(release_date=date(RECENCY_EPOCH, 1, 1)), NOW, 0.0) == 0.0
+
+
+def test_the_weight_only_decides_between_films_the_match_nearly_ties() -> None:
+    # The old film matches 1 point better, so without the weight it comes first.
+    old, new = dated(1, 1950, near(0)), dated(2, 2024, near(1))
+    scored = score([old, new], TASTE, UNIFORM, RULE)
+    assert [s.movie_id for s in scored] == [1, 2]
+    assert [s.match for s in scored] == [100, 99]
+    assert [s.movie_id for s in pick(scored, 2, _no_overlap, now=NOW)] == [1, 2]
+    # 0.02 is worth ~1.4 match points across the whole span, so it turns this one over...
+    assert [
+        s.movie_id for s in pick(scored, 2, _no_overlap, now=NOW, recency_weight=0.02)
+    ] == [2, 1]
+    # ...and cannot turn over a film that matches far better.
+    better_old = score([dated(1, 1950, near(0)), dated(2, 2024, near(20))], TASTE, UNIFORM, RULE)
+    assert [
+        s.movie_id for s in pick(better_old, 2, _no_overlap, now=NOW, recency_weight=0.02)
+    ] == [1, 2]
+
+
+def test_the_weight_does_not_touch_the_match_or_the_band() -> None:
+    """FR-5 stays computable from the stored numbers: only the order inside a section moves."""
+    scored = score([dated(1, 1950, near(0)), dated(2, 2024, near(1))], TASTE, UNIFORM, RULE, CUTS)
+    picked = pick(scored, 2, _no_overlap, now=NOW, recency_weight=0.10)
+    assert [s.movie_id for s in picked] == [2, 1]
+    assert {s.movie_id: (s.match, s.band) for s in picked} == {1: (100, "strong"), 2: (99, "good")}
 
 
 def rated(score_: float, days_ago: float = 0) -> RatedFilm:
