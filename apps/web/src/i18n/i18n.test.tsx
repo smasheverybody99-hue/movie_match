@@ -149,6 +149,18 @@ describe("format and translate", () => {
     );
   });
 
+  // Both panel fallbacks are whole sentences naming the film, so the two sides read the
+  // same way side by side (user's review of the Uzbek copy, 2026-10-15).
+  it("writes both Uzbek panel fallbacks as sentences, not noun phrases", () => {
+    const traits = { traits: "Romantika, Zo'ravonlik" };
+    expect(translate("uz", "movie.differsFallback", traits)).toBe(
+      "Bu film ta'mingizdan shu jihatlari bilan farq qiladi: Romantika, Zo'ravonlik.",
+    );
+    expect(translate("uz", "movie.whyYouFallback", traits)).toBe(
+      "Ta'mingiz og'gan jihatlarda bu film ko'p filmlardan kuchliroq: Romantika, Zo'ravonlik.",
+    );
+  });
+
   it("uses the same Uzbek string for any count", () => {
     expect(translate("uz", "feed.notEnough", { n: 1 })).toBe(
       "Tavsiya uchun yana 1 ta film baholang.",
