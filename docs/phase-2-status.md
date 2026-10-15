@@ -292,6 +292,34 @@ like little humour; the film has even less). All 10 cached sentences stay on the
 side. So the rule fixes the false *shared-trait* claims and the small-gap case; what
 removed the reported contradiction is renaming the row, done separately.
 
+**The row did not change side: the name is what fixed the contradiction.** Measured with
+the shipped `matching.trait_notes` and the shipped settings over each account's own ring
+(embedding place 301-500, the films the row is built from):
+
+| Account (ratings) | Reason | Difference | Silent |
+|---|---|---|---|
+| `77b25c1f` (12) — the account that reported it | **86%** | 13% | 0% |
+| `821bfa0e` (12) | 78% | 22% | 0% |
+| `ab3b189f` (11) | 96% | 4% | 0% |
+| `28283ab4` (11) | 88% | 11% | 0% |
+| `0eb69579` (10) | 65% | 34% | 0% |
+| `d394a840` (10) | 87% | 13% | 0% |
+| `777e3985` (10) | 98% | 2% | 0% |
+| `7703d433` (4) | 93% | 6% | 0% |
+
+Across all 8 accounts with a taste profile the reason side holds **65-98%** of the row.
+So most films in **Something different** still carry a why-you sentence, by design: the
+row is built from embedding distance, which is overall feel, while the sentence comes from
+weighted trait distance, and a film can be unlike the viewer's usual watching overall and
+still go their way on two or three traits. **The rule did not resolve the reported
+pairing; the rename did** (TZ 1.24) — the old heading claimed to know the viewer's taste,
+and that claim is what contradicted the sentence. Do not read a later "the rule fixed it"
+into this: the rule fixed false *shared-trait* claims and the 3-point case.
+
+*(An earlier figure of 78% for this row was from the script's copy of the rule, which
+still had a 0.1 sd dead zone the shipped rule does not have. The table above is the
+shipped code.)*
+
 **Also closed by the same change:** a 3-point gap can no longer be a reason. A reason now
 needs 7.1 points on `emotional_intensity`, 10.2 on `plot_twist`, 15.0 on `realism`; 82
 against 85 is 0.21 sd.
