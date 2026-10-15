@@ -106,7 +106,7 @@ export const ru: Record<MessageKey, Message> = {
   "feed.section.for_you": "Для вас",
   "feed.section.because_you_loved": "Потому что вам понравился фильм «{title}»",
   "feed.section.under_90": "До 90 минут",
-  "feed.section.outside_usual": "Не ваш обычный вкус",
+  "feed.section.outside_usual": "Другое кино",
   "feed.notEnough": {
     one: "Оцените ещё {n} фильм, чтобы получить рекомендации.",
     few: "Оцените ещё {n} фильма, чтобы получить рекомендации.",

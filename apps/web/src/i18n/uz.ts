@@ -93,7 +93,7 @@ export const uz: Record<MessageKey, Message> = {
   "feed.section.for_you": "Siz uchun",
   "feed.section.because_you_loved": "{title} yoqqani uchun",
   "feed.section.under_90": "90 daqiqadan qisqa",
-  "feed.section.outside_usual": "Odatdagi ta'mingizdan tashqari",
+  "feed.section.outside_usual": "Boshqacha kinolar",
   "feed.notEnough": "Tavsiya uchun yana {n} ta film baholang.",
   "feed.notEnoughCta": "Baholashni davom ettirish",
   "feed.empty": "Hozircha sizga tavsiya yo'q. Yana bir nechta film baholang.",

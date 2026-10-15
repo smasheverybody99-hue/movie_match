@@ -461,7 +461,13 @@ qator qolardi. axe 0 (1440, 390, 320). Testlar: 15 fayl, 181; lint 0; build 0.
   2.47); keyingi posterning cheti qator davom etishini ko'rsatadi. Nisbat 2:3, nom 2
   qatorgacha.
 - **Sarlavha ikonkalari** (neytral, `--muted`): For you `Sparkles`, Because you loved
-  `Heart`, Under 90 `Timer`, Outside usual `Compass`.
+  `Heart`, Under 90 `Timer`, Something different `Compass`.
+- **`outside_usual` bo'limining nomi** (2026-10-15, foydalanuvchi qarori): "Something
+  different" / "Boshqacha kinolar" / "Другое кино". Avvalgi nom ("Outside your usual
+  taste") foydalanuvchining ta'mi haqida da'vo qilardi, bo'lim esa **embedding** masofasi
+  bo'yicha tuziladi (301–600 o'rin) — natijada bir xil filmga "ta'mingizdan tashqari" va
+  "good" darajasi birga tushardi (Godzilla: 404/500 o'rin, match 87). Yangi nom faqat
+  "boshqacha" deydi, ta'm haqida hech narsa da'vo qilmaydi.
 - **Match badge** har kartada doim ko'rinadi (qizil; sahifadagi yagona qizil).
 - **Hover** (`hover: hover` va `pointer: fine`) yoki klaviatura fokusi (`:focus-within`,
   har qurilmada): poster va qatlam birga `scale(1.05)`, pastdan ko'tariluvchi qorong'u

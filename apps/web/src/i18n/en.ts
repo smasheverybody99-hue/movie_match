@@ -106,7 +106,7 @@ export const en = {
   "feed.section.for_you": "For you",
   "feed.section.because_you_loved": "Because you loved {title}",
   "feed.section.under_90": "Under 90 minutes",
-  "feed.section.outside_usual": "Outside your usual taste",
+  "feed.section.outside_usual": "Something different",
   "feed.notEnough": {
     one: "Rate {n} more film to get recommendations.",
     other: "Rate {n} more films to get recommendations.",
