@@ -203,7 +203,7 @@ async def test_an_overlong_answer_is_not_stored(catalogue: AsyncSession) -> None
 async def test_nothing_shared_means_no_call(catalogue: AsyncSession) -> None:
     me, fake = await _user(catalogue), FakeExplainer()
     body = await _get(catalogue, me, NOTHING_SHARED, explainer=fake)
-    assert (body["text"], body["reason"]) == (None, "no_reasons")
+    assert (body["text"], body["reason"]) == (None, "nothing_named")
     assert fake.prompts == []
 
 

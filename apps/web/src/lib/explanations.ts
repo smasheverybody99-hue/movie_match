@@ -36,7 +36,7 @@ export function noteExplanation(reason: ExplanationReason | null | undefined): v
     return;
   }
   if (reason === "failed" && ++failures >= FAILURES_ALLOWED) off = reason;
-  // "no_traits", "no_reasons" and "rejected" are about one film, not the session.
+  // "no_traits", "nothing_named" and "rejected" are about one film, not the session.
 }
 
 /** Tests, and a fresh sign-in: forget what this session learned. */

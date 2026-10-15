@@ -103,7 +103,7 @@ class RecommendationsOut(BaseModel):
 # "nothing is configured" from "the model timed out" and stop promising a sentence that is
 # not coming.
 ExplanationReason = Literal[
-    "no_generator", "daily_cap", "no_taste", "no_traits", "no_reasons", "failed", "rejected"
+    "no_generator", "daily_cap", "no_taste", "no_traits", "nothing_named", "failed", "rejected"
 ]
 
 

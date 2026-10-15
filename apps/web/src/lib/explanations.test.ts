@@ -15,13 +15,13 @@ describe("explanationsOff", () => {
       noteExplanation(reason);
       expect(explanationsOff()).toBe(reason);
       // and it stays settled: a later per-film answer does not reopen it
-      noteExplanation("no_reasons");
+      noteExplanation("nothing_named");
       expect(explanationsOff()).toBe(reason);
     }
   });
 
   it("keeps asking after answers that are about one film", () => {
-    for (const reason of ["no_traits", "no_reasons", "rejected"] as const) {
+    for (const reason of ["no_traits", "nothing_named", "rejected"] as const) {
       noteExplanation(reason);
       expect(explanationsOff()).toBeNull();
     }

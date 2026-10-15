@@ -62,13 +62,16 @@ Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test ch
 #   daily_cap     this user's `explanation_daily_calls_per_user` is used up until tomorrow
 #   no_taste      the user has no taste profile yet
 #   no_traits     this film has no trait vector, or no film has any (no catalogue stats)
-#   no_reasons    no trait stands out, so there is nothing truthful to write about
+#   nothing_named the rule found no trait worth naming on either side (TZ 1.23), so there
+#                 is nothing truthful to write - neither why it suits them nor how it
+#                 differs. Named for what it means: a name mentioning only reasons would
+#                 suggest a difference might still be coming.
 #   failed        the provider raised or timed out; worth trying again later
 #   rejected      the answer came back empty or longer than the brief allows
 #
 # The same set is mirrored in app.schemas.ExplanationReason (a unit test checks), as Lang is.
 Reason = Literal[
-    "no_generator", "daily_cap", "no_taste", "no_traits", "no_reasons", "failed", "rejected"
+    "no_generator", "daily_cap", "no_taste", "no_traits", "nothing_named", "failed", "rejected"
 ]
 
 
@@ -223,7 +226,7 @@ async def explain(
         return Explained(reason="no_traits")  # no film has traits, so no catalogue stats
     notes = trait_notes(taste, film, rule, weights=weights)
     if notes.side is None:
-        return Explained(reason="no_reasons")
+        return Explained(reason="nothing_named")
 
     typical = dict(zip(TRAIT_KEYS, rule.stats.mean, strict=True))
     prompt = build_prompt(movie, notes, to_dict(taste), to_dict(film), lang, typical)

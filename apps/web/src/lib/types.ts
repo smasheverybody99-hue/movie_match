@@ -100,7 +100,7 @@ export type ExplanationReason =
   | "daily_cap"
   | "no_taste"
   | "no_traits"
-  | "no_reasons"
+  | "nothing_named"
   | "failed"
   | "rejected";
 
