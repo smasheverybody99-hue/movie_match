@@ -239,20 +239,41 @@ faqat "kuchli". Film sahifasida ring yo'q: daraja (yoki neytral kicker) "Why you
 panelining sarlavhasi, jumla asosiy signal; Home hero'da ham xuddi shu kicker. Chegaralar har foydalanuvchi uchun saqlangan
 sonlardan qayta hisoblanadi (`users.taste_*`, `movie_traits.vector`).
 
-**Sabab qoidasi** (2026-10-02; match foiziga ta'sir qilmaydi) — qaysi traitlar "sabab"
-deb ko'rsatiladi:
+**Trait qoidasi** (1.23, 2026-10-15; match foiziga ta'sir qilmaydi) — qaysi traitlar
+ko'rsatiladi va **qaysi tomonda**. Bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi,
+ikki kesim (ikkita alohida qoida emas):
 
 ```
 μ[i], σ[i] = katalogdagi barcha traitli filmlarning i-o'lchov bo'yicha o'rtachasi va
              standart og'ishi (populyatsiya)
-z_film[i]  = (movie[i] - μ[i]) / σ[i]        z_taste[i] = (taste[i] - μ[i]) / σ[i]
-sabab      : z_film[i] >= 0.5  va  z_taste[i] >= 0      (ikkalasi sozlama)
-kuch       = w[i] * z_film[i];  eng kuchli 3 tasi
+og'ish[i]  = movie[i] - taste[i]             filmning foydalanuvchi ta'midan farqi
+kattalik   = |og'ish[i]| / σ[i]              katalog standart og'ishlarida
+yo'nalish  = taste[i] - μ[i]                 foydalanuvchi oddiy filmdan qaysi tomonda
+sabab      : og'ish ta'm yo'nalishi bilan bir xil tomonda va kattalik >= 0.5   (sozlama)
+farq       : og'ish qarama-qarshi tomonda    va kattalik >= 1.0                (sozlama)
+boshqa holda: hech narsa
+kuch       = w[i] * kattalik;  eng kuchli 3 tasi
 ```
 
-Film shu traitda oddiy filmdan sezilarli yuqori va foydalanuvchi ham o'sha tomonga
-og'gan bo'lsa — sabab. Deyarli hamma filmda baland trait (masalan, katalogda
-`visual_style` o'rtachasi 76) har filmga sabab bo'lib chiqmaydi.
+**Sabablar ustun:** filmda bitta sabab bo'lsa ham, farqlar yozilmaydi. Farq faqat sabab
+umuman bo'lmaganda chiqadi; ikkalasi ham bo'lmasa — panel hech narsa yozmaydi (eski
+"ta'mingizga umuman mos" jumlasi olib tashlandi: u ortida hech narsa bo'lmagan da'vo edi).
+
+**Nega kesimlar teng emas** (foydalanuvchi qarori, o'lchov `docs/phase-2-status.md`):
+"bu film sizga mos emas" — qattiq da'vo, kamdan-kam va faqat aniq bo'lganda chiqishi
+kerak. Ikkalasiga 0.5 qo'yilsa film sahifalarining **74%** ida farq matni chiqardi;
+ikkalasiga 1.0 qo'yilsa tavsiya qilingan filmlarning **72%** ida panel jim qolardi.
+Asimmetriya shu ikki chetdan qochadi: yettita akkauntda har birining 75 ta "banded"
+filmidan **86–100%** sabab, **0–13%** farq, **0–2%** jim.
+
+Bu qoida 2026-10-02 dagi qoidani almashtiradi (u faqat sababni bilardi va og'ishning
+kattaligini o'lchamasdi: ta'm 82, film 85 — 3 ball farq ham "sabab" bo'lib chiqardi).
+Deyarli hamma filmda baland trait (katalogda `visual_style` o'rtachasi 76) endi ham har
+filmga sabab bo'lib chiqmaydi: ta'm 85, film 82 bo'lsa og'ish 0.21 σ — ikkala kesimdan
+past. Har bir trait qo'lda tekshiriladi: ikki sonni ayirib σ ga bo'lish.
+
+Interfeys: `named_traits` (trait kalitlari) va `trait_side` (`reason` | `difference` |
+`null`); `trait_side` aynan `named_traits` bo'sh bo'lmaganda to'ldiriladi.
 
 ### FR-6 · "Nega sizga yoqadi"
 
@@ -260,6 +281,10 @@ Har tavsiyaga 1–2 jumlalik oddiy tildagi izoh.
 
 **Qabul mezoni:**
 - Izoh faqat haqiqiy trait mosligiga asoslanadi, umumiy maqtov emas.
+- **Izoh trait qoidasining tomonini kuzatadi** (1.23): sabab tomonda — "nega mos" matni;
+  farq tomonda — **boshqa prompt** (`DIFFERENCE_SYSTEM_PROMPT`), u farqni betaraf
+  bayon qiladi va modelga "sizga yoqadi / tavsiya qilaman / sinab ko'ring" ma'nosidagi
+  hech narsa yozmaslik aytiladi. Hech narsa nomlanmasa — izoh so'ralmaydi.
 - Har (foydalanuvchi, film) juftligi uchun bir marta generatsiya qilinadi va keshlanadi.
 - Kesh bo'lmasa ham ekran bloklanmaydi — skeleton ko'rsatiladi.
 
@@ -421,6 +446,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.23 | 2026-10-15 | FR-5: sabab qoidasi o'rniga **bitta simmetrik trait qoidasi** — bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi, ikki kesim (sabab 0.5 σ, farq 1.0 σ); sabablar ustun, ikkalasi bo'lmasa panel jim. FR-6: farq tomonida alohida prompt, "sizga yoqadi" ma'nosi taqiqlanadi. API: `reasons` → `named_traits` + `trait_side`. Sabab: foydalanuvchi "Outside your usual taste" yorlig'i ostidagi filmda "sizga mos" izohini ko'rdi; eski qoida og'ish kattaligini o'lchamasdi (82 va 85 ham "sabab" edi). Interfeysdan "ta'mingizga umuman mos" jumlasi olib tashlandi (foydalanuvchi qarori; o'lchov `docs/phase-2-status.md`) |
 | 1.22 | 2026-10-13 | FR-6: `ExplanationOut` ga **`reason`** qo'shildi (jumla yo'qligining sababi, yetti qiymat) — oldin `text: null` yetti holatda bir xil edi. Interfeys "Izoh tayyorlanmoqda…" ni faqat jumla kelishi mumkin bo'lganda ko'rsatadi (tester fikri: indikator har film sahifasida chiqib, shablon jumla bilan tugardi) |
 | 1.21 | 2026-10-13 | FR-5: bo'lim ichida **recency jarimasi** (`recency_weight` = 0.02) — faqat MMR relevantligida, match foiziga tegmaydi. Asos: MMR pre-1980 ulushini 32% dan 40% ga ko'tarardi (katalog 26%); 0.02 da 30% (foydalanuvchi qarori, o'lchov `docs/phase-2-status.md`) |
 | 1.20 | 2026-10-13 | Tester fikri (P0–P2). Backlog'ga uch band: tavsiyalarning eski tomonga og'ishi (o'lchandi, qaror kutilmoqda), baho chiplari, NSFW/ekstremal kontent. FR-5 sabab qoidasi (1.12) **o'zgarmadi**; o'zgargan narsa — zaxira jumlasining matni: "Siz bilan umumiy jihatlari" yaqinlikni da'vo qilardi, qoida esa yaqinlikni talab qilmaydi (film katalog o'rtachasidan yuqori + ta'm shu tomonda). Misol: The Wave `plot_twist` — katalog o'rtachasi 30.9, σ 20.4, film 60 (z +1.43), foydalanuvchi 34 (z +0.15): ikkala shart ham bajariladi, lekin 26 ball farq "umumiy" emas. FR-3 (8.0 chegarasi) o'zgarmadi; backlog'ga ikki band — baho chiplari va NSFW/ekstremal kontent | 

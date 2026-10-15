@@ -1,9 +1,9 @@
-"""The rule for naming the reasons behind a match: catalogue statistics plus thresholds.
+"""The rule for naming the traits behind a match: catalogue statistics plus two cuts.
 
 The statistics (mean and population standard deviation of each trait over every film
 with traits) come from one aggregate query and are kept in memory for a few minutes:
-they move only when the trait pipeline scores more films. Thresholds are settings
-(`reason_min_film_z`, `reason_min_taste_z`). See matching.top_reasons for the rule.
+they move only when the trait pipeline scores more films. The cuts are settings
+(`trait_reason_min`, `trait_difference_min`). See matching.trait_notes for the rule.
 """
 
 import time
@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.services.matching import ReasonRule, TraitStats
+from app.services.matching import DeviationRule, TraitStats
 from app.traits import TRAIT_COUNT
 
 CACHE_SECONDS = 600.0
@@ -50,14 +50,14 @@ async def trait_stats(session: AsyncSession) -> TraitStats | None:
     return stats
 
 
-async def load_rule(session: AsyncSession) -> ReasonRule | None:
-    """The reason rule with the configured thresholds; None while no film has traits."""
+async def load_rule(session: AsyncSession) -> DeviationRule | None:
+    """The deviation rule with the configured cuts; None while no film has traits."""
     stats = await trait_stats(session)
     if stats is None:
         return None
     settings = get_settings()
-    return ReasonRule(
+    return DeviationRule(
         stats=stats,
-        min_film_z=settings.reason_min_film_z,
-        min_taste_z=settings.reason_min_taste_z,
+        reason_min=settings.trait_reason_min,
+        difference_min=settings.trait_difference_min,
     )

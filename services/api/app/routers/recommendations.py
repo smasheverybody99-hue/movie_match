@@ -55,7 +55,8 @@ async def get_recommendations(
                         movie=movie_out(item.candidate.movie, genres),
                         match=item.match,
                         band=item.band,
-                        reasons=item.reasons,
+                        named_traits=list(item.notes.keys),
+                        trait_side=item.notes.side,
                         explanation=texts.get(item.movie_id),
                     )
                     for item in section.items

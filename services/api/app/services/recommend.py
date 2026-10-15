@@ -49,12 +49,13 @@ from app.models import (
 from app.services.bands import load_cuts
 from app.services.matching import (
     BandCuts,
+    DeviationRule,
     MatchBand,
-    ReasonRule,
+    TraitNotes,
     match_band,
     match_percentage,
     match_raw,
-    top_reasons,
+    trait_notes,
     weights_vector,
 )
 from app.services.mmr import mmr
@@ -88,7 +89,7 @@ class Candidate:
 class Scored:
     candidate: Candidate
     match: int
-    reasons: list[str]
+    notes: TraitNotes
     band: MatchBand | None = None
 
     @property
@@ -120,23 +121,25 @@ def score(
     candidates: Sequence[Candidate],
     taste: Sequence[float],
     weights: Sequence[float],
-    rule: ReasonRule | None,
+    rule: DeviationRule | None,
     cuts: BandCuts | None = None,
 ) -> list[Scored]:
     """Match and band every candidate; drop those below the floor cut; best first.
-    Without a reason rule (no catalogue statistics yet) the reasons are empty; without
+    Without a deviation rule (no catalogue statistics yet) no trait is named; without
     cuts (no film has traits) nothing is dropped and no film has a band."""
     scored = []
     for candidate in candidates:
         raw = match_raw(taste, weights, candidate.vector)
         if cuts is not None and raw < cuts.floor:
             continue
-        reasons = top_reasons(taste, candidate.vector, rule, weights=weights) if rule else []
+        notes = (
+            trait_notes(taste, candidate.vector, rule, weights=weights) if rule else TraitNotes()
+        )
         scored.append(
             Scored(
                 candidate,
                 match_percentage(taste, weights, candidate.vector),
-                reasons,
+                notes,
                 match_band(raw, cuts),
             )
         )

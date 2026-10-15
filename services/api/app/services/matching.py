@@ -124,13 +124,34 @@ class TraitStats:
     sd: tuple[float, ...]
 
 
+TraitSide = Literal["reason", "difference"]
+
+
 @dataclass(frozen=True)
-class ReasonRule:
-    """What makes a trait a reason. Thresholds are in catalogue standard deviations."""
+class DeviationRule:
+    """When a trait is worth naming, and on which side. Cuts are in catalogue sds.
+
+    Two cuts, not two rules: the same deviation and the same direction test decide both
+    sides, and only the bar differs. A reason is cheap (0.5) because the panel's job is to
+    say why a film suits someone; a difference is dear (1.0) because "this is not for you"
+    is a hard claim and should be rare and unmistakable (TZ 1.23, user's decision).
+    """
 
     stats: TraitStats
-    min_film_z: float = 0.5
-    min_taste_z: float = 0.0
+    reason_min: float = 0.5
+    difference_min: float = 1.0
+
+
+@dataclass(frozen=True)
+class TraitNotes:
+    """The traits worth naming for one (viewer, film), strongest first, and their side.
+
+    One side only: a film that has reasons is described by its reasons. `side` is None
+    exactly when `keys` is empty, and then the panel says nothing at all.
+    """
+
+    side: TraitSide | None = None
+    keys: tuple[str, ...] = ()
 
 
 def z_score(value: float, mean: float, sd: float) -> float | None:
@@ -139,38 +160,55 @@ def z_score(value: float, mean: float, sd: float) -> float | None:
     return None if sd < 1e-9 else (value - mean) / sd
 
 
-def top_reasons(
+def trait_notes(
     taste: Sequence[float],
     movie_vector: Sequence[float],
-    rule: ReasonRule,
+    rule: DeviationRule,
     n: int = 3,
     weights: Sequence[float] | None = None,
-) -> list[str]:
-    """The traits on which this film stands out from typical films in the direction the
-    user leans, strongest first. Only which traits are named changes here: the match
-    percentage (FR-5) does not use this.
+) -> TraitNotes:
+    """The traits worth naming for this film, and whether they are reasons or differences.
 
-    A trait is a reason when the film is notably above the catalogue mean on it
-    (z_film >= rule.min_film_z) and the user's taste is at least on the same side
-    (z_taste >= rule.min_taste_z). Its strength is w·z_film. A trait nearly every film
-    scores high on (2026-10-02: visual_style and emotional_intensity, mean ~74, sd 14)
-    therefore no longer comes up for every film; with the old rule, w·min(taste, film),
-    they were among the reasons for over 90% of one user's recommendations. Any reason can
-    be checked by hand: z = (value - mean) / sd from the stored vectors and the catalogue.
-    The list can be shorter than `n`, or empty. Ties keep TRAIT_KEYS order.
+    One symmetric rule (TZ 1.23, FR-5; user's decision 2026-10-15). Per trait:
+
+        deviation = movie[i] - taste[i]          how far the film sits from the viewer
+        size      = |deviation| / sd[i]          in catalogue standard deviations
+        lean      = taste[i] - mean[i]           which side of a typical film they sit on
+        the same way as their lean, size >= rule.reason_min     -> a reason
+        the other way,              size >= rule.difference_min -> a difference
+        otherwise                                               -> nothing
+
+    Strength is w·size, so a dimension the viewer is consistent about counts for more.
+    Reasons win: a film with any reason is described by its reasons, and differences
+    speak only for a film that has none. Both empty means the panel says nothing, which
+    is the point - a film 3 points from the taste on a 20-point spread has nothing to say
+    either way, and before this it was named as a reason anyway.
+
+    Every note can be checked by hand from the stored vectors and the catalogue: subtract
+    two numbers and divide by the trait's sd. The match percentage (FR-5) does not use
+    this at all. The list can be shorter than `n`. Ties keep TRAIT_KEYS order; a viewer
+    sitting exactly on the catalogue mean has no lean, and a deviation there is read as
+    the other way, which needs the higher cut.
     """
     if weights is None:
         weights = [1.0] * len(taste)
     _check(taste, weights, movie_vector)
     if len(taste) != len(TRAIT_KEYS) or len(rule.stats.mean) != len(TRAIT_KEYS):
         raise ValueError(f"expected {len(TRAIT_KEYS)} dimensions, got {len(taste)}")
-    strengths = []
+    if n <= 0:
+        return TraitNotes()
+    found: dict[TraitSide, list[tuple[float, int]]] = {"reason": [], "difference": []}
     for index, (w, t, m) in enumerate(zip(weights, taste, movie_vector, strict=True)):
         mean, sd = rule.stats.mean[index], rule.stats.sd[index]
-        z_film, z_taste = z_score(m, mean, sd), z_score(t, mean, sd)
-        if z_film is None or z_taste is None or w <= 0:
+        if sd < 1e-9 or w <= 0:  # nothing can stand out on a trait the catalogue shares
             continue
-        if z_film >= rule.min_film_z and z_taste >= rule.min_taste_z:
-            strengths.append((w * z_film, index))
-    ranked = sorted(strengths, key=lambda s: (-s[0], s[1]))
-    return [TRAIT_KEYS[index] for _, index in ranked[: max(n, 0)]]
+        deviation = m - t
+        size = abs(deviation) / sd
+        side: TraitSide = "reason" if (deviation > 0) == (t - mean > 0) else "difference"
+        if size >= (rule.reason_min if side == "reason" else rule.difference_min):
+            found[side].append((w * size, index))
+    for side in ("reason", "difference"):
+        if found[side]:
+            ranked = sorted(found[side], key=lambda s: (-s[0], s[1]))
+            return TraitNotes(side, tuple(TRAIT_KEYS[i] for _, i in ranked[:n]))
+    return TraitNotes()

@@ -100,12 +100,17 @@ export function Hero({
   const movie = item.movie;
   const isSaved = saved.has(movie.id);
   const year = releaseYear(movie);
-  const reasons = item.reasons.filter(isTraitKey).slice(0, 3);
+  const named = item.named_traits.filter(isTraitKey).slice(0, 3);
+  // The same rule as the film page (TZ 1.23): the side decides the sentence, and a film
+  // with nothing named gets none at all rather than a claim with nothing behind it.
+  const side = named.length > 0 ? item.trait_side : null;
   const sentence =
     item.explanation ??
-    (reasons.length
-      ? t("movie.whyYouFallback", { traits: reasons.map((key) => t(traitLabelKey(key))).join(", ") })
-      : t("movie.whyYouGeneral"));
+    (side === null
+      ? null
+      : t(side === "difference" ? "movie.differsFallback" : "movie.whyYouFallback", {
+          traits: named.map((key) => t(traitLabelKey(key))).join(", "),
+        }));
   const tags = [...(year ? [year] : []), ...(movie.runtime_minutes ? [t("common.minutes", { n: movie.runtime_minutes })] : [])];
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -163,7 +168,7 @@ export function Hero({
               ))}
             </ul>
           )}
-          <p className="home-hero-why">{sentence}</p>
+          {sentence !== null && <p className="home-hero-why">{sentence}</p>}
           <div className="home-hero-actions">
             <Link className="btn btn-secondary" to={`/movie/${movie.id}`}>
               <Icon as={Sparkles} /> {t("hero.why")}

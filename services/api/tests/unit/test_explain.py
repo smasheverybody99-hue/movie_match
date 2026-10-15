@@ -10,6 +10,7 @@ from app import schemas
 from app.models import Movie
 from app.providers.gemini import EXPLAIN_MODEL, GeminiExplainer
 from app.services.explain import (
+    DIFFERENCE_SYSTEM_PROMPT,
     LANGUAGE_NAMES,
     MAX_CHARS,
     RUSSIAN_STYLE,
@@ -19,7 +20,9 @@ from app.services.explain import (
     Reason,
     build_prompt,
     clean,
+    system_prompt,
 )
+from app.services.matching import TraitNotes
 from app.traits import TRAIT_KEYS, trait_labels
 
 
@@ -31,11 +34,19 @@ def _scores(**values: float) -> dict[str, float]:
 TYPICAL = {key: 40.0 for key in TRAIT_KEYS} | {"plot_twist": 31.0}
 
 
+def REASONS(*keys: str) -> TraitNotes:
+    return TraitNotes("reason", keys)
+
+
+def DIFFERENCES(*keys: str) -> TraitNotes:
+    return TraitNotes("difference", keys)
+
+
 def test_prompt_names_the_film_the_reasons_and_the_language() -> None:
     movie = Movie(id=1, title="Memento", release_date=date(2000, 9, 5))
     taste = _scores(plot_twist=88.4, mystery=70)
     film = _scores(plot_twist=95, mystery=81.6)
-    prompt = build_prompt(movie, ["plot_twist", "mystery"], taste, film, "uz", TYPICAL)
+    prompt = build_prompt(movie, REASONS("plot_twist", "mystery"), taste, film, "uz", TYPICAL)
     assert prompt.startswith("Film: Memento (2000)\n")
     # with the typical film's value, so the model can say how this one differs
     assert (
@@ -55,7 +66,7 @@ def test_prompt_names_the_film_the_reasons_and_the_language() -> None:
 )
 def test_prompt_asks_for_each_language(lang: Lang, name: str) -> None:
     prompt = build_prompt(
-        Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang, TYPICAL
+        Movie(id=1, title="Heat"), REASONS("action"), _scores(), _scores(), lang, TYPICAL
     )
     assert f"\n\nWrite the sentences in {name}." in prompt
     assert "- Action:" in prompt  # the brief itself stays in English
@@ -64,7 +75,7 @@ def test_prompt_asks_for_each_language(lang: Lang, name: str) -> None:
 @pytest.mark.parametrize("lang", ["en", "uz"])
 def test_prompt_ends_with_the_language_outside_russian(lang: Lang) -> None:
     prompt = build_prompt(
-        Movie(id=1, title="Heat"), ["action"], _scores(), _scores(), lang, TYPICAL
+        Movie(id=1, title="Heat"), REASONS("action"), _scores(), _scores(), lang, TYPICAL
     )
     assert prompt.endswith(f"Write the sentences in {LANGUAGE_NAMES[lang]}.")
     assert RUSSIAN_STYLE not in prompt
@@ -72,7 +83,7 @@ def test_prompt_ends_with_the_language_outside_russian(lang: Lang) -> None:
 
 def test_russian_prompt_names_the_qualities_in_russian_and_asks_for_natural_russian() -> None:
     prompt = build_prompt(
-        Movie(id=1, title="Heat"), ["action", "pacing"], _scores(), _scores(), "ru", TYPICAL
+        Movie(id=1, title="Heat"), REASONS("action", "pacing"), _scores(), _scores(), "ru", TYPICAL
     )
     # the interface's words, so "action" does not come back as "действие"
     assert "Name the qualities with these Russian words: Action = экшен; Pace = динамичность." in (
@@ -81,6 +92,49 @@ def test_russian_prompt_names_the_qualities_in_russian_and_asks_for_natural_russ
     assert prompt.endswith("\n" + RUSSIAN_STYLE)
     assert RUSSIAN_STYLE.startswith("Пиши естественным русским языком, используй букву ё")
     assert "Romance" not in prompt and "романтика" not in prompt  # only the real reasons
+
+
+def test_a_difference_is_briefed_as_a_difference_and_never_as_a_recommendation() -> None:
+    """The reported bug of 2026-10-15: a film away from the taste still read as "you'll
+    like this". The brief for that side must not let the model say so."""
+    assert system_prompt("reason") is SYSTEM_PROMPT
+    assert system_prompt("difference") is DIFFERENCE_SYSTEM_PROMPT
+    brief = " ".join(DIFFERENCE_SYSTEM_PROMPT.lower().split())
+    assert "how a film differs from what they usually go for" in brief
+    # Each of these is named as something the sentence may not do.
+    for forbidden in [
+        "will like",
+        "dislike",
+        "should watch",
+        "recommend",
+        "warn them off",
+        "change of pace",
+        "surprise",
+        "worth trying",
+    ]:
+        assert forbidden in brief, forbidden
+    assert "do not say or imply that they will like it" in brief
+    # And it must not carry the other side's framing.
+    assert "suits" not in brief
+
+    prompt = build_prompt(
+        Movie(id=1, title="Godzilla"),
+        DIFFERENCES("humor", "darkness"),
+        _scores(),
+        _scores(),
+        "en",
+        TYPICAL,
+    )
+    assert "sits well away from this viewer's taste" in prompt
+    assert "the viewer leaning the same way" not in prompt
+    assert "- Humor:" in prompt and "- Tone darkness:" in prompt
+
+
+def test_the_prompt_heading_follows_the_side() -> None:
+    args = (_scores(), _scores(), "en", TYPICAL)
+    movie = Movie(id=1, title="Heat")
+    assert "takes further than most films" in build_prompt(movie, REASONS("action"), *args)
+    assert "takes further than most films" not in build_prompt(movie, DIFFERENCES("action"), *args)
 
 
 def test_the_service_and_the_api_accept_the_same_languages() -> None:
@@ -107,7 +161,7 @@ def test_every_language_has_a_label_for_every_trait(lang: str) -> None:
 
 def test_prompt_without_a_release_date() -> None:
     movie = Movie(id=1, title="Untitled")
-    assert build_prompt(movie, ["humor"], _scores(), _scores(), "en", TYPICAL).startswith(
+    assert build_prompt(movie, REASONS("humor"), _scores(), _scores(), "en", TYPICAL).startswith(
         "Film: Untitled\n"
     )
 

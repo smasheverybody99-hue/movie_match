@@ -179,7 +179,7 @@ describe("MoviePage", () => {
     expect(screen.getByTestId("why-traits")).toContainElement(document.querySelector(".axis-legend"));
     unmount();
 
-    getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
+    getMovie.mockResolvedValue(detail(movie(0), { named_traits: [], trait_side: null }));
     renderWithProviders(<MoviePage />, ROUTE);
     // no axes above, so these are the film's top traits, not "other" ones
     const compare = await screen.findByRole("region", { name: "Its strongest traits" });
@@ -254,27 +254,42 @@ describe("MoviePage", () => {
     expect(explanation).not.toHaveBeenCalled();
   });
 
-  it("says it suits overall when the match has no standout reason: same slot, no axes, no request", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { reasons: [] }));
+  it("says nothing at all when the rule names no trait: no sentence, no axes, no request", async () => {
+    // One true sentence beats ten empty ones: the old "it suits your taste overall" line
+    // claimed a fit with nothing behind it and is gone (TZ 1.23).
+    getMovie.mockResolvedValue(detail(movie(0), { named_traits: [], trait_side: null }));
     renderWithProviders(<MoviePage />, ROUTE);
-    const text = await screen.findByText(
-      "It suits your taste overall rather than through one standout quality.",
-    );
-    // the same sentence element in the same slot as with reasons, so the same size
-    expect(text).toHaveClass("why-text");
-    expect(screen.getByTestId("why-slot")).toContainElement(text);
-    // nothing is coming, so no space is held: the panel is as tall as its content
-    expect(screen.getByTestId("why-slot")).not.toHaveClass("why-reserve");
-    expect(screen.getByText("Strong match")).toBeInTheDocument();
+    // The band is a separate claim and still stands, so the panel keeps its heading.
+    expect(await screen.findByText("Strong match")).toBeInTheDocument();
+    const slot = screen.getByTestId("why-slot");
+    expect(slot).toBeEmptyDOMElement();
+    // nothing is coming, so no space is held either
+    expect(slot).not.toHaveClass("why-reserve");
     expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
     expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
-    // the API writes no text without a reason, so the page does not ask
     expect(explanation).not.toHaveBeenCalled();
     expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/suits your taste/)).not.toBeInTheDocument();
+  });
+
+  it("states how a film differs when the rule puts its traits on that side", async () => {
+    // The contradiction reported on 2026-10-15: a film the taste leans away from still
+    // read as "you'll like this".
+    getMovie.mockResolvedValue(
+      detail(movie(0), { named_traits: ["pacing", "humor"], trait_side: "difference" }),
+    );
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "rejected" });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(
+      await screen.findByText("Where it differs from your taste: Pace, Humor."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    // The axes still show both values, which is what makes the claim checkable.
+    expect(screen.getByTestId("why-traits")).toBeInTheDocument();
   });
 
   it("does not ask for an explanation without a match, and heads the panel with the neutral kicker", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, reasons: [] }));
+    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, named_traits: [], trait_side: null }));
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText(/Rate 10 films first/)).toBeInTheDocument();
     expect(explanation).not.toHaveBeenCalled();
@@ -284,7 +299,7 @@ describe("MoviePage", () => {
   });
 
   it("without a taste profile draws no dots of yours in the comparison, rather than at 0", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, reasons: [] }));
+    getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, named_traits: [], trait_side: null }));
     dna.mockResolvedValue({ ...DNA, scores: {}, rating_count: 0, ratings_needed: 10 });
     renderWithProviders(<MoviePage />, ROUTE);
     const compare = await screen.findByRole("region", { name: "Its strongest traits" });
@@ -295,7 +310,7 @@ describe("MoviePage", () => {
   });
 
   it("with one reason: one column, the axis and its key under the sentence", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { reasons: ["darkness"] }));
+    getMovie.mockResolvedValue(detail(movie(0), { named_traits: ["darkness"] }));
     renderWithProviders(<MoviePage />, ROUTE);
     const why = await screen.findByRole("region", { name: "Strong match" });
     expect(why).toHaveClass("why-solo");
@@ -307,7 +322,7 @@ describe("MoviePage", () => {
   });
 
   it("with two or three reasons: two columns on wide screens", async () => {
-    getMovie.mockResolvedValue(detail(movie(0), { reasons: ["mystery", "darkness"] }));
+    getMovie.mockResolvedValue(detail(movie(0), { named_traits: ["mystery", "darkness"] }));
     renderWithProviders(<MoviePage />, ROUTE);
     const why = await screen.findByRole("region", { name: "Strong match" });
     expect(why).not.toHaveClass("why-solo");
@@ -489,7 +504,7 @@ describe("axisPositions", () => {
 describe("comparedTraits", () => {
   it("leaves out the reasons Why you already shows, then takes the film's strongest", () => {
     const film = detail(movie(0), {
-      reasons: ["mystery", "darkness"],
+      named_traits: ["mystery", "darkness"],
       traits: {
         summary: null,
         scores: { mystery: 60, darkness: 99, humor: 98, romance: 10, action: 97, pacing: 96 },

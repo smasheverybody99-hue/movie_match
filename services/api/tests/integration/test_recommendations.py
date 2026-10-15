@@ -21,7 +21,7 @@ from app.services.matching import (
     match_band,
     match_percentage,
     match_raw,
-    top_reasons,
+    trait_notes,
     weights_vector,
 )
 from app.services.reasons import load_rule
@@ -135,10 +135,11 @@ async def test_sections_are_returned(world) -> None:
     assert "under_90" in keys
 
 
-async def test_reasons_are_recomputable_from_stored_numbers(world) -> None:
-    """Every item's reasons are the rule applied to stored vectors and the catalogue's
-    statistics. In this catalogue every film sits near the taste, so few or none stand
-    out: an empty list is a correct answer (2026-10-02), not a missing one."""
+async def test_named_traits_are_recomputable_from_stored_numbers(world) -> None:
+    """Every item's named traits and their side are the one rule applied to stored vectors
+    and the catalogue's statistics. In this catalogue every film sits near the taste, so
+    few deviate far enough to say anything: an empty list with a null side is a correct
+    answer (TZ 1.23), not a missing one."""
     session, me, body = world
     user = await session.get(User, me, populate_existing=True)
     assert user is not None and user.taste_vector is not None and user.taste_weights
@@ -149,8 +150,12 @@ async def test_reasons_are_recomputable_from_stored_numbers(world) -> None:
     for item in _items(body):
         film = await session.get(MovieTraits, item["movie"]["id"])
         assert film is not None
-        expected = top_reasons(taste, [float(v) for v in film.vector], rule, weights=weights)
-        assert item["reasons"] == expected, item["movie"]["id"]
+        notes = trait_notes(taste, [float(v) for v in film.vector], rule, weights=weights)
+        assert item["named_traits"] == list(notes.keys), item["movie"]["id"]
+        assert item["trait_side"] == notes.side, item["movie"]["id"]
+        # The side is set exactly when something is named, so the client can trust one
+        # check before it picks which sentence to write.
+        assert (item["trait_side"] is None) == (item["named_traits"] == [])
 
 
 async def _cuts_by_hand(session: AsyncSession, me: uuid.UUID):

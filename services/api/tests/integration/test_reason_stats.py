@@ -25,15 +25,17 @@ async def test_mean_and_population_sd_per_trait_in_trait_order(db_session: Async
     assert stats.mean[0] == pytest.approx(60.0) and stats.sd[0] == pytest.approx(0.0)
 
 
-async def test_the_rule_carries_the_configured_thresholds(db_session: AsyncSession) -> None:
+async def test_the_rule_carries_the_configured_cuts(db_session: AsyncSession) -> None:
     await seed_films(db_session, {A: [50.0] * TRAIT_COUNT, B: [70.0] * TRAIT_COUNT})
     rule = await reasons.load_rule(db_session)
     settings = get_settings()
     assert rule is not None
-    assert (rule.min_film_z, rule.min_taste_z) == (
-        settings.reason_min_film_z,
-        settings.reason_min_taste_z,
+    assert (rule.reason_min, rule.difference_min) == (
+        settings.trait_reason_min,
+        settings.trait_difference_min,
     )
+    # A difference is the dearer claim of the two, by decision (TZ 1.23).
+    assert rule.difference_min > rule.reason_min
 
 
 async def test_the_statistics_are_kept_until_cleared(db_session: AsyncSession) -> None:

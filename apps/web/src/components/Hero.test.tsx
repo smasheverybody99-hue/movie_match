@@ -72,10 +72,23 @@ describe("Hero", () => {
     expect(screen.queryByText("Good match")).not.toBeInTheDocument();
   });
 
-  it("without reasons either: the 'suits you overall' sentence", () => {
-    const one = [{ ...rec(movie(3), 80, null), reasons: [] }];
+  it("with nothing named: no sentence at all, not a claim with nothing behind it", () => {
+    const one = [{ ...rec(movie(3), 80, null), named_traits: [], trait_side: null }];
+    const { hero } = renderHero(one);
+    expect(hero.querySelector(".home-hero-why")).toBeNull();
+    expect(screen.queryByText(/suits your taste/)).not.toBeInTheDocument();
+    // The slide is otherwise intact: kicker, title and both buttons.
+    expect(screen.getByText("You and this film")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See why" })).toBeInTheDocument();
+  });
+
+  it("states how a film differs when its traits fall on that side", () => {
+    const one = [
+      { ...rec(movie(3), 80, null), named_traits: ["pacing", "humor"], trait_side: "difference" as const },
+    ];
     renderHero(one);
-    expect(screen.getByText("It suits your taste overall rather than through one standout quality.")).toBeInTheDocument();
+    expect(screen.getByText("Where it differs from your taste: Pace, Humor.")).toBeInTheDocument();
+    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
   });
 
   it("moves with prev / next, the dots and the arrow keys, wrapping at both ends", () => {

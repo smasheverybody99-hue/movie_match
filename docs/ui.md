@@ -129,9 +129,11 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   FILM" ("good" ko'rsatilmaydi, TZ 1.16); keyin nom (Playfair, film sahifasiga havola),
   yil va davomiylik chiplari, ostida qisqa jumla.
 - **Jumla:** tavsiyalar javobidagi keshlangan izoh; yo'q bo'lsa — film sahifasidagi
-  bepul zaxira ("Where your taste leans, it goes further than most films: …",
-  sabab yo'q bo'lsa "It suits your taste
-  overall…"). **Hero LLM chaqirmaydi:** aylanish izoh so'rasa, har slayd pul va kunlik
+  bepul zaxira. **Qaysi zaxira — `trait_side` bo'yicha** (TZ 1.23, 2026-10-15): sabab
+  tomonda "Where your taste leans, it goes further than most films: …", farq tomonda
+  "Where it differs from your taste: …"; hech narsa nomlanmasa — **jumla yo'q** (eski
+  "It suits your taste overall…" olib tashlandi: ortida hech narsa bo'lmagan da'vo edi).
+  **Hero LLM chaqirmaydi:** aylanish izoh so'rasa, har slayd pul va kunlik
   limit sarflardi.
 - **Tugmalar,** ikkalasi neytral kontur: **"See why"** (uz "Nega mos", ru "Почему
   подходит") — film sahifasini ochadi; **Save**. Rate hero'da yo'q — u karta hover'ida va
@@ -346,9 +348,16 @@ ko'ramiz.
   Ta'm hali yuklanmagan bo'lsa, sizning nuqtangiz 0 da chizilmaydi — keyin paydo bo'ladi.
   Qizil yo'q. "Sizning ta'mingiz va shu film" ham shu o'qlarga o'tdi va panelda
   ko'rsatilgan sabablarni takrorlamaydi (filmning qolgan eng kuchli 5 trait'i).
-- **Sabab yo'q holat:** "suits you overall" jumlasi xuddi shu slot'da, shu o'lchamda; o'qlar
-  qismi yo'q, ustunlar o'sha (jumla bir xil enda o'raladi). API sababsiz izoh yozmaydi
-  (`explain.py`), shuning uchun bu holatda izoh so'ralmaydi — skeleton ham, siljish ham yo'q.
+- **Farq holati** (TZ 1.23, 2026-10-15): traitlar farq tomonida bo'lsa, o'sha slot va o'sha
+  o'qlar, lekin jumla betaraf farq bayoni ("Where it differs from your taste: …") —
+  "sizga yoqadi" ma'nosidagi hech narsa yo'q. O'qlar qoladi, chunki ular da'voni
+  tekshirish imkonini beradi (siz 88, film 34).
+- **Hech narsa nomlanmagan holat:** panel faqat sarlavhadan (kicker) iborat — jumla ham,
+  o'qlar ham yo'q. Eski "suits you overall" jumlasi olib tashlandi. API bu holatda izoh
+  yozmaydi (`explain.py`), shuning uchun izoh so'ralmaydi — skeleton ham, siljish ham yo'q.
+  **Brauzerda ko'rilmagan:** o'lchov bo'yicha bu holat tavsiya qilingan filmlarning
+  0–2% ida uchraydi (`docs/phase-2-status.md`), shuning uchun faqat sarlavhali panel
+  jonli ekranda qanday ko'rinishi tekshirilishi kerak.
 - **Skeleton:** jumla slot'ining balandligi oldindan band (`min-height`: mobil 4, 640–1099
   da 3 qator; ≥ 1100 da o'qlar ustuni balandroq); matn 200 ms da paydo bo'ladi.
 - **Reduced motion:** CSS qoidasidan tashqari JS ham: fade klassi qo'yilmaydi, ring va

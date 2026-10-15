@@ -79,13 +79,21 @@ export function detail(m: Movie, patch: Partial<MovieDetail> = {}): MovieDetail 
     cast: ["Hugh Jackman", "Christian Bale"],
     match: 94,
     band: "strong",
-    reasons: ["psychological_complexity", "plot_twist", "mystery"],
+    named_traits: ["psychological_complexity", "plot_twist", "mystery"],
+    trait_side: "reason",
     ...patch,
   };
 }
 
 export function rec(m: Movie, match: number, band: MatchBand | null = null): Recommendation {
-  return { movie: m, match, band, reasons: ["mystery", "plot_twist"], explanation: null };
+  return {
+    movie: m,
+    match,
+    band,
+    named_traits: ["mystery", "plot_twist"],
+    trait_side: "reason",
+    explanation: null,
+  };
 }
 
 /** As the API bands a feed: the first two of "For you" strong (red stays rare), then good. */

@@ -31,16 +31,16 @@ import type { MovieDetail } from "../lib/types";
 
 /** Two columns of three on wide screens. */
 const COMPARED = 6;
-/** "Why you" names at most this many traits: the match's reasons (top_reasons, n = 3). */
+/** "Why you" names at most this many traits (matching.trait_notes, n = 3). */
 const WHY_TRAITS = 3;
 
 /**
  * The film's strongest traits that "Why you" does not already show, up to COMPARED.
- * The reasons sit on the same axes in the panel above, so they are not repeated.
+ * The named traits sit on the same axes in the panel above, so they are not repeated.
  */
 export function comparedTraits(detail: MovieDetail): TraitKey[] {
   const scores = detail.traits?.scores ?? {};
-  const shown = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
+  const shown = detail.named_traits.filter(isTraitKey).slice(0, WHY_TRAITS);
   return [...TRAIT_KEYS]
     .filter((key) => !shown.includes(key))
     .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
@@ -100,25 +100,33 @@ function Tags({ detail }: { detail: MovieDetail }) {
 }
 
 /**
- * "Why you": the band as the panel's heading, the sentence and up to three reasons on
+ * "Why you": the band as the panel's heading, the sentence and up to three named traits on
  * their axes, read as one statement ("STRONG MATCH" -> "It keeps you guessing..."). No
  * number, no ring (FR-5, TZ 1.13): the sentence is the main signal.
+ *
+ * Which sentence follows the side the API found (`trait_side`, TZ 1.23): reasons get the
+ * why-you text, and a film the viewer's taste leans away from gets a plain statement of
+ * how it differs instead - nothing that suggests they will like it. When the rule names
+ * nothing at all the panel says nothing: only its heading, no sentence and no axes. The
+ * old "it suits your taste overall" line is gone with it, since it claimed a fit with
+ * nothing behind it, which is the contradiction a user reported on 2026-10-15.
+ *
  * The sentence's slot is sized before the text arrives, so nothing below it moves; the
- * text then fades in over 200 ms (not with reduced motion). With at most one reason the
- * panel is one column (.why-solo): the axis, if any, under the sentence with its key, so
- * the panel is as tall as its content. No reason: the "suits you overall" sentence at the
- * same size, without axes.
+ * text then fades in over 200 ms (not with reduced motion). With at most one named trait
+ * the panel is one column (.why-solo): the axis, if any, under the sentence with its key,
+ * so the panel is as tall as its content.
  */
 function Why({ detail }: { detail: MovieDetail }) {
   const { t, lang } = useI18n();
   const reduce = usePrefersReducedMotion();
   const dna = useDna();
-  const reasons = detail.reasons.filter(isTraitKey).slice(0, WHY_TRAITS);
-  // With no reason the API writes no text (explain.py), so there is nothing to ask for -
-  // and nor is there once the API has said that no sentence is coming in this session
+  const named = detail.named_traits.filter(isTraitKey).slice(0, WHY_TRAITS);
+  const side = named.length > 0 ? detail.trait_side : null;
+  // With nothing named the API writes no text (explain.py), so there is nothing to ask for
+  // - and nor is there once the API has said that no sentence is coming in this session
   // (lib/explanations.ts). Both keep "Writing the explanation…" off the screen: it must
   // only ever appear while a sentence can still arrive.
-  const asks = detail.match !== null && reasons.length > 0 && explanationsOff() === null;
+  const asks = detail.match !== null && side !== null && explanationsOff() === null;
   const explanation = useExplanation(detail.id, asks);
   if (detail.match === null) {
     return (
@@ -130,14 +138,13 @@ function Why({ detail }: { detail: MovieDetail }) {
       </section>
     );
   }
-  const sentence = reasons.length
-    ? (explanation.data?.text ??
-      t("movie.whyYouFallback", { traits: reasons.map((key) => traitInSentence(key, t, lang)).join(", ") }))
-    : t("movie.whyYouGeneral");
+  const traits = named.map((key) => traitInSentence(key, t, lang)).join(", ");
+  const fallback = side === "difference" ? "movie.differsFallback" : "movie.whyYouFallback";
+  const sentence = side === null ? null : (explanation.data?.text ?? t(fallback, { traits }));
   const film = detail.traits?.scores ?? {};
   const taste = tasteScores(dna.data?.scores);
   return (
-    <section className={reasons.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
+    <section className={named.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
       <div className="why-main">
         <Kicker band={detail.band} id="why-title" />
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
@@ -153,14 +160,14 @@ function Why({ detail }: { detail: MovieDetail }) {
               testId="explanation-loading"
             />
           ) : (
-            <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
+            sentence !== null && <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
           )}
         </div>
       </div>
-      {reasons.length > 0 && (
+      {named.length > 0 && (
         <div className="why-traits" data-testid="why-traits">
           <AxisLegend />
-          {reasons.map((key) => (
+          {named.map((key) => (
             <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
           ))}
         </div>
@@ -171,7 +178,7 @@ function Why({ detail }: { detail: MovieDetail }) {
 
 /** True when "Why you" draws axes (and so carries the page's one legend). */
 function whyHasAxes(detail: MovieDetail): boolean {
-  return detail.match !== null && detail.reasons.some(isTraitKey);
+  return detail.match !== null && detail.named_traits.some(isTraitKey);
 }
 
 function Compare({ detail }: { detail: MovieDetail }) {

@@ -72,11 +72,18 @@ class Settings(BaseSettings):
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
     # ~$0.08 a month for the heaviest user, inside TZ's $0.20 (docs/costs.md).
     explanation_daily_calls_per_user: int = 20
-    # Which traits are named as the reasons for a match (matching.top_reasons). In
-    # catalogue standard deviations: the film must stand out by at least this much...
-    reason_min_film_z: float = 0.5
-    # ...and the user's taste must sit at least this far on the same side of the mean.
-    reason_min_taste_z: float = 0.0
+    # Which traits the panel names, and on which side (matching.trait_notes, TZ 1.23).
+    # One deviation measure, one direction test, two cuts, in catalogue standard
+    # deviations. A trait is named as a REASON when the film sits at least this far from
+    # the viewer the same way their taste leans...
+    trait_reason_min: float = 0.5
+    # ...and as a DIFFERENCE when it sits at least this far the other way. Dearer on
+    # purpose: "this film is not for you" is a hard claim and must be rare and clear.
+    # Measured 2026-10-15 over seven accounts (docs/phase-2-status.md): of each one's 75
+    # banded films, 86-100% get reasons, 0-13% differences, 0-2% nothing. At 0.5 both ways
+    # 74% of film pages became difference text; at 1.0 both ways 72% of banded films fell
+    # silent. The asymmetry avoids both.
+    trait_difference_min: float = 1.0
     # Match bands (FR-5, TZ 1.13): the client shows these, not the number. Places are the
     # film's rank among every film with traits, for this user. "strong": one of the N
     # closest (an absolute count, so the red badges on Home stay few as the catalogue

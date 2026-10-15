@@ -18,10 +18,11 @@ from app.models import Credit, Genre, Movie, MovieGenre, MovieTraits, Person, Ra
 from app.services.bands import load_cuts
 from app.services.matching import (
     MatchBand,
+    TraitNotes,
     match_band,
     match_percentage,
     match_raw,
-    top_reasons,
+    trait_notes,
     weights_vector,
 )
 from app.services.reasons import load_rule
@@ -56,7 +57,7 @@ class SearchFilters:
 @dataclass(frozen=True)
 class PersonalMatch:
     match: int
-    reasons: list[str]
+    notes: TraitNotes
     band: MatchBand | None = None
 
 
@@ -172,7 +173,7 @@ async def personal_matches(
         movie_vector = [float(v) for v in vector]
         matches[movie_id] = PersonalMatch(
             match=match_percentage(taste, weights, movie_vector),
-            reasons=top_reasons(taste, movie_vector, rule, weights=weights) if rule else [],
+            notes=trait_notes(taste, movie_vector, rule, weights=weights) if rule else TraitNotes(),
             band=match_band(match_raw(taste, weights, movie_vector), cuts),
         )
     return matches

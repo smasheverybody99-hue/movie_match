@@ -23,12 +23,17 @@ from tests.integration.api import api_client, auth, seed_catalogue
 pytestmark = [requires_db, pytest.mark.asyncio(loop_scope="module")]
 
 HALF = TRAIT_COUNT // 2
-LIKED = [80.0] * HALF + [20.0] * HALF
+LIKED = [80.0] * HALF + [20.0] * HALF  # what the user rates 9, so their taste lands here
+# The one rule measures the deviation between taste and film (TZ 1.23), so the catalogue
+# needs a film on each side of it. The ordinary films give the catalogue its spread:
+# sd ~ 17.7 per trait, which makes 15 points 0.85 sd and 25 points 1.41 sd.
+BEYOND = [95.0] * HALF + [5.0] * HALF  # 15 points further out: reasons (>= 0.5 sd)
+BARELY = [83.0] * HALF + [17.0] * HALF  # 3 points out: nothing either way (0.17 sd)
+AWAY = [55.0] * HALF + [45.0] * HALF  # 25 points back the other way: differences (>= 1.0)
 RATED = [9_600_000 + i for i in range(1, 11)]
 TARGETS = [9_610_000 + i for i in range(1, 6)]
-NOTHING_SHARED = 9_620_001  # below typical on every dimension: no reason to give
-# Ordinary films give the catalogue a spread, so the targets stand out from it on the
-# dimensions the user likes (z ~ 0.85) and have reasons (the rule of 2026-10-02).
+NOTHING_SHARED = 9_620_001  # too close to the taste to say anything about
+DIFFERENT = 9_620_002  # far enough the other way to say how it differs
 ORDINARY = [9_630_000 + i for i in range(1, 11)]
 
 
@@ -66,8 +71,9 @@ async def catalogue(migrated_test_db: None) -> AsyncIterator[AsyncSession]:
             session,
             [
                 *({"id": m, "vector": LIKED} for m in RATED),
-                *({"id": m, "vector": LIKED} for m in TARGETS),
-                {"id": NOTHING_SHARED, "vector": [40.0] * TRAIT_COUNT},
+                *({"id": m, "vector": BEYOND} for m in TARGETS),
+                {"id": NOTHING_SHARED, "vector": BARELY},
+                {"id": DIFFERENT, "vector": AWAY},
                 *({"id": m, "vector": [50.0] * TRAIT_COUNT} for m in ORDINARY),
             ],
         )
@@ -118,8 +124,24 @@ async def test_the_prompt_carries_the_real_reasons(catalogue: AsyncSession) -> N
     await _get(catalogue, me, TARGETS[1], explainer=fake, lang="en")
     (prompt,) = fake.prompts
     assert "Film 9610002" in prompt
-    assert "Psychological: the viewer's taste 80/100, this film 80/100" in prompt
+    assert "Psychological: the viewer's taste 80/100, this film 95/100" in prompt
+    assert "takes further than most films" in prompt  # the reason brief
     assert "English" in prompt
+
+
+async def test_a_film_away_from_the_taste_is_briefed_as_a_difference(
+    catalogue: AsyncSession,
+) -> None:
+    """The reported contradiction of 2026-10-15: a film the viewer's taste leans away from
+    still read as "you'll like this". It is now described by how it differs, and the model
+    is told not to recommend it."""
+    me, fake = await _user(catalogue), FakeExplainer("Its pace is far slower.")
+    body = await _get(catalogue, me, DIFFERENT, explainer=fake, lang="en")
+    assert (body["text"], body["reason"]) == ("Its pace is far slower.", None)
+    (prompt,) = fake.prompts
+    assert "sits well away from this viewer's taste" in prompt
+    assert "takes further than most films" not in prompt
+    assert "Psychological: the viewer's taste 80/100, this film 55/100" in prompt
 
 
 async def test_each_language_is_cached_separately(catalogue: AsyncSession) -> None:

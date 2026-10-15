@@ -4,8 +4,9 @@ Money rules (CLAUDE.md "Keep the running cost down"):
 
 * The `explanations` table is read before every call; a cached text is never regenerated.
 * A user can cause at most `explanation_daily_calls_per_user` generations a day.
-* Nothing is generated from nothing: the prompt carries the dimensions that actually
-  drive the match (matching.top_reasons). A film with no shared dimension gets no
+* Nothing is generated from nothing: the prompt carries the dimensions the one rule found
+  worth naming (matching.trait_notes), and the brief follows the side it found - why the
+  film suits them, or how it differs from them. A film with nothing worth naming gets no
   explanation rather than a generic compliment.
 
 Generation never blocks or breaks a recommendation: any failure answers with a `Reason`
@@ -30,13 +31,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Explanation, Movie, MovieTraits, User
 from app.providers import usage as cost_log
 from app.providers.base import Explainer
-from app.services.matching import top_reasons, weights_vector
+from app.services.matching import TraitNotes, TraitSide, trait_notes, weights_vector
 from app.services.reasons import load_rule
 from app.traits import TRAIT_KEYS, to_dict, trait_labels
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Explained", "Explainer", "Reason", "build_prompt", "cached", "clean", "explain"]
+__all__ = [
+    "Explained",
+    "Explainer",
+    "Reason",
+    "build_prompt",
+    "cached",
+    "clean",
+    "explain",
+    "system_prompt",
+]
 
 TIMEOUT_SECONDS = 10.0
 MAX_CHARS = 400  # longer than two sentences means the model ignored the brief
@@ -81,16 +91,33 @@ RUSSIAN_STYLE = (
 )
 
 SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a film suits
-their taste. Use only the qualities you are given: each is one where this film stands out
-from a typical film, in the direction the viewer leans. Say it in plain everyday words and
+their taste. Use only the qualities you are given: each is one where this film goes further
+than a typical film in the direction the viewer leans. Say it in plain everyday words and
 name what the film does on them, more than most films do. No generic praise ("a must-see",
 "you'll love it"), no plot spoilers, no rating numbers, no percentages, no quotation marks,
 no markdown."""
 
+# A film with no reason of its own is described by how it differs, and nothing in that
+# sentence may suggest the viewer will like it: that pairing - "outside your taste" over a
+# "you'll like this" sentence - is the contradiction a user reported on 2026-10-15.
+DIFFERENCE_SYSTEM_PROMPT = """You write one or two short sentences telling a film fan how a
+film differs from what they usually go for. Use only the qualities you are given: on each,
+this film sits well away from their taste, in the direction away from it. State the
+difference plainly and neutrally, as information, and name which way it goes ("the pace is
+far quicker", "there is almost no humour"). Do not say or imply that they will like it,
+dislike it, or should watch it; do not recommend it, warn them off it, or call it a change
+of pace, a surprise or worth trying. No plot spoilers, no rating numbers, no percentages,
+no quotation marks, no markdown."""
+
+
+def system_prompt(side: TraitSide) -> str:
+    """The brief for this film's side. One rule decided the side; the brief follows it."""
+    return SYSTEM_PROMPT if side == "reason" else DIFFERENCE_SYSTEM_PROMPT
+
 
 def build_prompt(
     movie: Movie,
-    reasons: list[str],
+    notes: TraitNotes,
     taste: dict[str, float],
     film: dict[str, float],
     lang: Lang,
@@ -101,18 +128,22 @@ def build_prompt(
     lines = [
         f"- {labels[key]}: the viewer's taste {round(taste[key])}/100, "
         f"this film {round(film[key])}/100, a typical film {round(typical[key])}/100"
-        for key in reasons
+        for key in notes.keys
     ]
+    heading = (
+        "Qualities it takes further than most films, the viewer leaning the same way"
+        if notes.side == "reason"
+        else "Qualities on which it sits well away from this viewer's taste, away from it"
+    )
     year = f" ({movie.release_date.year})" if movie.release_date else ""
     prompt = (
         f"Film: {movie.title}{year}\n"
-        f"Qualities it takes further than most films, the viewer leaning the same way, "
-        f"strongest first:\n" + "\n".join(lines) + "\n\n"
+        f"{heading}, strongest first:\n" + "\n".join(lines) + "\n\n"
         f"Write the sentences in {LANGUAGE_NAMES[lang]}."
     )
     if lang == "ru":
         names = trait_labels("ru")
-        words = "; ".join(f"{labels[key]} = {names[key].lower()}" for key in reasons)
+        words = "; ".join(f"{labels[key]} = {names[key].lower()}" for key in notes.keys)
         prompt += f"\nName the qualities with these Russian words: {words}.\n{RUSSIAN_STYLE}"
     return prompt
 
@@ -190,15 +221,15 @@ async def explain(
     rule = await load_rule(session)
     if rule is None:
         return Explained(reason="no_traits")  # no film has traits, so no catalogue stats
-    reasons = top_reasons(taste, film, rule, weights=weights)
-    if not reasons:
+    notes = trait_notes(taste, film, rule, weights=weights)
+    if notes.side is None:
         return Explained(reason="no_reasons")
 
     typical = dict(zip(TRAIT_KEYS, rule.stats.mean, strict=True))
-    prompt = build_prompt(movie, reasons, to_dict(taste), to_dict(film), lang, typical)
+    prompt = build_prompt(movie, notes, to_dict(taste), to_dict(film), lang, typical)
     try:
         generated = await asyncio.wait_for(
-            explainer.generate(SYSTEM_PROMPT, prompt), TIMEOUT_SECONDS
+            explainer.generate(system_prompt(notes.side), prompt), TIMEOUT_SECONDS
         )
     except Exception:  # a failed explanation must never fail the request
         log.warning("explanation failed for movie %s", movie_id, exc_info=True)

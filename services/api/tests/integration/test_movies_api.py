@@ -15,7 +15,7 @@ from app.services.matching import (
     match_band,
     match_percentage,
     match_raw,
-    top_reasons,
+    trait_notes,
     weights_vector,
 )
 from app.services.reasons import load_rule
@@ -137,7 +137,7 @@ async def test_detail_signed_out_has_everything_but_the_match(seeded: AsyncSessi
     assert set(body["traits"]["scores"]) == set(TRAIT_KEYS)
     assert body["match"] is None
     assert body["band"] is None
-    assert body["reasons"] == []
+    assert body["named_traits"] == [] and body["trait_side"] is None
 
 
 async def test_detail_of_an_unscored_film_has_no_traits(seeded: AsyncSession) -> None:
@@ -171,7 +171,8 @@ async def test_detail_match_is_recomputable_from_stored_numbers(seeded: AsyncSes
     assert body["match"] == expected
     rule = await load_rule(seeded)
     assert rule is not None
-    assert body["reasons"] == top_reasons(taste, vector(90.0), rule, weights=weights)
+    notes = trait_notes(taste, vector(90.0), rule, weights=weights)
+    assert (body["named_traits"], body["trait_side"]) == (list(notes.keys), notes.side)
     # By hand: taste is LIGHT's vector (one liked film), weights all equal, so the gap is
     # sqrt(70² / 14) = 18.7 points on the one dimension that differs -> 81%.
     assert expected == 81

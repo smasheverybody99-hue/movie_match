@@ -21,6 +21,14 @@ export interface Movie {
  */
 export type MatchBand = "strong" | "good";
 
+/**
+ * Which side the named traits fall on (FR-5, TZ 1.23). One rule measures how far the film
+ * sits from the taste on each trait: "reason" means it goes further the way the viewer
+ * leans, "difference" that it goes the other way, far enough to say so. Reasons win, so a
+ * film with any reason never reports differences, and a film with neither says nothing.
+ */
+export type TraitSide = "reason" | "difference";
+
 export interface TraitScores {
   scores: Record<string, number>;
   summary: string | null;
@@ -35,8 +43,10 @@ export interface MovieDetail extends Movie {
   match: number | null;
   /** The caller's match band; null outside both bands, or without a match. */
   band: MatchBand | null;
-  /** Trait keys that drove the match, strongest first. */
-  reasons: string[];
+  /** Trait keys worth naming, strongest first; empty when none is. */
+  named_traits: string[];
+  /** Which side `named_traits` falls on; null exactly when `named_traits` is empty. */
+  trait_side: TraitSide | null;
 }
 
 export interface Recommendation {
@@ -44,8 +54,10 @@ export interface Recommendation {
   /** 0-100, computed from trait distance. Not shown. */
   match: number;
   band: MatchBand | null;
-  /** Trait keys that drove the match, strongest first. */
-  reasons: string[];
+  /** Trait keys worth naming, strongest first; empty when none is. */
+  named_traits: string[];
+  /** Which side `named_traits` falls on; null exactly when `named_traits` is empty. */
+  trait_side: TraitSide | null;
   explanation: string | null;
 }
 

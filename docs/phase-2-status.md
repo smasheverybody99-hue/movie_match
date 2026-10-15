@@ -240,6 +240,66 @@ filled by TMDB popularity, which on recent years means whatever is trending, so 
 recency term alone would promote these. A quality floor (`tmdb_vote_count`, median 4,072
 in the catalogue) is the lever for that, and is a separate decision.
 
+## "Outside your usual taste" against a "you'll like it" sentence — found, measured, fixed (2026-10-15)
+
+A user opened a film from the **Outside your usual taste** row and read a sentence saying
+the film suited them. Diagnosis first, then one change.
+
+**What the two labels actually were.** The row is a *section*, not a band: built from
+embedding places 301–600 (`retrieve(..., offset=CANDIDATES)`), stored nowhere, computed
+per request. The film page has no section at all — it is reached from search and direct
+links too. So the contradiction was never inside the row; it was the row's heading against
+the film page's panel. And both were true at once: Godzilla is **embedding place 404/500
+and match 87, band "good"** for that account. One label measured overall feel, the other
+weighted trait distance.
+
+**How a film "outside the taste" had shared traits** (busiest account, 500 scored films):
+
+| Group | Films | With >= 1 reason, old rule |
+|---|---|---|
+| strong | 5 | 100% |
+| good | 70 | 100% |
+| no band | 300 | 99% |
+| below the floor (never recommended) | 125 | **82%** |
+| in the ring (place > 300) | 200 | **90%** |
+
+The old rule only asked whether the film stood out from the *catalogue* on a trait the
+viewer leaned towards; it never measured how far the film sat from the viewer. The widest
+taste-to-film gap among a film's own named traits was a median of **25 points**, max 64,
+and over 25 points on **49%** of films.
+
+**One symmetric rule** (user's decision, TZ 1.23). Deviation `film - taste` per trait,
+size in catalogue sds, direction against the viewer's lean; the same way they lean is a
+reason at **0.5 sd**, the other way a difference at **1.0 sd**, and below that nothing.
+Reasons win; neither means the panel says nothing.
+
+**Why the cuts are not equal.** Measured both ways first:
+
+| Cuts | Outcome |
+|---|---|
+| 0.5 both ways | difference text on **74%** of film pages, including 41% of the banded ones |
+| 1.0 both ways | **72%** of banded films fall silent; the product's main sentence disappears |
+| 0.5 / 1.0 | what shipped |
+
+With 0.5 / 1.0, over all seven accounts that have a taste profile, of each one's 75 banded
+films: reasons **86-100%**, differences **0-13%**, silent **0-2%**. Across all 500 films
+for the busiest account: reasons 86%, differences 14%, silent 0% — and difference text
+concentrates where it belongs, on **31%** of the films below the floor.
+
+**What the measurement also showed, against expectation.** Under this rule Godzilla keeps
+a why-you sentence: `humor -24p, darkness +15p` are both the way that viewer leans (they
+like little humour; the film has even less). All 10 cached sentences stay on the reason
+side. So the rule fixes the false *shared-trait* claims and the small-gap case; what
+removed the reported contradiction is renaming the row, done separately.
+
+**Also closed by the same change:** a 3-point gap can no longer be a reason. A reason now
+needs 7.1 points on `emotional_intensity`, 10.2 on `plot_twist`, 15.0 on `realism`; 82
+against 85 is 0.21 sd.
+
+Method, for repeating it: read-only against the main database, each account's stored
+`taste_vector` / `taste_weights`, catalogue statistics from `reasons.trait_stats`, the ring
+recomputed with `recommend.taste_embedding` plus the same ANN ordering. No LLM call.
+
 ## Not done / open
 
 1. **Manual checklist** (needs Phase 1 data): rate 30 films and judge the

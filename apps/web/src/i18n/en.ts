@@ -132,7 +132,7 @@ export const en = {
 
   "movie.whyKicker": "You and this film",
   "movie.whyYouFallback": "Where your taste leans, it goes further than most films: {traits}.",
-  "movie.whyYouGeneral": "It suits your taste overall rather than through one standout quality.",
+  "movie.differsFallback": "Where it differs from your taste: {traits}.",
   "movie.explaining": "Writing the explanation…",
   "movie.noMatch": "Rate 10 films first to see how well this one matches you.",
   "movie.compareOther": "Other traits",

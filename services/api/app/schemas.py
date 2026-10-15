@@ -34,6 +34,17 @@ class MovieOut(BaseModel):
 MatchBand = Literal["strong", "good"]
 BAND_DESCRIPTION = "The caller's match band (FR-5); null outside both bands, or without a match"
 
+# The traits the panel names, and which side they fall on (FR-5, TZ 1.23): the same set as
+# app.services.matching.TraitSide (a unit test checks). "reason" - the film goes further
+# the way the caller leans; "difference" - it goes the other way, far enough to say so.
+# Reasons win: a film with any reason never reports differences. Both null and empty means
+# nothing is worth saying, and the client writes no sentence at all.
+TraitSide = Literal["reason", "difference"]
+NAMED_TRAITS_DESCRIPTION = "Trait keys worth naming, strongest first; empty when none is"
+TRAIT_SIDE_DESCRIPTION = (
+    "Which side `named_traits` falls on; null exactly when `named_traits` is empty"
+)
+
 
 class TraitScores(BaseModel):
     """Trait key -> 0..100. Keys come from packages/shared/traits.json."""
@@ -54,18 +65,16 @@ class MovieDetailOut(MovieOut):
         description="The caller's match (FR-5). Null signed out, or without traits or taste",
     )
     band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
-    reasons: list[str] = Field(
-        default_factory=list, description="Trait keys that drove the match, strongest first"
-    )
+    named_traits: list[str] = Field(default_factory=list, description=NAMED_TRAITS_DESCRIPTION)
+    trait_side: TraitSide | None = Field(default=None, description=TRAIT_SIDE_DESCRIPTION)
 
 
 class RecommendationOut(BaseModel):
     movie: MovieOut
     match: int = Field(ge=0, le=100, description="Match percentage, computed from trait distance")
     band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
-    reasons: list[str] = Field(
-        default_factory=list, description="Trait keys that drove the match, strongest first"
-    )
+    named_traits: list[str] = Field(default_factory=list, description=NAMED_TRAITS_DESCRIPTION)
+    trait_side: TraitSide | None = Field(default=None, description=TRAIT_SIDE_DESCRIPTION)
     explanation: str | None = None
 
 

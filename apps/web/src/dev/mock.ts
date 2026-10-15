@@ -81,13 +81,17 @@ export function install(): AuthClient {
   function detailOf(id: number): MovieDetail | null {
     const m = byId.get(id);
     if (!m) return null;
-    const reasons = [["psychological_complexity", "plot_twist", "mystery"], ["plot_twist", "mystery", "darkness"], ["darkness"], []][id % 4] ?? [];
+    // One of each outcome of the rule (TZ 1.23): reasons, a single reason, differences,
+    // and a film with nothing worth naming, whose panel says nothing at all.
+    const named = [["psychological_complexity", "plot_twist", "mystery"], ["darkness"], ["pacing", "humor"], []][id % 4] ?? [];
+    const side = named.length === 0 ? null : id % 4 === 2 ? "difference" : "reason";
     return detail(m, {
       backdrop_path: TMDB_PATHS[m.title]?.backdrop ?? null,
       match: ratings.length >= 10 ? 60 + (id % 38) : null,
       // Every third film strong (The Prestige), the next good (Memento), the next none.
       band: ratings.length < 10 ? null : (["strong", "good", null] as const)[(id - 1000) % 3] ?? null,
-      reasons,
+      named_traits: named,
+      trait_side: side,
     });
   }
 

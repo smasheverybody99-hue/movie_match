@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 
 from app.models import Movie
-from app.services.matching import BandCuts, ReasonRule, TraitStats
+from app.services.matching import BandCuts, DeviationRule, TraitNotes, TraitStats
 from app.services.recommend import (
     MAX_PER_DIRECTOR,
     POOL_FACTOR,
@@ -20,18 +20,25 @@ from app.services.recommend import (
     taste_embedding,
 )
 from app.services.taste import RatedFilm
-from app.traits import TRAIT_COUNT
+from app.traits import TRAIT_COUNT, TRAIT_KEYS
 
 HALF = TRAIT_COUNT // 2
 TASTE = [85.0] * HALF + [15.0] * HALF
 UNIFORM = [1.0] * TRAIT_COUNT
 # A catalogue centred on 50 with sd 20: the taste's high half stands out (z = 1.75).
-RULE = ReasonRule(TraitStats((50.0,) * TRAIT_COUNT, (20.0,) * TRAIT_COUNT))
+RULE = DeviationRule(TraitStats((50.0,) * TRAIT_COUNT, (20.0,) * TRAIT_COUNT))
 NOW = datetime(2026, 9, 27, tzinfo=UTC)
 
 
 def near(offset: float) -> list[float]:
+    """`offset` points back towards the catalogue mean on every trait: away from the
+    taste's own lean, so these films deviate the other way (differences, at 1.0 sd)."""
     return [85.0 - offset] * HALF + [15.0 + offset] * HALF
+
+
+def beyond(offset: float) -> list[float]:
+    """`offset` points further out than the taste on every trait: the way it leans."""
+    return [85.0 + offset] * HALF + [15.0 - offset] * HALF
 
 
 def film(movie_id: int, vector: list[float], *directors: int) -> Candidate:
@@ -55,7 +62,17 @@ CUTS = BandCuts(strong=100.0, good=70.0, floor=50.0)
 def test_score_drops_below_the_floor_and_sorts_best_first() -> None:
     scored = score(CANDIDATES, TASTE, UNIFORM, RULE, CUTS)
     assert [(s.movie_id, s.match) for s in scored] == [(2, 100), (1, 70), (3, 55)]
-    assert scored[0].reasons  # the high half, where the film stands out
+    # Film 2 sits exactly on the taste, so no trait deviates and there is nothing to say
+    # either way; films 1 and 3 sit 1.5 and 2.25 sd back towards the catalogue mean, which
+    # is away from the taste's lean, so they are described by how they differ.
+    assert scored[0].notes == TraitNotes(None, ())
+    assert [s.notes.side for s in scored] == [None, "difference", "difference"]
+
+
+def test_a_film_further_out_than_the_taste_is_described_by_its_reasons() -> None:
+    (only,) = score([film(5, beyond(10))], TASTE, UNIFORM, RULE)  # 0.5 sd further out
+    assert only.notes.side == "reason"
+    assert only.notes.keys == tuple(TRAIT_KEYS[:3])
 
 
 def test_score_gives_each_film_its_band() -> None:
@@ -69,9 +86,9 @@ def test_without_cuts_nothing_is_dropped_and_nothing_has_a_band() -> None:
     assert {s.band for s in scored} == {None}
 
 
-def test_without_a_reason_rule_the_reasons_are_empty() -> None:
-    (only,) = score([film(1, near(0))], TASTE, UNIFORM, None)
-    assert (only.match, only.reasons) == (100, [])
+def test_without_a_deviation_rule_no_trait_is_named() -> None:
+    (only,) = score([film(1, beyond(10))], TASTE, UNIFORM, None)
+    assert (only.match, only.notes) == (90, TraitNotes(None, ()))
 
 
 def test_ties_on_match_go_to_the_lower_id() -> None:
@@ -151,14 +168,16 @@ def test_the_weight_only_decides_between_films_the_match_nearly_ties() -> None:
     assert [s.match for s in scored] == [100, 99]
     assert [s.movie_id for s in pick(scored, 2, _no_overlap, now=NOW)] == [1, 2]
     # 0.02 is worth ~1.4 match points across the whole span, so it turns this one over...
-    assert [
-        s.movie_id for s in pick(scored, 2, _no_overlap, now=NOW, recency_weight=0.02)
-    ] == [2, 1]
+    assert [s.movie_id for s in pick(scored, 2, _no_overlap, now=NOW, recency_weight=0.02)] == [
+        2,
+        1,
+    ]
     # ...and cannot turn over a film that matches far better.
     better_old = score([dated(1, 1950, near(0)), dated(2, 2024, near(20))], TASTE, UNIFORM, RULE)
-    assert [
-        s.movie_id for s in pick(better_old, 2, _no_overlap, now=NOW, recency_weight=0.02)
-    ] == [1, 2]
+    assert [s.movie_id for s in pick(better_old, 2, _no_overlap, now=NOW, recency_weight=0.02)] == [
+        1,
+        2,
+    ]
 
 
 def test_the_weight_does_not_touch_the_match_or_the_band() -> None:
