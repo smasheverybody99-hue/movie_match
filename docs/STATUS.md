@@ -24,6 +24,7 @@ hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3
 
 | | |
 |---|---|
+| CI (`main`, `57503bf`, tester fikri + bitta simmetrik trait qoidasi, 10 commit) | **Yashil**, 2026-10-15: gate run 87, https://github.com/smasheverybody99-hue/movie_match/actions/runs/38729464822 (branch run 86 ham yashil: `tester-feedback-trait-rule`). **Deploy tasdiqlandi**: API `/health` → `commit 57503bf` (16:47, Render), web bundle'da "Something different" / "Boshqacha kinolar" / "Другое кино" bor, eski "Outside your usual taste" yo'q |
 | CI (`main`, `a6dffc6`, dialog portal — logo, yuklanish va o'tishlar ishining oxirgi commit'i) | **Yashil**, 2026-10-09: gate run 61, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37890967059 |
 | CI (`main`, `f1125ad`, o'tish effektlari) | **Yashil**, 2026-10-09: gate run 60, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37890208197 |
 | CI (`main`, `d692ec4`, yuklanish holatlari) | **Yashil**, 2026-10-09: gate run 59, https://github.com/smasheverybody99-hue/movie_match/actions/runs/37884921901 |
