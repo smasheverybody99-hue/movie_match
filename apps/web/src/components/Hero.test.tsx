@@ -68,7 +68,8 @@ describe("Hero", () => {
     expect(
       screen.getByText("Where your taste leans, it goes further than most films: Mystery, Plot twists."),
     ).toBeInTheDocument();
-    expect(screen.getByText("You and this film")).not.toHaveClass("kicker-strong");
+    // The heading names the sentence, not the band (TZ 1.25): "good" is shown nowhere.
+    expect(screen.getByText("Why it suits you")).not.toHaveClass("kicker-strong");
     expect(screen.queryByText("Good match")).not.toBeInTheDocument();
   });
 
@@ -89,6 +90,24 @@ describe("Hero", () => {
     renderHero(one);
     expect(screen.getByText("Where it differs from your taste: Pace, Humor.")).toBeInTheDocument();
     expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    expect(screen.getByText("How it differs")).not.toHaveClass("kicker-strong");
+  });
+
+  // A closest film described by its differences: red over "it differs from you" would be
+  // the pairing TZ 1.23/1.24 removed. No catalogue film is in this state today.
+  it("heads a strong film's difference with the neutral label, never the red one", () => {
+    const one = [
+      { ...rec(movie(3), 96, "strong" as const), named_traits: ["humor"], trait_side: "difference" as const },
+    ];
+    renderHero(one);
+    expect(screen.getByText("How it differs")).not.toHaveClass("kicker-strong");
+    expect(screen.queryByText("Strong match")).not.toBeInTheDocument();
+  });
+
+  it("keeps the red heading for a closest film that suits the viewer", () => {
+    const one = [{ ...rec(movie(3), 96, "strong" as const), trait_side: "reason" as const }];
+    renderHero(one);
+    expect(screen.getByText("Strong match")).toHaveClass("kicker-strong");
   });
 
   it("moves with prev / next, the dots and the arrow keys, wrapping at both ends", () => {

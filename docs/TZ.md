@@ -235,9 +235,28 @@ ajratmaydigan yorliq shovqin (`docs/STATUS.md`, "35% → 15%").
 
 "Kuchli" — mutlaq son (ulush emas): Home'dagi qizil belgilar katalog o'sganda ham kam
 qoladi (5 da bitta akkauntning birinchi ekranida 2–3 ta; 10% bo'lsa 11 ta edi). Qizil —
-faqat "kuchli". Film sahifasida ring yo'q: daraja (yoki neytral kicker) "Why you"
-panelining sarlavhasi, jumla asosiy signal; Home hero'da ham xuddi shu kicker. Chegaralar har foydalanuvchi uchun saqlangan
+faqat "kuchli". Film sahifasida ring yo'q: sarlavha (kicker) "Why you" panelining
+yuqorisida, jumla asosiy signal; Home hero'da ham xuddi shu kicker. Chegaralar har foydalanuvchi uchun saqlangan
 sonlardan qayta hisoblanadi (`users.taste_*`, `movie_traits.vector`).
+
+**Sarlavha jumlani nomlaydi** (1.25, 2026-10-16) — sarlavha avvalo band'ni emas, ostidagi
+jumlaning turini aytadi. Band va tomon (`trait_side`, 1.23) boshqa o'lchovlar: film band
+bo'yicha "good", tomon bo'yicha "difference" bo'lishi mumkin (Godzilla, 2026-10-15), va
+band'ni ko'rsatish foydalanuvchiga jumla maqtovmi yoki farq bayonimi — aytmaydi.
+
+| Holat | Sarlavha | Rang |
+|---|---|---|
+| band `strong` **va** tomon `reason` | "STRONG MATCH" | qizil |
+| tomon `reason` | "WHY IT SUITS YOU" | neytral |
+| tomon `difference` (band `strong` bo'lsa ham) | "HOW IT DIFFERS" | neytral |
+| hech narsa nomlanmagan, yoki match yo'q | "YOU AND THIS FILM" | neytral |
+
+Qizil ikkalasini talab qiladi: `strong` + `difference` holatida qizil "STRONG MATCH"
+ustida farq jumlasi turardi — 1.23/1.24 da olib tashlangan ziddiyat qaytib kelardi.
+Hozir katalogda bunday film yo'q (8 akkauntda `strong` filmlar 100% sabab tomonida),
+lekin katalog o'sgach paydo bo'ladi. Hech narsa nomlanmaganda — nomlanadigan jumla yo'q,
+shuning uchun sarlavha neytral (band `strong` bo'lsa ham). Matnlar uch tilda va
+qabul mezoni: `docs/ui.md`, "Kicker qoidasi".
 
 **Trait qoidasi** (1.23, 2026-10-15; match foiziga ta'sir qilmaydi) — qaysi traitlar
 ko'rsatiladi va **qaysi tomonda**. Bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi,
@@ -446,6 +465,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.25 | 2026-10-16 | FR-5: **panel sarlavhasi ostidagi jumlani nomlaydi**, band'ni emas — tomon `reason` da "Why it suits you", `difference` da "How it differs", hech narsa nomlanmaganda neytral "You and this film"; qizil "STRONG MATCH" faqat `strong` **va** `reason` birga bo'lganda. Uch tilda matn foydalanuvchi tomonidan tanlangan. Sabab: band va tomon boshqa o'lchovlar, shuning uchun band'li sarlavha jumla maqtovmi yoki farq bayonimi — aytmasdi; `strong` + `difference` da esa qizil sarlavha farq jumlasi ustida turib, 1.23/1.24 dagi ziddiyatni qaytarardi (foydalanuvchi qarori; matnlar va holatlar jadvali `docs/ui.md`, "Kicker qoidasi") |
 | 1.24 | 2026-10-15 | Interfeys: `outside_usual` bo'limining nomi "Outside your usual taste" → "Something different" / "Boshqacha kinolar" / "Другое кино" (foydalanuvchi qarori). Eski nom ta'm haqida da'vo qilardi, bo'lim esa embedding masofasi bo'yicha tuziladi, shuning uchun bitta filmda "ta'mingizdan tashqari" va "good" darajasi birga chiqardi |
 | 1.23 | 2026-10-15 | FR-5: sabab qoidasi o'rniga **bitta simmetrik trait qoidasi** — bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi, ikki kesim (sabab 0.5 σ, farq 1.0 σ); sabablar ustun, ikkalasi bo'lmasa panel jim. FR-6: farq tomonida alohida prompt, "sizga yoqadi" ma'nosi taqiqlanadi. API: `reasons` → `named_traits` + `trait_side`. Sabab: foydalanuvchi "Outside your usual taste" yorlig'i ostidagi filmda "sizga mos" izohini ko'rdi; eski qoida og'ish kattaligini o'lchamasdi (82 va 85 ham "sabab" edi). Interfeysdan "ta'mingizga umuman mos" jumlasi olib tashlandi (foydalanuvchi qarori; o'lchov `docs/phase-2-status.md`) |
 | 1.22 | 2026-10-13 | FR-6: `ExplanationOut` ga **`reason`** qo'shildi (jumla yo'qligining sababi, yetti qiymat) — oldin `text: null` yetti holatda bir xil edi. Interfeys "Izoh tayyorlanmoqda…" ni faqat jumla kelishi mumkin bo'lganda ko'rsatadi (tester fikri: indikator har film sahifasida chiqib, shablon jumla bilan tugardi) |

@@ -116,6 +116,8 @@ export const uz: Record<MessageKey, Message> = {
 
   // Film page
   "movie.whyKicker": "Siz va bu film",
+  "movie.whyKickerReason": "Nega sizga mos keladi",
+  "movie.whyKickerDifference": "Nimasi boshqacha",
   "movie.whyYouFallback": "Ta'mingiz og'gan jihatlarda bu film ko'p filmlardan kuchliroq: {traits}.",
   "movie.differsFallback": "Bu film ta'mingizdan shu jihatlari bilan farq qiladi: {traits}.",
   "movie.explaining": "Izoh tayyorlanmoqda…",

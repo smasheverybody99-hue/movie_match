@@ -259,8 +259,10 @@ describe("MoviePage", () => {
     // claimed a fit with nothing behind it and is gone (TZ 1.23).
     getMovie.mockResolvedValue(detail(movie(0), { named_traits: [], trait_side: null }));
     renderWithProviders(<MoviePage />, ROUTE);
-    // The band is a separate claim and still stands, so the panel keeps its heading.
-    expect(await screen.findByText("Strong match")).toBeInTheDocument();
+    // The heading names the sentence under it (TZ 1.25). With no sentence there is nothing
+    // to name, so it stays neutral even on one of the viewer's closest films.
+    expect(await screen.findByText("You and this film")).not.toHaveClass("kicker-strong");
+    expect(screen.queryByText("Strong match")).not.toBeInTheDocument();
     const slot = screen.getByTestId("why-slot");
     expect(slot).toBeEmptyDOMElement();
     // nothing is coming, so no space is held either
@@ -275,8 +277,10 @@ describe("MoviePage", () => {
   it("states how a film differs when the rule puts its traits on that side", async () => {
     // The contradiction reported on 2026-10-15: a film the taste leans away from still
     // read as "you'll like this".
+    // A difference film is outside both bands in practice: 43 of 500 for the account that
+    // reported this, none of them banded (docs/phase-2-status.md, 2026-10-15).
     getMovie.mockResolvedValue(
-      detail(movie(0), { named_traits: ["pacing", "humor"], trait_side: "difference" }),
+      detail(movie(0), { match: 78, band: null, named_traits: ["pacing", "humor"], trait_side: "difference" }),
     );
     explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "rejected" });
     renderWithProviders(<MoviePage />, ROUTE);
@@ -284,9 +288,24 @@ describe("MoviePage", () => {
       await screen.findByText("Where it differs from your taste: Pace, Humor."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    // The heading says which kind of sentence this is, so it is not read as praise.
+    expect(screen.getByText("How it differs")).not.toHaveClass("kicker-strong");
     // The axes still show both values, which is what makes the claim checkable.
     expect(screen.getByTestId("why-traits")).toBeInTheDocument();
   });
+
+  it("heads a closest film's difference with the neutral label, never the red one", async () => {
+    // Red "STRONG MATCH" over "this film differs from you" is the pairing TZ 1.23/1.24
+    // removed from the row. No catalogue film is in this state today; a bigger one will be.
+    getMovie.mockResolvedValue(
+      detail(movie(0), { named_traits: ["humor"], trait_side: "difference" }),
+    );
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "rejected" });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByText("How it differs")).not.toHaveClass("kicker-strong");
+    expect(screen.queryByText("Strong match")).not.toBeInTheDocument();
+  });
+
 
   it("does not ask for an explanation without a match, and heads the panel with the neutral kicker", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { match: null, band: null, named_traits: [], trait_side: null }));
@@ -521,7 +540,9 @@ describe("comparedTraits", () => {
   });
 });
 
-describe("match band as the Why you heading", () => {
+// The heading is the sentence's label first and the band second (TZ 1.25): red "STRONG
+// MATCH" needs a closest film *and* a reason sentence, and "good" reaches it never.
+describe("the Why you heading", () => {
   beforeEach(() => {
     for (const fn of [getMovie, explanation, ratings, dna, watchlist]) fn.mockReset();
     explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: "Twisty.", reason: null });
@@ -530,19 +551,19 @@ describe("match band as the Why you heading", () => {
     watchlist.mockResolvedValue([]);
   });
 
-  it("does not show a good match: the API's 'good' gets the neutral kicker (TZ 1.16)", async () => {
+  it("does not show a good match: the API's 'good' never reaches the heading (TZ 1.16)", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { band: "good" }));
     renderWithProviders(<MoviePage />, ROUTE);
-    const kicker = await screen.findByRole("heading", { level: 2, name: "You and this film" });
+    const kicker = await screen.findByRole("heading", { level: 2, name: "Why it suits you" });
     expect(kicker).not.toHaveClass("kicker-strong");
     expect(screen.queryByText("Good match")).not.toBeInTheDocument();
   });
 
-  it("outside both bands: the neutral kicker heads the panel, and the sentence still explains", async () => {
+  it("outside both bands: the heading still names the sentence, and the sentence explains", async () => {
     getMovie.mockResolvedValue(detail(movie(0), { band: null }));
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByText("Twisty.")).toBeInTheDocument();
-    const kicker = screen.getByRole("heading", { level: 2, name: "You and this film" });
+    const kicker = screen.getByRole("heading", { level: 2, name: "Why it suits you" });
     expect(kicker).toHaveClass("kicker");
     expect(kicker).not.toHaveClass("kicker-strong");
     expect(screen.queryByText(/Strong match|Good match/)).not.toBeInTheDocument();

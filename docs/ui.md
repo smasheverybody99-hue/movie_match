@@ -125,9 +125,9 @@ Fayllar: `Layout.tsx`, `app.css`, `Search.tsx` (`q` ni URL'dan o'qish). Ish: **0
   bo'lgani uchun slayd almashganda pastdagi qatorlar surilmaydi; nom va jumla shuning
   uchun 2 qatorda to'xtaydi (to'liq matn film sahifasida).
 - **Har slayd film sahifasining "Why you" bloki kabi o'qiladi:** tepada kicker (film
-  sahifasidagi uslub: 19px uppercase) — "STRONG MATCH" qizil yoki neytral "YOU AND THIS
-  FILM" ("good" ko'rsatilmaydi, TZ 1.16); keyin nom (Playfair, film sahifasiga havola),
-  yil va davomiylik chiplari, ostida qisqa jumla.
+  sahifasidagi uslub: 19px uppercase) — **ostidagi jumlani nomlaydi** (TZ 1.25, quyida
+  "Kicker qoidasi"); keyin nom (Playfair, film sahifasiga havola), yil va davomiylik
+  chiplari, ostida qisqa jumla. Bitta `Kicker` komponenti — hero va film sahifasi bir xil.
 - **Jumla:** tavsiyalar javobidagi keshlangan izoh; yo'q bo'lsa — film sahifasidagi
   bepul zaxira. **Qaysi zaxira — `trait_side` bo'yicha** (TZ 1.23, 2026-10-15): sabab
   tomonda "Where your taste leans, it goes further than most films: …", farq tomonda
@@ -348,6 +348,46 @@ ko'ramiz.
   Ta'm hali yuklanmagan bo'lsa, sizning nuqtangiz 0 da chizilmaydi — keyin paydo bo'ladi.
   Qizil yo'q. "Sizning ta'mingiz va shu film" ham shu o'qlarga o'tdi va panelda
   ko'rsatilgan sabablarni takrorlamaydi (filmning qolgan eng kuchli 5 trait'i).
+- **Kicker qoidasi** (TZ 1.25, 2026-10-16; `components/Kicker.tsx`, film sahifasi va hero
+  uchun bitta komponent): sarlavha **ostidagi jumlani nomlaydi**, band'ni emas. Band va
+  tomon boshqa narsalar — film band bo'yicha "good", tomon bo'yicha "difference" bo'lishi
+  mumkin (Godzilla, 2026-10-15), shuning uchun band'ni ko'rsatish jumlaning turini aytmaydi.
+
+  | Holat | Sarlavha | Rang |
+  |---|---|---|
+  | band `strong` **va** tomon `reason` | "STRONG MATCH" / "KUCHLI MOSLIK" / "БОЛЬШЕ ВСЕГО ПОДХОДИТ" | qizil |
+  | tomon `reason` (band `good` yoki yo'q) | "WHY IT SUITS YOU" / "NEGA SIZGA MOS KELADI" / "ЧЕМ ВАМ ПОДХОДИТ" | neytral |
+  | tomon `difference` (band `strong` bo'lsa ham) | "HOW IT DIFFERS" / "NIMASI BOSHQACHA" / "ЧЕМ ОТЛИЧАЕТСЯ" | neytral |
+  | hech narsa nomlanmagan, yoki match yo'q | "YOU AND THIS FILM" / "SIZ VA BU FILM" / "ВЫ И ЭТОТ ФИЛЬМ" | neytral |
+
+  **Qizil faqat ikkisi birga bo'lganda** (foydalanuvchi qarori, 2026-10-16): `strong` +
+  `difference` da qizil "STRONG MATCH" ustida "bu film sizdan farq qiladi" degan jumla
+  turardi — TZ 1.23/1.24 da olib tashlangan ziddiyatning aynan o'zi. Katalogda hozir
+  bunday film yo'q (8 akkauntning hech birida `strong` filmlar farq tomonida emas), lekin
+  katalog o'sgach paydo bo'ladi; testda shu holat bor.
+
+  **320px o'lchovi** (headless Chrome, CDP, qurilgan ilova, haqiqiy Inter subsetlari;
+  `.kicker` = 800 19px/24px, letter-spacing 1.9px, uppercase). Mavjud kenglik: film
+  sahifasida 248px (320 − 2×16 `.page` − 2×20 `.why`), hero'da 288px (320 − 2×16).
+
+  | Matn | Kenglik | Panel (248) | Hero (288) |
+  |---|---|---|---|
+  | WHY IT SUITS YOU | 208.7 | 1 qator | 1 qator |
+  | HOW IT DIFFERS | 179.7 | 1 qator | 1 qator |
+  | NEGA SIZGA MOS KELADI | 280.5 | **2 qator** | 1 qator |
+  | NIMASI BOSHQACHA | 229.5 | 1 qator | 1 qator |
+  | ЧЕМ ВАМ ПОДХОДИТ | 231.1 | 1 qator | 1 qator |
+  | ЧЕМ ОТЛИЧАЕТСЯ | 205.2 | 1 qator | 1 qator |
+  | БОЛЬШЕ ВСЕГО ПОДХОДИТ (1.16 dan bor) | 308.2 | **2 qator** | **2 qator** |
+
+  O'zbekcha sabab yorlig'i 320px da film sahifasida ikki qatorga tushadi — kesilish yoki
+  gorizontal scroll emas, ikki qator (wrap). Rus tilidagi "STRONG MATCH" yorlig'i 1.16 dan
+  beri ikki joyda ham shunday, ya'ni bu yangi hol emas. Bir qatorga tushirish kerak bo'lsa:
+  "NEGA SIZGA MOS" 192.9, "NEGA MOS KELADI" 206.5 (ikkisi ham 248 ga sig'adi) — lekin
+  foydalanuvchi tugallangan gapni tanladi (2026-10-16).
+  **Hech narsa nomlanmaganda**
+  sarlavha neytral qoladi (band `strong` bo'lsa ham): nomlanadigan jumla yo'q.
+  "good" sarlavhaga hech qachon chiqmaydi (TZ 1.16).
 - **Farq holati** (TZ 1.23, 2026-10-15): traitlar farq tomonida bo'lsa, o'sha slot va o'sha
   o'qlar, lekin jumla betaraf farq bayoni ("Where it differs from your taste: …") —
   "sizga yoqadi" ma'nosidagi hech narsa yo'q. O'qlar qoladi, chunki ular da'voni

@@ -131,6 +131,10 @@ export const en = {
   "hero.play": "Resume rotation",
 
   "movie.whyKicker": "You and this film",
+  // The heading names the sentence under it (TZ 1.25): a film with nothing named keeps the
+  // neutral one above, since there is no sentence for it to name.
+  "movie.whyKickerReason": "Why it suits you",
+  "movie.whyKickerDifference": "How it differs",
   "movie.whyYouFallback": "Where your taste leans, it goes further than most films: {traits}.",
   "movie.differsFallback": "Where it differs from your taste: {traits}.",
   "movie.explaining": "Writing the explanation…",

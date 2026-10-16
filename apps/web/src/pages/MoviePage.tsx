@@ -146,7 +146,7 @@ function Why({ detail }: { detail: MovieDetail }) {
   return (
     <section className={named.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
       <div className="why-main">
-        <Kicker band={detail.band} id="why-title" />
+        <Kicker band={detail.band} side={side} id="why-title" />
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
         <div className={asks ? "why-slot why-reserve" : "why-slot"} data-testid="why-slot">
           {asks && explanation.isPending ? (

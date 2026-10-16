@@ -157,7 +157,7 @@ export function Hero({
           aria-roledescription="slide"
           aria-label={t("hero.slide", { n: index + 1, total: count })}
         >
-          <Kicker band={item.band} as="p" />
+          <Kicker band={item.band} side={side} as="p" />
           <h2 className="home-hero-title">
             <Link to={`/movie/${movie.id}`}>{movie.title}</Link>
           </h2>

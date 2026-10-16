@@ -133,6 +133,8 @@ export const ru: Record<MessageKey, Message> = {
   "hero.play": "Продолжить прокрутку",
 
   "movie.whyKicker": "Вы и этот фильм",
+  "movie.whyKickerReason": "Чем вам подходит",
+  "movie.whyKickerDifference": "Чем отличается",
   "movie.whyYouFallback": "В том, к чему склоняется ваш вкус, фильм идёт дальше большинства: {traits}.",
   "movie.differsFallback": "Чем он отличается от вашего вкуса: {traits}.",
   "movie.explaining": "Готовим объяснение…",
