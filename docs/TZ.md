@@ -304,6 +304,13 @@ Har tavsiyaga 1–2 jumlalik oddiy tildagi izoh.
   farq tomonda — **boshqa prompt** (`DIFFERENCE_SYSTEM_PROMPT`), u farqni betaraf
   bayon qiladi va modelga "sizga yoqadi / tavsiya qilaman / sinab ko'ring" ma'nosidagi
   hech narsa yozmaslik aytiladi. Hech narsa nomlanmasa — izoh so'ralmaydi.
+- **Farq jumlasi taqqoslash bo'lishi shart** (1.26): har jumlada ikki yarim bo'lishi kerak
+  — foydalanuvchi odatda nimani tanlashi **va** film shunga qarshi qayerda turishi. Faqat
+  filmni ta'riflagan jumla mezonni bajarmaydi (jonli misol, 2026-10-16: Casablanca uchun
+  "keeps things surprisingly straightforward and wraps up neatly" — foydalanuvchi umuman
+  eslanmagan; Godzilla uchun "deeper into dark and heavy dread than you usually look for" —
+  to'g'ri). Farqni baholovchi so'zlar ("surprisingly", "refreshingly", "oddly") taqiqlanadi:
+  farq yaxshi ham, yomon ham emas.
 - Har (foydalanuvchi, film) juftligi uchun bir marta generatsiya qilinadi va keshlanadi.
 - Kesh bo'lmasa ham ekran bloklanmaydi — skeleton ko'rsatiladi.
 
@@ -465,6 +472,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.26 | 2026-10-16 | FR-6: farq promptida **taqqoslash majburiy** — har jumlada foydalanuvchi odatda nimani tanlashi va film shunga qarshi qayerda turishi; faqat filmni ta'riflash yetmaydi, farqni baholovchi so'zlar taqiqlanadi. Sabab: jonli jumlalardan biri (Casablanca) foydalanuvchini umuman eslamagan, ya'ni farq bayoni film retsenziyasiga aylangan. "Sizga yoqadi" taqiqi o'z kuchida (foydalanuvchi qarori) |
 | 1.25 | 2026-10-16 | FR-5: **panel sarlavhasi ostidagi jumlani nomlaydi**, band'ni emas — tomon `reason` da "Why it suits you", `difference` da "How it differs", hech narsa nomlanmaganda neytral "You and this film"; qizil "STRONG MATCH" faqat `strong` **va** `reason` birga bo'lganda. Uch tilda matn foydalanuvchi tomonidan tanlangan. Sabab: band va tomon boshqa o'lchovlar, shuning uchun band'li sarlavha jumla maqtovmi yoki farq bayonimi — aytmasdi; `strong` + `difference` da esa qizil sarlavha farq jumlasi ustida turib, 1.23/1.24 dagi ziddiyatni qaytarardi (foydalanuvchi qarori; matnlar va holatlar jadvali `docs/ui.md`, "Kicker qoidasi") |
 | 1.24 | 2026-10-15 | Interfeys: `outside_usual` bo'limining nomi "Outside your usual taste" → "Something different" / "Boshqacha kinolar" / "Другое кино" (foydalanuvchi qarori). Eski nom ta'm haqida da'vo qilardi, bo'lim esa embedding masofasi bo'yicha tuziladi, shuning uchun bitta filmda "ta'mingizdan tashqari" va "good" darajasi birga chiqardi |
 | 1.23 | 2026-10-15 | FR-5: sabab qoidasi o'rniga **bitta simmetrik trait qoidasi** — bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi, ikki kesim (sabab 0.5 σ, farq 1.0 σ); sabablar ustun, ikkalasi bo'lmasa panel jim. FR-6: farq tomonida alohida prompt, "sizga yoqadi" ma'nosi taqiqlanadi. API: `reasons` → `named_traits` + `trait_side`. Sabab: foydalanuvchi "Outside your usual taste" yorlig'i ostidagi filmda "sizga mos" izohini ko'rdi; eski qoida og'ish kattaligini o'lchamasdi (82 va 85 ham "sabab" edi). Interfeysdan "ta'mingizga umuman mos" jumlasi olib tashlandi (foydalanuvchi qarori; o'lchov `docs/phase-2-status.md`) |

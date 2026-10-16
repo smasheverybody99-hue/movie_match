@@ -117,6 +117,25 @@ def test_a_difference_is_briefed_as_a_difference_and_never_as_a_recommendation()
     # And it must not carry the other side's framing.
     assert "suits" not in brief
 
+
+def test_the_difference_brief_demands_the_comparison_in_every_sentence() -> None:
+    """Two live sentences, 2026-10-16. Godzilla's compared ("deeper into dark and heavy
+    dread than you usually look for"); Casablanca's only described the film ("keeps things
+    surprisingly straightforward and wraps up neatly"), never mentioning the viewer, which
+    is how a difference reads as a review. The brief now requires both halves, and forbids
+    the words that judge the difference."""
+    brief = " ".join(DIFFERENCE_SYSTEM_PROMPT.lower().split())
+    assert "every sentence is a comparison and must carry both of its halves" in brief
+    assert "what this viewer usually goes for" in brief
+    assert "where this film sits against it" in brief
+    # Said outright, so a film-only sentence is named as the failure it is.
+    assert "a sentence that only describes the film has not done the job" in brief
+    for judging in ["surprisingly", "refreshingly", "oddly", "sadly", "unfortunately"]:
+        assert judging in brief, judging
+    assert "a difference is neither good nor bad" in brief
+    # The ban that answers the original report stands unchanged.
+    assert "do not say or imply that they will like it" in brief
+
     prompt = build_prompt(
         Movie(id=1, title="Godzilla"),
         DIFFERENCES("humor", "darkness"),

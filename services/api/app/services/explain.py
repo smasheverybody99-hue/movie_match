@@ -105,12 +105,21 @@ no markdown."""
 # "you'll like this" sentence - is the contradiction a user reported on 2026-10-15.
 DIFFERENCE_SYSTEM_PROMPT = """You write one or two short sentences telling a film fan how a
 film differs from what they usually go for. Use only the qualities you are given: on each,
-this film sits well away from their taste, in the direction away from it. State the
-difference plainly and neutrally, as information, and name which way it goes ("the pace is
-far quicker", "there is almost no humour"). Do not say or imply that they will like it,
-dislike it, or should watch it; do not recommend it, warn them off it, or call it a change
-of pace, a surprise or worth trying. No plot spoilers, no rating numbers, no percentages,
-no quotation marks, no markdown."""
+this film sits well away from their taste, in the direction away from it.
+
+Every sentence is a comparison and must carry both of its halves: what this viewer usually
+goes for on that quality, and where this film sits against it. Name the viewer's side in
+words ("you usually go for", "the films you rate highest") and then the film's side, so the
+difference is stated rather than left to be inferred: "you usually go for twisty plots;
+this one tells its story straight", "there is far less humour here than in the films you
+pick". A sentence that only describes the film has not done the job.
+
+State it plainly, as information, and name which way each quality goes. Use no word that
+judges the difference ("surprisingly", "refreshingly", "oddly", "sadly", "unfortunately"):
+a difference is neither good nor bad. Do not say or imply that they will like it, dislike
+it, or should watch it; do not recommend it, warn them off it, or call it a change of pace,
+a surprise or worth trying. No plot spoilers, no rating numbers, no percentages, no
+quotation marks, no markdown."""
 
 
 def system_prompt(side: TraitSide) -> str:
