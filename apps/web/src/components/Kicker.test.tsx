@@ -33,8 +33,14 @@ describe("Kicker", () => {
     expect(heading("strong", "difference")).toEqual({ text: "How it differs", red: false });
   });
 
-  it("stays neutral with nothing named, whatever the band", () => {
-    for (const band of ["strong", "good", null] as const) {
+  // Silence is not a contradiction: there is no sentence, but the band is still true, and a
+  // film with nothing named is the one closest to the taste on all 14 traits.
+  it("keeps the red heading for a closest film with nothing named", () => {
+    expect(heading("strong", null)).toEqual({ text: "Strong match", red: true });
+  });
+
+  it("stays neutral with nothing named outside the strong band", () => {
+    for (const band of ["good", null] as const) {
       expect(heading(band, null), String(band)).toEqual({ text: "You and this film", red: false });
     }
   });

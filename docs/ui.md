@@ -355,16 +355,22 @@ ko'ramiz.
 
   | Holat | Sarlavha | Rang |
   |---|---|---|
-  | band `strong` **va** tomon `reason` | "STRONG MATCH" / "KUCHLI MOSLIK" / "БОЛЬШЕ ВСЕГО ПОДХОДИТ" | qizil |
+  | band `strong`, tomon `difference` **emas** (`reason` yoki yo'q) | "STRONG MATCH" / "KUCHLI MOSLIK" / "БОЛЬШЕ ВСЕГО ПОДХОДИТ" | qizil |
   | tomon `reason` (band `good` yoki yo'q) | "WHY IT SUITS YOU" / "NEGA SIZGA MOS KELADI" / "ЧЕМ ВАМ ПОДХОДИТ" | neytral |
   | tomon `difference` (band `strong` bo'lsa ham) | "HOW IT DIFFERS" / "NIMASI BOSHQACHA" / "ЧЕМ ОТЛИЧАЕТСЯ" | neytral |
-  | hech narsa nomlanmagan, yoki match yo'q | "YOU AND THIS FILM" / "SIZ VA BU FILM" / "ВЫ И ЭТОТ ФИЛЬМ" | neytral |
+  | hech narsa nomlanmagan (band `strong` emas), yoki match yo'q | "YOU AND THIS FILM" / "SIZ VA BU FILM" / "ВЫ И ЭТОТ ФИЛЬМ" | neytral |
 
-  **Qizil faqat ikkisi birga bo'lganda** (foydalanuvchi qarori, 2026-10-16): `strong` +
+  **Qizilni faqat farq tomoni bosadi** (foydalanuvchi qarori, 2026-10-16): `strong` +
   `difference` da qizil "STRONG MATCH" ustida "bu film sizdan farq qiladi" degan jumla
   turardi — TZ 1.23/1.24 da olib tashlangan ziddiyatning aynan o'zi. Katalogda hozir
   bunday film yo'q (8 akkauntning hech birida `strong` filmlar farq tomonida emas), lekin
   katalog o'sgach paydo bo'ladi; testda shu holat bor.
+
+  **Jimlik ziddiyat emas:** jumla yo'q, lekin band rost, shuning uchun `strong` + hech
+  narsa nomlanmagan holatda qizil sarlavha qoladi. Hech narsa nomlanmasligi — filmning
+  14 traitning hammasida ta'mga eng yaqin turgani, ya'ni aynan eng mos filmlardan biri;
+  qizilni o'sha yerda yo'qotish teskari natija bo'lardi. (Birinchi variantda shunday
+  yozilgan edi, foydalanuvchi tuzatdi.)
 
   **320px o'lchovi** (headless Chrome, CDP, qurilgan ilova, haqiqiy Inter subsetlari;
   `.kicker` = 800 19px/24px, letter-spacing 1.9px, uppercase). Mavjud kenglik: film
@@ -385,8 +391,7 @@ ko'ramiz.
   beri ikki joyda ham shunday, ya'ni bu yangi hol emas. Bir qatorga tushirish kerak bo'lsa:
   "NEGA SIZGA MOS" 192.9, "NEGA MOS KELADI" 206.5 (ikkisi ham 248 ga sig'adi) — lekin
   foydalanuvchi tugallangan gapni tanladi (2026-10-16).
-  **Hech narsa nomlanmaganda**
-  sarlavha neytral qoladi (band `strong` bo'lsa ham): nomlanadigan jumla yo'q.
+
   "good" sarlavhaga hech qachon chiqmaydi (TZ 1.16).
 - **Farq holati** (TZ 1.23, 2026-10-15): traitlar farq tomonida bo'lsa, o'sha slot va o'sha
   o'qlar, lekin jumla betaraf farq bayoni ("Where it differs from your taste: …") —

@@ -259,10 +259,9 @@ describe("MoviePage", () => {
     // claimed a fit with nothing behind it and is gone (TZ 1.23).
     getMovie.mockResolvedValue(detail(movie(0), { named_traits: [], trait_side: null }));
     renderWithProviders(<MoviePage />, ROUTE);
-    // The heading names the sentence under it (TZ 1.25). With no sentence there is nothing
-    // to name, so it stays neutral even on one of the viewer's closest films.
-    expect(await screen.findByText("You and this film")).not.toHaveClass("kicker-strong");
-    expect(screen.queryByText("Strong match")).not.toBeInTheDocument();
+    // The band is a separate claim and silence does not contradict it, so a closest film
+    // keeps the red heading with no sentence under it (TZ 1.25).
+    expect(await screen.findByText("Strong match")).toHaveClass("kicker-strong");
     const slot = screen.getByTestId("why-slot");
     expect(slot).toBeEmptyDOMElement();
     // nothing is coming, so no space is held either
