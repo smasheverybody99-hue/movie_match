@@ -283,13 +283,25 @@ Kutubxona kerak emas (framer-motion/motion o'rnatilmaydi): CSS va ~40 qatorli ho
 
 Ish: tegishli ekran bilan birga; umumiy qism (hook'lar, o'tishlar) **0.5 kun.**
 
+**Qo'shimcha (2026-10-21): "kutubxona kerak emas" bandi bekor qilindi** (foydalanuvchi
+so'rovi: GSAP, Lenis va React Bits ulanishi). Yuqoridagi jadvalning hammasi — sahifa
+o'tishlari, poster hover, skeleton, dialog, onboarding qadamlari, bannerlar, DNA guli
+raylari, hero crossfade — **o'z kuchida qoladi va hali ham CSS**. Kutubxonalar faqat
+ularning ustiga qo'shilgan yangi harakatlar uchun: "Harakat v3" bo'limi (quyida).
+`prefers-reduced-motion` qoidasi o'zgarmadi va kuchaytirildi: endi harakat o'chirilganda
+kutubxona chunk'i ham yuklanmaydi.
+
 ### 8. Yangi kutubxonalar
 
 | Nomi | Nima uchun | Litsenziya | Hajmi |
 |---|---|---|---|
 | `lucide-react` 1.49.0 | Ikonkalar | ISC, bepul | Diskda 35 MB; bundle'ga faqat ishlatilgan ikonkalar (o'rnatilgach o'lchanadi) |
+| `gsap` 3.15.0 (2026-10-21) | Harakat dvigateli: `ScrollTrigger` (scroll bilan bog'langan harakat), `SplitText` (matnni harflarga bo'lish) | Standard "no charge" litsenziyasi (https://gsap.com/standard-license): tijorat mahsulotida ham bepul; 3.13 dan beri hamma plaginlar bepul. **Bu OSI litsenziyasi emas** — taqiq faqat kutubxonaning o'zini sotishga/raqobatchi vosita qilishga | Diskda 6.4 MB. Bundle'da uch alohida chunk: gsap 70.9 KB (gz 28.0), ScrollTrigger 44.0 KB (gz 18.3), SplitText 7.4 KB (gz 3.5). Asosiy chunk'da emas — faqat harakat yoqilgan brauzer yuklaydi |
+| `lenis` 1.3.27 (2026-10-21) | Silliq scroll | MIT | Diskda 520 KB; bundle'da alohida chunk 20.0 KB (gz 5.7), faqat harakat yoqilganda |
+| React Bits (2026-10-21) | Komponent namunalari: Split Text, Animated Content, Shiny Text, Count Up, Magnet, Tilted Card, Beams | **MIT + Commons Clause.** Ilova ichida (tijorat ham) ishlatish mumkin; komponentlarning o'zini sotish, sublitsenziyalash yoki qayta tarqatish mumkin emas | **O'rnatilmaydi.** npm paketi emas — nusxa-ko'chirma katalog. Hajmi 0: kod o'zimizda yozilgan, pastdagi bo'limga qara |
 
-Boshqa hech narsa: animatsiya, grafik va rasm — qo'lda (CSS, SVG, canvas).
+Boshqa hech narsa: grafik va rasm — qo'lda (CSS, SVG, canvas). WebGL kutubxonasi yo'q
+(React Bits'ning `ogl`/`three` talab qiladigan fonlari olinmadi — "Harakat v3").
 
 ### 9. Tartib — ekran-ekran
 
@@ -976,6 +988,153 @@ kursiv fayli yo'q: DNA jumlasidagi kursiv avvalgidek sintez qilinadi.
   0.0003 gacha (film sahifasi `dl.facts` 0.0003, DNA 390 0.0002). Ushlab turilmaganda hammasi
   0. Shriftlar yuklangach skrinshotlar Google'niki bilan piksel-piksel bir xil (12 tadan 11;
   Home 1280 — rasmlar yuklanish vaqti, Google'ning o'zida ham ikki marta har xil chiqdi).
+
+### Harakat v3 — GSAP, Lenis va React Bits (2026-10-21)
+
+Holat: **kod bajarildi, ko'rik qilinmagan.** Foydalanuvchi so'rovi: uchta manbani ulash
+(GSAP — scroll effektlari, Lenis — silliq scroll, React Bits — animatsiyali matn, fon va
+tugmalar) va "eng kuchli dizayn va harakat". So'rov v2 brifining ikki bandiga qarshi
+("kutubxona kerak emas", 7-bo'lim; "boshqa hech narsa", 8-bo'lim) — ikkisi ham shu
+yozuv bilan yangilandi, qolgan brif o'zgarmadi.
+
+**Rang qoidasi (1-bo'lim) buzilmadi:** bu ishda birorta yangi rang qo'shilmagan. Hamma
+narsa `tokens.css` dagi oq va kulranglar: qizil hali ham faqat "Kuchli moslik".
+
+#### Uch manba va ularning o'rni
+
+| Manba | O'rni | Qanday ulangan |
+|---|---|---|
+| **GSAP** (greensock/GSAP) | Harakat dvigateli. `ScrollTrigger` — scroll bilan bog'langan harakat (scrubbed parallaks, scroll holati, ko'rinishga kirgandagi paydo bo'lish); `SplitText` — sarlavhani harf va so'zlarga bo'lish | `lib/gsap.ts`: bitta `loadGsap()`, dinamik `import()`, plaginlar bir marta registratsiya qilinadi. `useGsapEffect` — ref'ga bog'langan `gsap.context`, tozalashda hammasi qaytariladi |
+| **Lenis** (darkroomengineering/lenis) | Butun hujjat bo'ylab silliq scroll | `lib/smoothScroll.tsx`: `main.tsx` da `<SmoothScroll>`. Kadrlarni GSAP ticker'i beradi (`gsap.ticker.add` → `lenis.raf`), shuning uchun scrubbed harakat va scroll holati hech qachon bir kadrga ham ajralmaydi |
+| **React Bits** (DavidHDev/react-bits) | Komponent namunalari | Kod **nusxa ko'chirilmagan**, pastdagi "Litsenziya qarori" ga qara. `components/motion/` dagi har bir fayl qaysi React Bits komponentidan olinganini sarlavhasida aytadi |
+
+#### Litsenziya qarori — React Bits kodi nusxa qilinmadi
+
+React Bits `MIT + Commons Clause` ostida: ilova ichida ishlatish ruxsat etilgan, lekin
+"komponentlarning o'zini sotish, sublitsenziyalash yoki qayta tarqatish" (shu jumladan
+"ported version" sifatida) taqiqlangan. Bu repozitoriy ochiq, ya'ni unga qo'yilgan
+komponent fayli qayta tarqatiladi. Shuning uchun uchta sabab bilan **o'z kodimiz**
+yozildi, React Bits esa namuna va havola sifatida ko'rsatildi:
+
+1. **Litsenziya.** Ochiq repozitoriyda Commons Clause ostidagi komponent fayllarini
+   saqlamaslik — eng toza yo'l. Qaror huquqshunos bilan muhokamani talab qilmaydi.
+2. **Konventsiyalar.** React Bits komponentlari inline `style` va to'g'ridan-to'g'ri hex
+   rang ishlatadi, bizda esa ikkisi ham taqiqlangan (`tokens.css`). Ularning `SplitText`
+   i ~400 qator va bizga kerak bo'lmagan o'nta prop (hover spring, loop, accentColor).
+3. **Bog'liqliklar.** React Bits'ning eng ko'rkam fonlari (`Aurora`, `Beams`, `Galaxy`)
+   `ogl` yoki `three` talab qiladi. Bitta fon uchun WebGL kutubxonasi — bundle'ga
+   nomutanosib narx; shu sababli `Beams` gradient va `filter: blur()` bilan qayta
+   yozildi, canvas'siz.
+
+Olingan namunalar: Split Text, Animated Content, Shiny Text, Count Up, Magnet,
+Tilted Card, Beams / Light Rays.
+
+#### Qoidalar — har bir harakat uchun majburiy
+
+1. **`prefers-reduced-motion: reduce` — hammasi o'chadi.** Faqat animatsiya emas:
+   `usePrefersReducedMotion` `true` bo'lsa GSAP va Lenis **chunk'i ham yuklanmaydi**.
+   Harakatni ishlatmaydigan foydalanuvchi uni yuklab ham olmaydi. Testlarda
+   `matchMedia` yo'q, ya'ni standart holat — "reduce" (`lib/motion.ts`), shuning uchun
+   mavjud 300+ test bitta kadr ham animatsiya ko'rmaydi.
+2. **Hech bir harakat layout'ga tegmaydi.** Faqat `transform`, `opacity` va `filter`.
+   Blok birinchi paint'da o'zining oxirgi o'lchamida bo'ladi — CLS 0 saqlanadi.
+3. **Boshlang'ich holat paint'dan oldin qo'yiladi.** `Reveal` o'zini render'da inline
+   `opacity: 0` bilan yashiradi, staggered bolalarini `useLayoutEffect` da — effektdan
+   keyin emas. Shuning uchun "tugagan kontent bir kadr ko'rinib, keyin yashirinish"
+   hodisasi yo'q.
+4. **Chunk kelmasa, kontent ko'rinadi.** `useGsapEffect` ning `onSkip` i dinamik
+   `import()` rad etilganda ham ishlaydi (offline tashrif, keshlanmagan chunk), ya'ni
+   yashirilgan blok hech qachon foydalanuvchida yashirin qolmaydi. Testi:
+   `lib/gsapOffline.test.tsx`.
+5. **Tugagandan keyin inline `transform` qolmaydi** (`clearProps`). Elementda qolgan
+   `transform` sahifaning `position: fixed` panellari va dialoglari uchun containing
+   block bo'lib qolardi — 2026-10-09 dagi dialog nuqsonining aynan sababi.
+6. **`will-change` qo'yilmaydi.** `force3D` tween davomida layer beradi va qo'yib
+   yuboradi; o'zimiz qo'ygan `will-change` esa har posterda abadiy tirik layer
+   qoldirardi.
+7. **Bezak — bezak.** `Beams` va scroll indikatori `aria-hidden`; `SplitText` plaginning
+   `aria: "auto"` i bilan butun jumlani element label'i qilib qoldiradi va harflarni
+   yashiradi, ya'ni skrinrider bitta jumla o'qiydi, harflar ustunini emas. Harflar
+   haqiqiy matn — find-in-page topadi. `CountUp` render'da oxirgi raqamni beradi, ya'ni
+   skrinrider va test oxirgi qiymatni ko'radi.
+8. **Pointer bilan ishlaydigan harakatlar touch'da yo'q.** `Magnet` va `Tilt`
+   `(hover: hover) and (pointer: fine)` so'ramaguncha birorta listener ham qo'ymaydi.
+9. **Gorizontal scroller'lar Lenis'dan chiqarilgan** (`data-lenis-prevent`): Home
+   qatorlari, watchlist chip qatori, Rate dialogi. Barmoq bilan yonga surish sahifaning
+   silliq scroll'iga berilmaydi.
+
+#### Fayllar
+
+| Fayl | Nima |
+|---|---|
+| `lib/gsap.ts` | `loadGsap()` (dinamik, bir marta), `useGsapEffect` (context + reduced-motion + `onSkip`), `resetGsap()` (testlar) |
+| `lib/smoothScroll.tsx` | `<SmoothScroll>` — Lenis + GSAP ticker. Shu yerda hujjat balandligi o'zgarganda (`ResizeObserver`, 150 ms debounce) `ScrollTrigger.refresh()` chaqiriladi: qatorlar va panellar ma'lumot bilan birga keladi, ya'ni birinchi o'lchov eskiradi. Harakat o'chirilganda butunlay o'tkazib yuboriladi |
+| `components/motion/Reveal.tsx` | Ko'rinishga kirganda paydo bo'lish (opacity + 24px ko'tarilish); `stagger` bilan bolalarini ketma-ket chiqaradi |
+| `components/motion/SplitText.tsx` | Sarlavha harf/so'z/qator bo'lib, maska ortidan chiqadi |
+| `components/motion/ShinyText.tsx` | Harflar ustidan o'tadigan yorug'lik — faqat CSS |
+| `components/motion/CountUp.tsx` | Raqam o'z qiymatiga sanab boradi |
+| `components/motion/Magnet.tsx` | Tugma kursorga qarab engashadi |
+| `components/motion/Tilt.tsx` | Karta kursorga qarab bir necha daraja buriladi |
+| `components/motion/Beams.tsx` | Fondagi uch yorug'lik nuri (gradient + blur, canvas'siz) |
+| `components/motion/ScrollProgress.tsx` | Oynaning tepasida scroll holati — harakat o'chirilganda ham ishlaydi (listener, GSAP'siz) |
+| `components/motion/parallax.ts` | `useParallax` — backdrop'ni scroll'dan orqada ushlab turish |
+
+#### Qaysi ekranda nima
+
+| Ekran | Harakat |
+|---|---|
+| Qobiq (`Layout.tsx`) | Tepada scroll holati chizig'i; logotip yozuvida yorug'lik (`ShinyText`) |
+| `/welcome` | Fonda uch nur (`Beams`); nom harflab chiqadi (`SplitText`); jumla ustidan yorug'lik; tugmalar ketma-ket paydo bo'ladi va kursorga engashadi (`Magnet`) |
+| Home (`/`) | Hero backdrop'i scroll'da parallaks; har bir qator ko'rinishga kirganda paydo bo'ladi; poster kartalari kursorga qarab buriladi (`Tilt`) |
+| Film sahifasi | Backdrop parallaks; sarlavha harflab chiqadi; "Why you", "Overview" va "Compare" panellari ko'rinishga kirganda paydo bo'ladi |
+| `/dna` | Jumla so'zlab chiqadi; diagramma ozgina burilib joyiga o'tiradi (raylar CSS bilan markazdan o'sishda davom etadi); statistika raqamlari sanaladi (`CountUp`) |
+| `/search`, `/watchlist` | Natijalar to'ri va ro'yxat ketma-ket paydo bo'ladi |
+| Onboarding | **Tegilmadi.** Qadamlar o'tishi va uning vaqtga bog'liq testlari o'z holida qoldi (3-bosqich, 2026-10-05) |
+
+#### O'lchovlar (2026-10-21, mahalliy)
+
+| | Oldin (`23e3600`) | Keyin |
+|---|---|---|
+| Asosiy JS | 415.84 KB (gz 128.47) | **425.30 KB (gz 131.98)** — harakat komponentlari uchun +9.5 KB (gz +3.5) |
+| CSS | 40.10 KB (gz 8.17) | 41.58 KB (gz 8.56) |
+| Faqat harakat yoqilganda | — | gsap 70.9 KB (gz 28.0) + ScrollTrigger 44.0 (gz 18.3) + SplitText 7.4 (gz 3.5) + lenis 20.0 (gz 5.7) = **142.3 KB (gz 55.5)**, to'rt alohida chunk |
+| Web testlari | 27 fayl, 318 test | **39 fayl, 373 test**, hammasi o'tgan; lint 0, build 0 |
+
+Harakat qatlamining o'z testlari (55 ta yangi test) har komponent uchun ikki yo'lni ham
+tekshiradi: harakat o'chirilgan holat (kontent joyida, inline style yo'q) va yoqilgan
+holat (haqiqiy GSAP jsdom'da ishlaydi — mock emas). Alohida tekshiriladi: `clearProps`
+dan keyin `transform` qolmasligi, `SplitText` ning erishimli nomi va revert'i, touch
+ekranda `Magnet`/`Tilt` ning jim turishi, chunk kelmagan holat.
+
+#### Haqiqiy brauzerda tekshiruv (Chromium 1194, mock API)
+
+Jadvaldagi hammasi haqiqiy brauzerda yurgizib ko'rildi, jsdom'da emas:
+
+| Nima | Natija |
+|---|---|
+| Gorizontal scroll | 320px va 1440px da, Home / film / DNA / qidiruv / welcome — **0** |
+| `position: fixed` panellar (`.main` `container-type` ichida) | 320px da 539px scroll'dan keyin ham pastki panel viewport'ning tagida (`bottom = 640 = innerHeight`); scroll chizig'i tepada (`top = 0`) |
+| Scroll indikatori | 0 → **0.4374** (scroll 360 / 823) → 1. Aniq kuzatadi |
+| Hero parallaksi | backdrop −35.28px → +35.28px, `scale(1.14)` saqlanadi — chekka ochilmaydi |
+| Qatorlarning paydo bo'lishi | scroll'dan oldin `["1", "0", "0"]`, keyin `["1", "1", "1"]` |
+| `SplitText` (film sarlavhasi) | 11 harf, `aria-label="The Prestige"`, harflar `aria-hidden`, maska harf qutisini kesmaydi |
+| Reduced motion | `html` da Lenis klassi yo'q, bo'lingan harf yo'q, yashirin blok yo'q — ekranlar to'liq |
+
+**Shu tekshiruvda bitta nuqson topildi va tuzatildi:** scroll indikatori qimirlamasdi.
+Sababi — u qobiq bilan birga, sahifa hali bo'sh (`maxScroll = 0`) paytda o'rnatilardi va
+ma'lumot kelib sahifa o'sgach qayta o'lchanmasdi. Yechim: `SmoothScroll` dagi
+`ResizeObserver` + `ScrollTrigger.refresh()` (yuqoridagi jadval). Regressiya testi:
+`lib/smoothScroll.test.tsx`.
+
+#### Chala
+
+- **Ko'rik qilinmagan.** Dizayn v2 ning tartibi (9-bo'lim) har qadamdan keyin skrinshot
+  va tasdiq talab qiladi; bu ish bitta bosqichda qilindi va foydalanuvchi hali ko'rmadi.
+- **CLS, axe va Lighthouse o'lchanmagan.** Yuqoridagi tekshiruv tartib va harakatni
+  qamradi, o'lchovlarni emas. Blur'ning paint narxi va past quvvatli telefondagi kadr
+  tezligi ham haqiqiy qurilmada o'lchanishi kerak (`Beams` uch marta `blur(40px)`).
+- **Mobil paritet (10-bo'lim).** Flutter ilovasiga bu harakatlar o'tkazilmagan; `Beams`,
+  parallaks va `SplitText` ning Dart ekvivalenti F6 ishi.
 
 ### 10. Mobil paritet
 
