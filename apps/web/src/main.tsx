@@ -7,6 +7,7 @@ import App from "./App";
 import { I18nProvider } from "./i18n";
 import { AuthProvider } from "./lib/auth";
 import { queryClient } from "./lib/queryClient";
+import { SmoothScroll } from "./lib/smoothScroll";
 import { createSupabaseAuth, type AuthClient } from "./lib/supabase";
 import "./styles/fonts.css";
 import "./styles/tokens.css";
@@ -31,7 +32,9 @@ void authClient().then((client) => {
         <QueryClientProvider client={queryClient}>
           <AuthProvider client={client}>
             <BrowserRouter>
-              <App />
+              <SmoothScroll>
+                <App />
+              </SmoothScroll>
             </BrowserRouter>
           </AuthProvider>
         </QueryClientProvider>

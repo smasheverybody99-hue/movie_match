@@ -17,6 +17,9 @@ configure({ asyncUtilTimeout: 3000 });
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  // A stubbed matchMedia (the motion tests turn the motion layer on with one) must not
+  // reach the next test, which would then animate where it expects nothing to.
+  vi.unstubAllGlobals();
   resetRatingQueues();
   // Session state, so one test's "no sentence is coming" must not reach the next.
   resetExplanations();

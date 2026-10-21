@@ -99,6 +99,27 @@ export function mockedApi(actual: Api): Api {
   return Object.fromEntries(Object.keys(actual).map((key) => [key, vi.fn()])) as unknown as Api;
 }
 
+/**
+ * Turns the motion layer on for one test. Everything in it reads
+ * `prefers-reduced-motion`, and an unknown preference counts as "reduce" (lib/motion.ts),
+ * which is what a test gets by default — so a test that wants the animations has to say
+ * so. `finePointer` answers the hover query that Magnet and Tilt ask before they do
+ * anything, so a test can also be a touch screen.
+ *
+ * The stub is removed after every test (test/setup.ts).
+ */
+export function allowMotion({ finePointer = true }: { finePointer?: boolean } = {}): void {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({
+      matches: finePointer && query.includes("pointer"),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+}
+
 /** A promise that never settles: keeps a query in its loading state. */
 export function pending<T>(): Promise<T> {
   return new Promise<T>(() => {});
