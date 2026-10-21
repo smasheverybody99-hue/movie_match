@@ -1,5 +1,5 @@
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { useT } from "../i18n";
@@ -9,6 +9,7 @@ import type { Movie, Recommendation } from "../lib/types";
 import { isTraitKey } from "../lib/traits";
 import { Icon } from "./Icon";
 import { Kicker } from "./Kicker";
+import { useParallax } from "./motion";
 import { traitLabelKey } from "./Traits";
 
 /** How long one film stays before the next (docs/ui.md, 4a). */
@@ -64,6 +65,10 @@ export function Hero({
 }) {
   const t = useT();
   const reduce = usePrefersReducedMotion();
+  const media = useRef<HTMLDivElement>(null);
+  // The backdrop holds a little behind the page as the hero scrolls away. The blurred
+  // poster stand-in is left out: its own CSS transform already scales it.
+  useParallax(media, { selector: ".home-hero-img:not(.film-hero-blur)" });
   const count = items.length;
   const [index, setIndex] = useState(0);
   const [reached, setReached] = useState(0); // the furthest slide shown, for image loading
@@ -141,7 +146,7 @@ export function Hero({
       }}
       onKeyDown={onKeyDown}
     >
-      <div className="home-hero-media" aria-hidden="true">
+      <div className="home-hero-media" ref={media} aria-hidden="true">
         {items.map((it, i) =>
           // The slides reached so far and the next one; the rest load when they come up.
           i <= reached + 1 ? <HeroImage key={it.movie.id} movie={it.movie} active={i === index} first={i === 0} /> : null,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { MovieCard } from "../components/MovieCard";
+import { Reveal } from "../components/motion";
 import { useQuickActions } from "../components/QuickActions";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { traitLabelKey } from "../components/Traits";
@@ -208,13 +209,20 @@ export default function Search() {
                   }}
                 />
               ) : (
-                <ul className="grid" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                <Reveal
+                  as="ul"
+                  className="grid"
+                  style={{ listStyle: "none", margin: 0, padding: 0 }}
+                  stagger={0.04}
+                  y={18}
+                  immediate
+                >
                   {movies.map((movie) => (
                     <li key={movie.id}>
                       <MovieCard movie={movie} quick={quickFor(movie)} />
                     </li>
                   ))}
-                </ul>
+                </Reveal>
               )
             }
           </QueryView>

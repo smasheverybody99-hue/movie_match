@@ -110,6 +110,9 @@ export function Dialog({
   return createPortal(
     <div
       className={closing ? "dialog-backdrop is-closing" : "dialog-backdrop"}
+      // The sheet is its own scroller: a wheel over it must not glide the page behind it
+      // (lib/smoothScroll.tsx).
+      data-lenis-prevent
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close();
       }}

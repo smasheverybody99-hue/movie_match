@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
 import { MatchBand } from "../components/MatchBand";
+import { Reveal } from "../components/motion";
 import { Poster } from "../components/Poster";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { useT, type MessageKey } from "../i18n";
@@ -111,7 +112,15 @@ export default function Watchlist() {
           const shown = items.filter((item) => inGroup(item, group));
           return (
             <>
-              <div className="chip-scroll" role="group" aria-label={t("watchlist.groups")} style={{ marginBottom: 12 }}>
+              {/* Its own horizontal scroller, so a swipe over it is not handed to the
+                  page's smooth scroll (lib/smoothScroll.tsx). */}
+              <div
+                className="chip-scroll"
+                role="group"
+                aria-label={t("watchlist.groups")}
+                style={{ marginBottom: 12 }}
+                data-lenis-prevent
+              >
                 {GROUPS.map((g) => (
                   <button
                     key={g.key}
@@ -130,11 +139,11 @@ export default function Watchlist() {
               {shown.length === 0 ? (
                 <p className="muted">{t("watchlist.emptyGroup")}</p>
               ) : (
-                <ul className="list">
+                <Reveal as="ul" className="list" stagger={0.045} y={16} immediate>
                   {shown.map((item) => (
                     <Row key={item.movie.id} item={item} onChange={(c) => change.mutate(c)} />
                   ))}
-                </ul>
+                </Reveal>
               )}
             </>
           );

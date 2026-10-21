@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { DnaFlower } from "../components/DnaFlower";
 import { Icon } from "../components/Icon";
+import { CountUp, Reveal, SplitText } from "../components/motion";
 import { EmptyState, QueryView, Skeleton } from "../components/States";
 import { TraitBar, traitInSentence, traitLabelKey } from "../components/Traits";
 import { useI18n, useT, type Translate } from "../i18n";
@@ -121,7 +122,7 @@ export default function Dna() {
                 one row, Numbers. From 1100 two: the chart (~560px) on the left, centred
                 vertically; the sentence, the stats as a list and Numbers on the right. */}
             <div className="dna-page">
-              <p className="dna-summary">“{summary}”</p>
+              <SplitText as="p" className="dna-summary" text={`“${summary}”`} by="words" stagger={0.045} immediate />
               <DnaFlower
                 scores={dna.scores}
                 label={t("dna.chartLabel", {
@@ -131,25 +132,33 @@ export default function Dna() {
                     .join(", "),
                 })}
               />
-              <section className="dna-stats" aria-labelledby="stats-title">
+              <Reveal as="section" className="dna-stats" labelledBy="stats-title" y={16}>
                 <h2 className="visually-hidden" id="stats-title">
                   {t("dna.stats")}
                 </h2>
                 <dl className="stats">
                   <div>
                     <dt>{t("dna.statFilms")}</dt>
-                    <dd>{dna.rating_count}</dd>
+                    <dd>
+                      <CountUp value={dna.rating_count} />
+                    </dd>
                   </div>
                   <div>
                     <dt>{t("dna.statAverage")}</dt>
-                    <dd>{dna.average_rating !== null ? score(dna.average_rating, lang) : "—"}</dd>
+                    <dd>
+                      {dna.average_rating !== null ? (
+                        <CountUp value={dna.average_rating} format={(n) => score(n, lang)} />
+                      ) : (
+                        "—"
+                      )}
+                    </dd>
                   </div>
                   <div>
                     <dt>{t("dna.statGenre")}</dt>
                     <dd>{dna.top_genre ? genreLabel(dna.top_genre, t) : "—"}</dd>
                   </div>
                 </dl>
-              </section>
+              </Reveal>
               {/* A plain disclosure, not a modal: the chart's text alternative too. */}
               <details className="dna-numbers">
                 <summary className="btn btn-ghost">{t("dna.numbers")}</summary>

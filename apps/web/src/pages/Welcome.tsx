@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { FieldError } from "../components/FieldError";
 import { Logo } from "../components/Logo";
+import { Beams, Magnet, Reveal, ShinyText, SplitText } from "../components/motion";
 import { useT, type MessageKey } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { AuthFailure, type OAuthProvider } from "../lib/supabase";
@@ -18,6 +19,12 @@ function failureMessage(error: unknown): MessageKey {
 /**
  * /welcome — one sentence and the sign-in buttons. Google and Apple first, then a
  * passwordless email link. No guest mode (FR-1).
+ *
+ * The first screen anyone sees, so it carries the motion layer's opening (docs/ui.md,
+ * "Harakat v3"): beams drifting behind it, the name arriving letter by letter, a sheen
+ * over the sentence, and the buttons one after another. All of it is `transform` and
+ * `opacity` over a layout that is already final, and all of it is gone — the screen
+ * still complete — with `prefers-reduced-motion: reduce`.
  */
 export default function Welcome() {
   const t = useT();
@@ -64,10 +71,13 @@ export default function Welcome() {
 
   return (
     <main className="welcome" id="main">
+      <Beams />
       <div className="welcome-inner">
         <Logo size={48} className="welcome-mark" />
-        <h1>{t("app.name")}</h1>
-        <p className="welcome-tagline">{t("welcome.tagline")}</p>
+        <SplitText as="h1" text={t("app.name")} by="chars" immediate stagger={0.035} />
+        <p className="welcome-tagline">
+          <ShinyText>{t("welcome.tagline")}</ShinyText>
+        </p>
 
         {auth.status === "unconfigured" && (
           <p className="state" role="alert">
@@ -75,13 +85,17 @@ export default function Welcome() {
           </p>
         )}
 
-        <div className="stack">
-          <button type="button" className="btn btn-secondary btn-block" disabled={disabled} onClick={() => void oauth("google")}>
-            {t("welcome.google")}
-          </button>
-          <button type="button" className="btn btn-secondary btn-block" disabled={disabled} onClick={() => void oauth("apple")}>
-            {t("welcome.apple")}
-          </button>
+        <Reveal className="stack" stagger={0.07} delay={0.2} y={14} immediate>
+          <Magnet>
+            <button type="button" className="btn btn-secondary btn-block" disabled={disabled} onClick={() => void oauth("google")}>
+              {t("welcome.google")}
+            </button>
+          </Magnet>
+          <Magnet>
+            <button type="button" className="btn btn-secondary btn-block" disabled={disabled} onClick={() => void oauth("apple")}>
+              {t("welcome.apple")}
+            </button>
+          </Magnet>
 
           {!emailOpen ? (
             <button
@@ -122,7 +136,7 @@ export default function Welcome() {
               </button>
             </form>
           )}
-        </div>
+        </Reveal>
 
         {error && (
           <FieldError>{t(error)}</FieldError>

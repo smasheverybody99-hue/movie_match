@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
@@ -6,6 +6,7 @@ import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 import { FieldError } from "../components/FieldError";
 import { Icon } from "../components/Icon";
 import { Kicker } from "../components/Kicker";
+import { Reveal, SplitText, useParallax } from "../components/motion";
 import { Poster } from "../components/Poster";
 import { RateDialog } from "../components/RateDialog";
 import { showsLikedAspects } from "../components/RatingInput";
@@ -62,8 +63,12 @@ function tasteScores(scores: Record<string, number> | undefined): Record<string,
 function Hero({ detail }: { detail: MovieDetail }) {
   const backdrop = imageUrl(detail.backdrop_path, "w1280");
   const poster = imageUrl(detail.poster_path, "w342");
+  const box = useRef<HTMLDivElement>(null);
+  // The backdrop holds behind the page as it scrolls away; the blurred poster stand-in is
+  // left out, since its own CSS transform already scales it.
+  useParallax(box, { selector: ".film-hero-img:not(.film-hero-blur)" });
   return (
-    <div className="film-hero" data-testid="film-hero">
+    <div className="film-hero" ref={box} data-testid="film-hero">
       {backdrop ? (
         <img
           className="film-hero-img"
@@ -130,12 +135,12 @@ function Why({ detail }: { detail: MovieDetail }) {
   const explanation = useExplanation(detail.id, asks);
   if (detail.match === null) {
     return (
-      <section className="panel why why-solo" aria-labelledby="why-title">
+      <Reveal as="section" className="panel why why-solo" labelledBy="why-title" y={18}>
         <Kicker band={null} id="why-title" />
         <p className="muted" style={{ margin: 0 }}>
           {t("movie.noMatch")}
         </p>
-      </section>
+      </Reveal>
     );
   }
   const traits = named.map((key) => traitInSentence(key, t, lang)).join(", ");
@@ -144,7 +149,12 @@ function Why({ detail }: { detail: MovieDetail }) {
   const film = detail.traits?.scores ?? {};
   const taste = tasteScores(dna.data?.scores);
   return (
-    <section className={named.length > 1 ? "panel why" : "panel why why-solo"} aria-labelledby="why-title">
+    <Reveal
+      as="section"
+      className={named.length > 1 ? "panel why" : "panel why why-solo"}
+      labelledBy="why-title"
+      y={18}
+    >
       <div className="why-main">
         <Kicker band={detail.band} side={side} id="why-title" />
         {/* Space is reserved only while text can still arrive; otherwise it fits the sentence. */}
@@ -172,7 +182,7 @@ function Why({ detail }: { detail: MovieDetail }) {
           ))}
         </div>
       )}
-    </section>
+    </Reveal>
   );
 }
 
@@ -188,7 +198,7 @@ function Compare({ detail }: { detail: MovieDetail }) {
   if (!film) return <p className="muted">{t("movie.traitsPending")}</p>;
   const taste = tasteScores(dna.data?.scores);
   return (
-    <section className="panel compare" aria-labelledby="compare-title">
+    <Reveal as="section" className="panel compare" labelledBy="compare-title" y={18}>
       {/* "Other" only when Why you shows reasons: otherwise these are the film's top traits. */}
       <h2 className="eyebrow" id="compare-title">
         {whyHasAxes(detail) ? t("movie.compareOther") : t("movie.compareTop")}
@@ -199,7 +209,7 @@ function Compare({ detail }: { detail: MovieDetail }) {
           <TraitAxis key={key} trait={key} taste={taste ? (taste[key] ?? 0) : null} film={film[key] ?? 0} />
         ))}
       </div>
-    </section>
+    </Reveal>
   );
 }
 
@@ -333,7 +343,7 @@ export default function MoviePage() {
       <header className="film-head">
         <Poster movie={detail} describe eager />
         <div className="film-head-text">
-          <h1 className="film-title">{detail.title}</h1>
+          <SplitText as="h1" className="film-title" text={detail.title} by="chars" stagger={0.02} immediate />
           <Tags detail={detail} />
           <Actions detail={detail} />
         </div>
@@ -342,7 +352,7 @@ export default function MoviePage() {
       <Why detail={detail} />
 
       {(detail.overview || detail.director || detail.cast.length > 0) && (
-        <section className="film-about" aria-labelledby="overview-title">
+        <Reveal as="section" className="film-about" labelledBy="overview-title" y={18}>
           <h2 className="eyebrow" id="overview-title">
             {t("movie.overview")}
           </h2>
@@ -365,7 +375,7 @@ export default function MoviePage() {
               </dl>
             )}
           </div>
-        </section>
+        </Reveal>
       )}
 
       <Compare detail={detail} />

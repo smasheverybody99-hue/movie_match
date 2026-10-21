@@ -5,6 +5,7 @@ import { Navigate } from "react-router-dom";
 import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
+import { Reveal } from "../components/motion";
 import { useQuickActions } from "../components/QuickActions";
 import { EmptyState, LoadingMark, QueryView } from "../components/States";
 import { useT } from "../i18n";
@@ -77,7 +78,9 @@ function Row({ children }: { children: ReactNode }) {
       >
         <Icon as={ChevronLeft} />
       </button>
-      <ul className="row-scroll" ref={ref}>
+      {/* Its own scroller: a horizontal swipe or wheel stays in the row and is never
+          handed to the page's smooth scroll (lib/smoothScroll.tsx). */}
+      <ul className="row-scroll" ref={ref} data-lenis-prevent>
         {children}
       </ul>
       <button
@@ -155,19 +158,26 @@ export default function Feed() {
           return (
             <>
               {heroItems.length > 0 && <Hero items={heroItems} saved={saved} onToggleSave={toggleSave} />}
+              {/* Each row arrives as it is scrolled to: the heading and the posters rise
+                  together, once, into a box that was already its final size. */}
               {rows.map((section) => (
-            <section key={section.key} className="feed-section" aria-labelledby={`section-${section.key}`}>
-              <h2 className="section-title" id={`section-${section.key}`}>
-                <SectionTitle section={section} />
-              </h2>
-              <Row>
-                {section.items.map((item) => (
-                  <li key={item.movie.id}>
-                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} />
-                  </li>
-                ))}
-              </Row>
-            </section>
+                <Reveal
+                  as="section"
+                  key={section.key}
+                  className="feed-section"
+                  labelledBy={`section-${section.key}`}
+                >
+                  <h2 className="section-title" id={`section-${section.key}`}>
+                    <SectionTitle section={section} />
+                  </h2>
+                  <Row>
+                    {section.items.map((item) => (
+                      <li key={item.movie.id}>
+                        <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} />
+                      </li>
+                    ))}
+                  </Row>
+                </Reveal>
               ))}
             </>
           );

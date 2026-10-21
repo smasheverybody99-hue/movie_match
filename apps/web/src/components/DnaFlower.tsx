@@ -1,4 +1,8 @@
+import { useRef } from "react";
+
 import { useT } from "../i18n";
+import { useGsapEffect } from "../lib/gsap";
+import { usePrefersReducedMotion } from "../lib/motion";
 import { TRAIT_KEYS, type TraitKey } from "../lib/traits";
 import { traitLabelKey } from "./Traits";
 
@@ -63,15 +67,44 @@ export function lines(label: string): string[] {
  * fully white rays), the rest are in the Numbers list beside it. Rays grow from the
  * centre one after another on first paint (CSS; none with reduced motion).
  * The SVG is one image with a summary label; the exact values are the Numbers list.
+ *
+ * The chart as a whole also turns into place as it arrives (GSAP), under the rays growing
+ * out of the centre: the shape settles from a slight rotation and scale while the rays
+ * draw. It is a transform on the SVG and the rays are CSS inside it, so the two compose.
+ * The starting state is inline from the first paint, so the finished chart is never shown
+ * first; with reduced motion there is no starting state and no turn.
  */
 export function DnaFlower({ scores, label }: { scores: Partial<Record<TraitKey, number>>; label: string }) {
   const t = useT();
+  const ref = useRef<SVGSVGElement>(null);
+  const reduce = usePrefersReducedMotion();
+  useGsapEffect(
+    ref,
+    ({ gsap }) => {
+      gsap.to(ref.current, {
+        opacity: 1,
+        scale: 1,
+        rotate: 0,
+        duration: 1.1,
+        ease: "power3.out",
+        clearProps: "transform,willChange",
+      });
+    },
+    [],
+    () => {
+      if (ref.current) ref.current.style.removeProperty("opacity");
+    },
+  );
   const strongest = new Set(
     [...TRAIT_KEYS].sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0)).slice(0, STRONGEST),
   );
   return (
     <svg
+      ref={ref}
       className="dna-flower"
+      // One `transform`, not the separate `scale` and `rotate` properties: GSAP reads and
+      // writes `transform`, and would leave a separate `rotate` untouched for ever.
+      style={reduce ? undefined : { opacity: 0, transform: "scale(0.9) rotate(-5deg)" }}
       viewBox={`${-VIEW} ${-VIEW_Y} ${2 * VIEW} ${2 * VIEW_Y}`}
       role="img"
       aria-label={label}

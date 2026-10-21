@@ -8,6 +8,7 @@ import { useOnline } from "../lib/useOnline";
 import { useRatingQueue } from "../lib/useRatingQueue";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
+import { ScrollProgress, ShinyText } from "./motion";
 import { SaveAlert } from "./SaveAlert";
 
 /**
@@ -71,7 +72,9 @@ function Brand({ size }: { size: number }) {
   return (
     <NavLink to="/" className="brand" aria-label={t("app.name")}>
       <Logo size={size} className="brand-logo" />
-      <span aria-hidden="true">{t("app.name").toUpperCase()}</span>
+      <ShinyText>
+        <span aria-hidden="true">{t("app.name").toUpperCase()}</span>
+      </ShinyText>
     </NavLink>
   );
 }
@@ -119,6 +122,7 @@ export function AppShell() {
       </aside>
 
       <div className="main">
+        <ScrollProgress />
         <OfflineBanner />
         <header className="topbar">
           <Brand size={28} />
