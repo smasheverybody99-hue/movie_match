@@ -24,15 +24,16 @@ pytestmark = [requires_db, pytest.mark.asyncio(loop_scope="module")]
 
 HALF = TRAIT_COUNT // 2
 LIKED = [80.0] * HALF + [20.0] * HALF  # what the user rates 9, so their taste lands here
-# The one rule measures the deviation between taste and film (TZ 1.23), so the catalogue
-# needs a film on each side of it. The ordinary films give the catalogue its spread:
-# sd ~ 17.7 per trait, which makes 15 points 0.85 sd and 25 points 1.41 sd.
-BEYOND = [95.0] * HALF + [5.0] * HALF  # 15 points further out: reasons (>= 0.5 sd)
-BARELY = [83.0] * HALF + [17.0] * HALF  # 3 points out: nothing either way (0.17 sd)
-AWAY = [55.0] * HALF + [45.0] * HALF  # 25 points back the other way: differences (>= 1.0)
+# The one rule measures the distance between taste and film against the catalogue spread
+# (TZ 1.27), so the catalogue needs a film in each of the rule's three bands. The ordinary
+# films give the catalogue its spread: sd ~ 15.4 per trait, and this taste sits ~0.72 sd
+# off the catalogue mean, which clears the lean guard (0.40) every reason needs.
+AT_MY_LEVEL = [83.0] * HALF + [17.0] * HALF  # 3 points off the taste: 0.19 sd, a reason
+MIDBAND = [90.0] * HALF + [10.0] * HALF  # 10 points off: 0.65 sd, nothing either way
+AWAY = [55.0] * HALF + [45.0] * HALF  # 25 points the other way: 1.62 sd, a difference
 RATED = [9_600_000 + i for i in range(1, 11)]
 TARGETS = [9_610_000 + i for i in range(1, 6)]
-NOTHING_SHARED = 9_620_001  # too close to the taste to say anything about
+NOTHING_SHARED = 9_620_001  # in the middle band: not at the taste's level, not away from it
 DIFFERENT = 9_620_002  # far enough the other way to say how it differs
 ORDINARY = [9_630_000 + i for i in range(1, 11)]
 
@@ -71,8 +72,8 @@ async def catalogue(migrated_test_db: None) -> AsyncIterator[AsyncSession]:
             session,
             [
                 *({"id": m, "vector": LIKED} for m in RATED),
-                *({"id": m, "vector": BEYOND} for m in TARGETS),
-                {"id": NOTHING_SHARED, "vector": BARELY},
+                *({"id": m, "vector": AT_MY_LEVEL} for m in TARGETS),
+                {"id": NOTHING_SHARED, "vector": MIDBAND},
                 {"id": DIFFERENT, "vector": AWAY},
                 *({"id": m, "vector": [50.0] * TRAIT_COUNT} for m in ORDINARY),
             ],
@@ -124,8 +125,8 @@ async def test_the_prompt_carries_the_real_reasons(catalogue: AsyncSession) -> N
     await _get(catalogue, me, TARGETS[1], explainer=fake, lang="en")
     (prompt,) = fake.prompts
     assert "Film 9610002" in prompt
-    assert "Psychological: the viewer's taste 80/100, this film 95/100" in prompt
-    assert "takes further than most films" in prompt  # the reason brief
+    assert "Psychological: the viewer's taste 80/100, this film 83/100" in prompt
+    assert "sits at this viewer's own level" in prompt  # the reason brief
     assert "English" in prompt
 
 
@@ -140,7 +141,7 @@ async def test_a_film_away_from_the_taste_is_briefed_as_a_difference(
     assert (body["text"], body["reason"]) == ("Its pace is far slower.", None)
     (prompt,) = fake.prompts
     assert "sits well away from this viewer's taste" in prompt
-    assert "takes further than most films" not in prompt
+    assert "sits at this viewer's own level" not in prompt
     assert "Psychological: the viewer's taste 80/100, this film 55/100" in prompt
 
 
