@@ -62,7 +62,7 @@ Lang = Literal["en", "uz", "ru"]  # the same as app.schemas.Lang (a unit test ch
 #   daily_cap     this user's `explanation_daily_calls_per_user` is used up until tomorrow
 #   no_taste      the user has no taste profile yet
 #   no_traits     this film has no trait vector, or no film has any (no catalogue stats)
-#   nothing_named the rule found no trait worth naming on either side (TZ 1.23), so there
+#   nothing_named the rule found no trait worth naming on either side (TZ 1.27), so there
 #                 is nothing truthful to write - neither why it suits them nor how it
 #                 differs. Named for what it means: a name mentioning only reasons would
 #                 suggest a difference might still be coming.
@@ -93,12 +93,30 @@ RUSSIAN_STYLE = (
     "избегай калек с английского."  # noqa: RUF001 - Cyrillic on purpose
 )
 
+# A reason is CLOSENESS since TZ 1.27 (ADR 0008): the film sits at the viewer's own level
+# on a quality they have a definite taste for. The brief before this one asked for "more
+# than most films do", which is the old meaning, and under it the model wrote comparisons
+# - live, 2026-10-22, Up: "much gentler than you usually prefer" under a heading reading
+# "Why it suits you". That contradiction is what this brief has to keep out, so difference
+# language is banned on this side rather than merely discouraged.
 SYSTEM_PROMPT = """You write one or two short sentences telling a film fan why a film suits
-their taste. Use only the qualities you are given: each is one where this film goes further
-than a typical film in the direction the viewer leans. Say it in plain everyday words and
-name what the film does on them, more than most films do. No generic praise ("a must-see",
-"you'll love it"), no plot spoilers, no rating numbers, no percentages, no quotation marks,
-no markdown."""
+their taste. Use only the qualities you are given: on each, this film sits at the level this
+viewer looks for, and that level is a definite taste of theirs rather than the middle of the
+road.
+
+Every sentence says that the two MATCH. Name the quality and say the film meets them there:
+"it has exactly the depth of character you look for", "the pace is right where you like it",
+"it keeps the mystery at the level you go for". Plain everyday words.
+
+Never write a comparison between the viewer and the film on these qualities: no "more than
+you", "less than you", "further than you", "gentler than", "darker than you usually",
+"quieter than you tend to", "unlike the films you pick". Nothing may suggest the film goes
+beyond, falls short of, or departs from their taste - on these qualities it does not, and
+saying so is the error this brief exists to prevent. Do not mention a quality you were not
+given, and do not say the film differs from them in any way.
+
+No generic praise ("a must-see", "you'll love it"), no plot spoilers, no rating numbers, no
+percentages, no quotation marks, no markdown."""
 
 # A film with no reason of its own is described by how it differs, and nothing in that
 # sentence may suggest the viewer will like it: that pairing - "outside your taste" over a
@@ -143,14 +161,16 @@ def build_prompt(
         for key in notes.keys
     ]
     heading = (
-        "Qualities it takes further than most films, the viewer leaning the same way"
+        "Qualities on which this film sits at this viewer's own level, "
+        "and the viewer's own level is far from a typical film, closest first"
         if notes.side == "reason"
-        else "Qualities on which it sits well away from this viewer's taste, away from it"
+        else "Qualities on which it sits well away from this viewer's taste, away from it, "
+        "strongest first"
     )
     year = f" ({movie.release_date.year})" if movie.release_date else ""
     prompt = (
         f"Film: {movie.title}{year}\n"
-        f"{heading}, strongest first:\n" + "\n".join(lines) + "\n\n"
+        f"{heading}:\n" + "\n".join(lines) + "\n\n"
         f"Write the sentences in {LANGUAGE_NAMES[lang]}."
     )
     if lang == "ru":

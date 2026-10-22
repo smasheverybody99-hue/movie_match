@@ -221,7 +221,7 @@ describe("MoviePage", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(
       await screen.findByText(
-        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+        "Where your taste is clearest, this film sits at your level: Psychological, Plot twists, Mystery.",
       ),
     ).toBeInTheDocument();
   });
@@ -233,7 +233,7 @@ describe("MoviePage", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(
       await screen.findByText(
-        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+        "Where your taste is clearest, this film sits at your level: Psychological, Plot twists, Mystery.",
       ),
     ).toBeInTheDocument();
     expect(explanation).toHaveBeenCalledTimes(1);
@@ -245,7 +245,7 @@ describe("MoviePage", () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(
       await screen.findByText(
-        "Where your taste leans, it goes further than most films: Psychological, Plot twists, Mystery.",
+        "Where your taste is clearest, this film sits at your level: Psychological, Plot twists, Mystery.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
@@ -269,7 +269,7 @@ describe("MoviePage", () => {
     expect(screen.queryByTestId("why-traits")).not.toBeInTheDocument();
     expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument();
     expect(explanation).not.toHaveBeenCalled();
-    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/this film sits at your level/)).not.toBeInTheDocument();
     expect(screen.queryByText(/suits your taste/)).not.toBeInTheDocument();
   });
 
@@ -286,7 +286,7 @@ describe("MoviePage", () => {
     expect(
       await screen.findByText("Where it differs from your taste: Pace, Humor."),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/this film sits at your level/)).not.toBeInTheDocument();
     // The heading says which kind of sentence this is, so it is not read as praise.
     expect(screen.getByText("How it differs")).not.toHaveClass("kicker-strong");
     // The axes still show both values, which is what makes the claim checkable.

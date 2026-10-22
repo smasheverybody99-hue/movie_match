@@ -366,11 +366,19 @@ ko'ramiz.
   bunday film yo'q (8 akkauntning hech birida `strong` filmlar farq tomonida emas), lekin
   katalog o'sgach paydo bo'ladi; testda shu holat bor.
 
-  **Jimlik ziddiyat emas:** jumla yo'q, lekin band rost, shuning uchun `strong` + hech
-  narsa nomlanmagan holatda qizil sarlavha qoladi. Hech narsa nomlanmasligi — filmning
-  14 traitning hammasida ta'mga eng yaqin turgani, ya'ni aynan eng mos filmlardan biri;
-  qizilni o'sha yerda yo'qotish teskari natija bo'lardi. (Birinchi variantda shunday
-  yozilgan edi, foydalanuvchi tuzatdi.)
+  **Jimlik ziddiyat emas:** jumla yo'q, lekin band rost va qizil sarlavha aynan band'ni
+  aytadi, shuning uchun `strong` + hech narsa nomlanmagan holatda qizil qoladi; qizilni
+  o'sha yerda yo'qotish teskari natija bo'lardi. (Birinchi variantda shunday yozilgan edi,
+  foydalanuvchi tuzatdi.) **Jimlikning ma'nosi 1.27 da o'zgardi:** oldin u "film 14
+  traitning hammasida ta'mga eng yaqin" degani edi; endi — hech bir trait na yetarlicha
+  yaqin va aniq, na 1 σ narida, ya'ni film o'rta oraliqda. Xatti-harakat o'zgarmadi
+  (band rost bo'lib qolaveradi), asosi boshqa.
+
+  **Sarlavhalarning ma'nosi (TZ 1.27, 2026-10-22):** `reason` — film foydalanuvchining
+  o'z darajasida turgan traitlar bor (yaqinlik), `difference` — undan 1 σ dan nariga
+  chiqqan traitlar. Oldin `reason` "film ta'm yo'nalishida yana uzoqroq ketgan" degani
+  edi, va shuning uchun "WHY IT SUITS YOU" ostida taqqoslash jumlasi chiqib qolardi
+  (jonli misol, Up, 2026-10-22). Jadvalning o'zi va uch tildagi matnlar o'zgarmadi.
 
   **320px o'lchovi** (headless Chrome, CDP, qurilgan ilova, haqiqiy Inter subsetlari;
   `.kicker` = 800 19px/24px, letter-spacing 1.9px, uppercase). Mavjud kenglik: film

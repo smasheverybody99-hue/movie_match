@@ -94,6 +94,28 @@ def test_russian_prompt_names_the_qualities_in_russian_and_asks_for_natural_russ
     assert "Romance" not in prompt and "романтика" not in prompt  # only the real reasons
 
 
+def test_the_reason_brief_asks_for_a_match_and_forbids_a_comparison() -> None:
+    """The live contradiction of 2026-10-22: Up's panel read "Why it suits you" over "much
+    gentler than you usually prefer". A reason is closeness since TZ 1.27, so the brief must
+    ask for a match outright and name the comparison forms as forbidden - the old brief
+    asked for "more than most films do", which is where that sentence came from."""
+    brief = " ".join(SYSTEM_PROMPT.lower().split())
+    assert "sits at the level this viewer looks for" in brief
+    assert "every sentence says that the two match" in brief
+    for forbidden in [
+        "more than you",
+        "less than you",
+        "further than you",
+        "gentler than",
+        "darker than you usually",
+        "unlike the films you pick",
+    ]:
+        assert forbidden in brief, forbidden
+    assert "never write a comparison between the viewer and the film" in brief
+    # Saying the film differs is the other side's job, and is named as forbidden here.
+    assert "do not say the film differs from them in any way" in brief
+
+
 def test_a_difference_is_briefed_as_a_difference_and_never_as_a_recommendation() -> None:
     """The reported bug of 2026-10-15: a film away from the taste still read as "you'll
     like this". The brief for that side must not let the model say so."""
@@ -152,8 +174,12 @@ def test_the_difference_brief_demands_the_comparison_in_every_sentence() -> None
 def test_the_prompt_heading_follows_the_side() -> None:
     args = (_scores(), _scores(), "en", TYPICAL)
     movie = Movie(id=1, title="Heat")
-    assert "takes further than most films" in build_prompt(movie, REASONS("action"), *args)
-    assert "takes further than most films" not in build_prompt(movie, DIFFERENCES("action"), *args)
+    reason = build_prompt(movie, REASONS("action"), *args)
+    difference = build_prompt(movie, DIFFERENCES("action"), *args)
+    assert "sits at this viewer's own level" in reason
+    assert "closest first" in reason  # the order the rule ranked them in (TZ 1.27)
+    assert "sits at this viewer's own level" not in difference
+    assert "well away from this viewer's taste" in difference
 
 
 def test_the_service_and_the_api_accept_the_same_languages() -> None:

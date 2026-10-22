@@ -66,7 +66,7 @@ describe("Hero", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next film" }));
     // rec() gives ["mystery", "plot_twist"]
     expect(
-      screen.getByText("Where your taste leans, it goes further than most films: Mystery, Plot twists."),
+      screen.getByText("Where your taste is clearest, this film sits at your level: Mystery, Plot twists."),
     ).toBeInTheDocument();
     // The heading names the sentence, not the band (TZ 1.25): "good" is shown nowhere.
     expect(screen.getByText("Why it suits you")).not.toHaveClass("kicker-strong");
@@ -89,7 +89,7 @@ describe("Hero", () => {
     ];
     renderHero(one);
     expect(screen.getByText("Where it differs from your taste: Pace, Humor.")).toBeInTheDocument();
-    expect(screen.queryByText(/goes further than most films/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/this film sits at your level/)).not.toBeInTheDocument();
     expect(screen.getByText("How it differs")).not.toHaveClass("kicker-strong");
   });
 

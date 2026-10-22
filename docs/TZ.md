@@ -62,6 +62,7 @@ yuqoridagi doiraga ta'sir qilmaydi.
 
 | Band | Qachongacha | Qo'shilgan |
 |---|---|---|
+| **Sabab traitlarining takrorlanishi** (FR-5/FR-6, TZ 1.27). Sabab tomonida nomlanadigan traitlar hovuzi akkauntga qat'iy biriktirilgan: yo'nalishi ≥ 0.40 σ bo'lgan traitlar, uchta akkauntda **3 / 4 / 6 ta**. Natijada eng ko'p nomlangan trait sabab tomonidagi filmlarning **64.3 / 51.8 / 43.5%** ida uchraydi, ya'ni "nega mos" matni doim bir xil jihatlar haqida. Kesimlar bilan hal bo'lmaydi (o'lchandi, ADR 0008): 0.30 σ da hovuz kengayadi, lekin aynan tuzatilgan nuqson qaytadi. Saralash tartibi ham ta'sir qilmaydi — sabab tomonidagi filmlarning 96–100% ida nomzod uchtadan ko'p emas. **Ta'sir qiladigan tugmalar:** `WHY_TRAITS` (hozir 3), jumla matni, yoki filmlar bo'yicha nomlangan traitni almashtirish. Qaror foydalanuvchida; o'lchov va raqamlar `docs/decisions/0008-closeness-reasons.md` | Alohida qaror | 2026-10-22 |
 | `services/api/scripts/migrate_db.py` ga testlar (himoyalar: `lock_timeout`, COMMIT'dan keyin yangi ulanishda tekshiruv, `movies` soni). Hozircha faqat qo'lda sinalgan | Keyingi migratsiyadan oldin | 2026-09-29 |
 | `services/api/scripts/select_catalogue.py` ga testlar (`select`: o'n yillik kvotasi, til chegarasi, ikkinchi o'tish, traitli filmlarning majburan kirishi va kvotaga hisoblanishi, sanasiz filmlar). Hozircha faqat qo'lda sinalgan (2026-10-01) | 2-bosqichdan keyin, ro'yxat qayta tuzilishidan oldin | 2026-10-01 |
 | Embedding tokenlarini **guruhlab** sanash: har filmga alohida `count_tokens` o'rniga 25 ta matnni bitta chaqiruvda sanash; `tokens=reported` saqlanadi, hujjatda guruhlangan son per-request yig'indisidan ~0.56% kam ekani qayd etiladi (2026-10-02, 25 film: 4 265 vs 4 289). **Nega namuna (har 25-film) + kalibrlangan nisbat emas:** chaqiruvlar soni bir xil, lekin guruhda har filmning o'zi sanaladi; nisbat (4.6 belgi/token) shu 25 filmda jami +2%, alohida filmda 9% gacha xato berdi va til tarkibi o'zgarsa (yangi katalog) qayta kalibrlashni talab qiladi, natija esa `tokens=estimated` bo'lib qoladi. Maqsad: run vaqti — har film uchun bitta tarmoq so'rovi kamayadi. 2026-10-02 dan `count_tokens` xatosi run'ni to'xtatmaydi, shuning uchun bu shoshilinch emas | 5 000 film bosqichidan oldin | 2026-10-02 |
@@ -73,7 +74,7 @@ yuqoridagi doiraga ta'sir qilmaydi.
 | **"Qayerdan ko'rish mumkin" — hozir qurilmaydi** (foydalanuvchi qarori, 2026-10-12: asosiy bozor uchun doim bo'sh chiqadi). TMDB/JustWatch O'zbekistonni qo'llamaydi: TMDB'ning 139 region ro'yxatida UZ yo'q, KZ, KG, TJ, TM ham yo'q; qo'shnilardan faqat UA, BY, AZ. **O'lchov** (2026-10-12): katalogdagi 500 tadan 100 ta tasodifiy film (`random.Random(20261012)`), `GET /movie/{id}/watch/providers` — qamrov US 97/100, TR 65, RU 63, **UZ 0**. **Variantlar:** (a) foydalanuvchiga region tanlatish va RU/TR ni ko'rsatish — avval Kinopoisk/Okko O'zbekistondan amalda ishlashini tekshirish kerak, **tekshirilmagan**; (b) mahalliy xizmatlar ro'yxatini qo'lda yuritish; (c) litsenziyali mahalliy striming xizmati bilan hamkorlik. Shartlari: `docs/costs.md`, 3-bo'lim | Testerlardan "qayerdan ko'rasiz?" savoliga javob kelgandan keyin | 2026-10-12 |
 | Onboardingda "nimasi yoqdi?" chiplari 14 ta traitning hammasini ko'rsatadi; dizaynda filmga xos ~5 ta. Filmning kuchli traitlarini onboarding javobiga qo'shish kerak | F5 dan oldin | 2026-09-29 |
 | Izohlarning kunlik limiti (FR-6, `explanation_daily_calls_per_user` = 20) tugaganda foydalanuvchi buni bilmaydi: film sahifasi jim zaxira matnga ("Ta'mingiz og'gan jihatlarda bu film ko'p filmlardan kuchliroq: …") o'tadi. Interfeys limit tugaganini aytishi kerak (masalan, "Bugungi izohlar tugadi, ertaga yangilanadi"), yoki zaxira matnga o'tish aniq belgilanishi kerak. **Yarmi bajarildi (2026-10-13):** API endi sababni beradi — `ExplanationOut.reason` (`no_generator`, `daily_cap`, `no_taste`, `no_traits`, `nothing_named`, `failed`, `rejected`), va interfeys endi jumla kelmasligi aniq bo'lganda indikatorni ko'rsatmaydi (`lib/explanations.ts`). **Qolgani:** limit tugaganini foydalanuvchiga **aytish** — uch tilda matn kerak, shuning uchun alohida qadam. F2 qo'lda tekshiruvida topildi (2026-10-02): ~20 ta izoh yaratilgan, limitga yetilgan, keyin zaxira matn. Narx muammo emas (o'lchangan, 2026-10-02, 19 ta cost qatori): izoh o'rtacha 187 kirish / 29.6 chiqish tokeni → standart tarifda ($0.30 / $2.50) $0.00013; limit to'liq ishlatilsa oyiga 600 ta ≈ $0.08 — TZ §5 maqsadi ($0.20) ichida | F5 dan oldin | 2026-10-02 |
-| Izoh keshining kalitiga sabablar: `explanations` qatorida izoh qaysi sabablar bilan yozilgani saqlanadi, sabablar o'zgarsa (yangi qoida, katalog o'sishi, ta'm o'zgarishi) — kesh o'tkazib yuboriladi va izoh qayta yoziladi. Migratsiya kerak. Hozircha qoida o'zgarganda eski izohlar qo'lda o'chiriladi (2026-10-02: bitta foydalanuvchining izohlari, ruxsat bilan) | F5 dan oldin | 2026-10-02 |
+| Izoh keshining kalitiga sabablar: `explanations` qatorida izoh qaysi sabablar bilan yozilgani saqlanadi, sabablar o'zgarsa (yangi qoida, katalog o'sishi, ta'm o'zgarishi) — kesh o'tkazib yuboriladi va izoh qayta yoziladi. Migratsiya kerak. Hozircha qoida o'zgarganda eski izohlar qo'lda o'chiriladi (2026-10-02: bitta foydalanuvchining izohlari, ruxsat bilan; 2026-10-22: TZ 1.27 da sabab tomonidagi qatorlar, ruxsat bilan — ADR 0008) | F5 dan oldin | 2026-10-02 |
 | Traitlarni qayta baholash (trait ta'riflari va prompt): `visual_style` (o'rtacha 75.8, σ 14.3) va `emotional_intensity` (72.5, σ 14.3) deyarli hamma filmda baland — trait ajratmaydi; promptga "oddiy film = 50" kabi shkala ko'rsatmasi kerak. **Arzon, lekin jarayon qimmat:** 500 film ≈ $0.28 standart tarifda (bepul tarifda $0), lekin qayta baholash 50 filmlik qo'lda ko'rikni bekor qiladi (qayta o'tkaziladi) va barcha embeddinglarni qayta hisoblashni talab qiladi (embedding matnida trait xulosasi bor) | Alohida qaror; 5 000 film bosqichidan oldin | 2026-10-02 |
 | Film ma'lumotini tarjima qilish (nom, tavsif) o'zbek va rus tillariga. Hozir interfeys uch tilda, film matni esa ingliz tilida (TMDB `en-US`). Variantlar: TMDB'ning `translations` ma'lumoti (rus tilida ko'p, o'zbekchada kam) yoki LLM tarjimasi (pul, kesh kerak). **Foydalanuvchi so'rovi (2026-10-09):** rus tili uchun TMDB `language=ru-RU`, hozircha backlog'da qoldi (foydalanuvchi qarori). Janr nomlari shu kuni interfeys lug'ati orqali tarjima qilindi (§5). Kerak bo'ladi: tarjimalar jadvali va migratsiya, ingestion'da har film uchun til bo'yicha so'rov, API'ga `lang` parametri, qidiruv ruscha nom bo'yicha | F5 dan oldin | 2026-10-02 |
 | **Ta'm yoqmagan filmlardan ham o'rgansin** (FR-5). Ta'm vektori faqat yoqqan filmlardan quriladi; 5 va past baholar vazni 0 — bu foiz bahoni bashorat qila olmasligining ehtimoliy asosiy sababi (2026-10-05: AUC 0.52, leave-one-out 0.44). Alohida traitlarda signal bor (bitta akkaunt: `realism` AUC 0.75, `emotional_intensity` 0.73, `plot_twist` 0.67), lekin 14 traitli masofada ular suyulib ketadi; 25 filmda 14 trait sinalgani uchun bu tasodif ham bo'lishi mumkin. **Nima kerak:** foydalanuvchida kamida 30 ta 8+ va 30 ta ≤ 5 baho (13 va 12 da AUC xatosi ±0.12, 30 va 30 da ±0.07); 14 ta vaznni foydalanuvchining o'zidan o'rganish uchun ~150 baho. **Qanday o'lchanadi:** 8+ va ≤ 5 guruhlari bo'yicha AUC, leave-one-out bilan (har film o'zisiz qurilgan profilga qarshi); muvaffaqiyat — AUC ≥ 0.70 va 95% ishonch oralig'ining pastki chegarasi 0.5 dan yuqori. Hozirgi o'lchov skripti tavsifi: `docs/STATUS.md` | Alohida qaror; baholar to'plangach | 2026-10-05 |
@@ -255,42 +256,50 @@ band'ni ko'rsatish foydalanuvchiga jumla maqtovmi yoki farq bayonimi — aytmayd
 ustida farq jumlasi turardi — 1.23/1.24 da olib tashlangan ziddiyat qaytib kelardi. Hozir
 katalogda bunday film yo'q (8 akkauntda `strong` filmlar 100% sabab tomonida), lekin
 katalog o'sgach paydo bo'ladi. **Jimlik esa ziddiyat emas:** jumla yo'q, lekin band rost,
-va hech narsa nomlanmagan film 14 traitning hammasida ta'mga eng yaqin turgani uchun aynan
-eng mos filmlardan biri — shuning uchun `strong` + jim holatida qizil qoladi. Matnlar uch
-tilda va qabul mezoni: `docs/ui.md`, "Kicker qoidasi".
+va qizil sarlavha aynan band'ni aytadi; hech narsa nomlanmagan film 14 traitning hammasida
+o'rta oraliqda turadi (1.27), bu esa moslikka qarshi dalil emas — shuning uchun `strong` +
+jim holatida qizil qoladi. Matnlar uch tilda va qabul mezoni: `docs/ui.md`,
+"Kicker qoidasi".
 
-**Trait qoidasi** (1.23, 2026-10-15; match foiziga ta'sir qilmaydi) — qaysi traitlar
-ko'rsatiladi va **qaysi tomonda**. Bitta og'ish o'lchovi, bitta yo'nalish tekshiruvi,
-ikki kesim (ikkita alohida qoida emas):
+**Trait qoidasi** (1.27, 2026-10-22; match foiziga ta'sir qilmaydi) — qaysi traitlar
+ko'rsatiladi va **qaysi tomonda**. Bitta masofa o'lchovi, ikki tomonda teskari ma'no:
 
 ```
 μ[i], σ[i] = katalogdagi barcha traitli filmlarning i-o'lchov bo'yicha o'rtachasi va
              standart og'ishi (populyatsiya)
-og'ish[i]  = movie[i] - taste[i]             filmning foydalanuvchi ta'midan farqi
-kattalik   = |og'ish[i]| / σ[i]              katalog standart og'ishlarida
-yo'nalish  = taste[i] - μ[i]                 foydalanuvchi oddiy filmdan qaysi tomonda
-sabab      : og'ish ta'm yo'nalishi bilan bir xil tomonda va kattalik >= 0.5   (sozlama)
-farq       : og'ish qarama-qarshi tomonda    va kattalik >= 1.0                (sozlama)
+kattalik[i]  = |movie[i] - taste[i]| / σ[i]   film foydalanuvchidan qancha narida
+yo'nalish[i] = |taste[i] - μ[i]|     / σ[i]   foydalanuvchi oddiy filmdan qancha narida
+
+sabab : kattalik <= 0.35  VA  yo'nalish >= 0.40     (ikkisi ham sozlama)
+farq  : kattalik >= 1.0                             (sozlama)
 boshqa holda: hech narsa
-kuch       = w[i] * kattalik;  eng kuchli 3 tasi
+
+sabablar: eng KICHIK kattalik birinchi (eng yaqin trait yetakchi), 3 tasi
+farqlar : eng KATTA w[i]·kattalik birinchi, 3 tasi
 ```
+
+**Sabab — yaqinlik.** "Sizga mos" degan da'vo moslikni o'lchashi kerak: film
+foydalanuvchining o'z darajasida turishi. **Yo'nalish — qo'riqchi, ma'no emas:** yaqinlik
+faqat foydalanuvchining aniq ta'mi bor traitida gapiradi, chunki katalog o'rtachasida
+turgan traitda ustma-ust tushish foydalanuvchi haqida hech narsa aytmaydi.
 
 **Sabablar ustun:** filmda bitta sabab bo'lsa ham, farqlar yozilmaydi. Farq faqat sabab
 umuman bo'lmaganda chiqadi; ikkalasi ham bo'lmasa — panel hech narsa yozmaydi (eski
 "ta'mingizga umuman mos" jumlasi olib tashlandi: u ortida hech narsa bo'lmagan da'vo edi).
+**Jimlik ma'nosi:** hech bir trait na yetarlicha yaqin va aniq, na 1 σ narida — film o'rta
+oraliqda (1.23 dagi "14 traitda eng yaqin" ma'nosi bu qoidada o'rinli emas).
 
-**Nega kesimlar teng emas** (foydalanuvchi qarori, o'lchov `docs/phase-2-status.md`):
-"bu film sizga mos emas" — qattiq da'vo, kamdan-kam va faqat aniq bo'lganda chiqishi
-kerak. Ikkalasiga 0.5 qo'yilsa film sahifalarining **74%** ida farq matni chiqardi;
-ikkalasiga 1.0 qo'yilsa tavsiya qilingan filmlarning **72%** ida panel jim qolardi.
-Asimmetriya shu ikki chetdan qochadi: yettita akkauntda har birining 75 ta "banded"
-filmidan **86–100%** sabab, **0–13%** farq, **0–2%** jim.
+Bu qoida **1.23 ning kesimlarini almashtiradi** (sabab 0.5 σ "bir xil tomonda"). Nega:
+jonli saytda (2026-10-22, `d394a840`, Up) "WHY IT SUITS YOU" sarlavhasi ostida "much
+gentler than you usually prefer" jumlasi turdi — ikkisi ham qoidaga ko'ra rost, chunki
+foydalanuvchi `violence` da o'rtachadan 2.3 ball narida (yo'nalish 0.08 σ), film esa
+undan 16.7 ball narida (0.61 σ): eski qoida buni "mos" deb atardi. Natijada 500 filmdan
+**495 tasi** sabab tomonida edi va haqiqiy tafovutlar (Up: `humor` 1.12 σ) jim qolardi.
+Yangi qoidada uchta akkauntda sabab **44.8 / 50.6 / 66.2%**, farq **55.2 / 49.4 / 33.8%**,
+jim **0%**. To'liq o'lchov, rad etilgan variantlar va kesimlarning tanlanishi:
+`docs/decisions/0008-closeness-reasons.md`.
 
-Bu qoida 2026-10-02 dagi qoidani almashtiradi (u faqat sababni bilardi va og'ishning
-kattaligini o'lchamasdi: ta'm 82, film 85 — 3 ball farq ham "sabab" bo'lib chiqardi).
-Deyarli hamma filmda baland trait (katalogda `visual_style` o'rtachasi 76) endi ham har
-filmga sabab bo'lib chiqmaydi: ta'm 85, film 82 bo'lsa og'ish 0.21 σ — ikkala kesimdan
-past. Har bir trait qo'lda tekshiriladi: ikki sonni ayirib σ ga bo'lish.
+Har bir trait qo'lda tekshiriladi: ikki sonni ayirib σ ga bo'lish.
 
 Interfeys: `named_traits` (trait kalitlari) va `trait_side` (`reason` | `difference` |
 `null`); `trait_side` aynan `named_traits` bo'sh bo'lmaganda to'ldiriladi.
@@ -473,6 +482,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.27 | 2026-10-22 | FR-5: **"sabab" yaqinlikni bildiradi, yo'nalishni emas** — 1.23 ning kesimlari o'rniga: sabab = kattalik ≤ 0.35 σ **va** yo'nalish ≥ 0.40 σ (yo'nalish endi ma'no emas, qo'riqchi), farq = kattalik ≥ 1.0 σ, orasi — jim; sabablar eng kichik kattalik bo'yicha saralanadi. Sabablar ustunligi, `named_traits` + `trait_side` shartnomasi va match formulasi o'zgarmadi. FR-6: **sabab prompti qayta yozildi** — har jumla moslikni aytadi, taqqoslash shakllari ("more than you", "gentler than") taqiqlandi; farq prompti o'zgarmadi; eski sabab izohlari keshdan o'chirildi. Sabab: jonli saytda "WHY IT SUITS YOU" ostida "much gentler than you usually prefer" turdi — ikkisi ham eski qoidaga ko'ra rost edi, ya'ni ziddiyat qoidaning o'zida (foydalanuvchi o'rtachadan 2.3 ball narida, film undan 16.7 ball narida = "mos"). O'lchov: 500 filmdan 495 tasi sabab tomonida edi → endi 44.8 / 50.6 / 66.2% (uch akkaunt), jim 0%. Takrorlanish hal bo'lmadi (eng ko'p nomlangan trait sabab filmlarining 64.3 / 51.8 / 43.5% ida) — backlog'ga. Qaror, raqamlar va rad etilgan uch variant: `docs/decisions/0008-closeness-reasons.md` |
 | 1.26 | 2026-10-16 | FR-6: farq promptida **taqqoslash majburiy** — har jumlada foydalanuvchi odatda nimani tanlashi va film shunga qarshi qayerda turishi; faqat filmni ta'riflash yetmaydi, farqni baholovchi so'zlar taqiqlanadi. Sabab: jonli jumlalardan biri (Casablanca) foydalanuvchini umuman eslamagan, ya'ni farq bayoni film retsenziyasiga aylangan. "Sizga yoqadi" taqiqi o'z kuchida (foydalanuvchi qarori) |
 | 1.25 | 2026-10-16 | FR-5: **panel sarlavhasi ostidagi jumlani nomlaydi**, band'ni emas — tomon `reason` da "Why it suits you", `difference` da "How it differs", band `strong` bo'lmasa va hech narsa nomlanmasa neytral "You and this film". Qizil "STRONG MATCH" `strong` da qoladi, **faqat tomon `difference` bo'lsa bosiladi**: farq jumlasi band bilan ziddiyat hosil qiladi (1.23/1.24 dagi ziddiyat qaytib kelardi), jimlik esa ziddiyat emas — jumla yo'q, band rost, va hech narsa nomlanmagan film 14 traitda ta'mga eng yaqin turgani uchun eng mos filmlardan biri. Uch tilda matn foydalanuvchi tomonidan tanlangan. Sabab: band va tomon boshqa o'lchovlar, shuning uchun band'li sarlavha jumla maqtovmi yoki farq bayonimi — aytmasdi (foydalanuvchi qarori, qizil qoidasi 2026-10-16 da aniqlashtirildi; matnlar va holatlar jadvali `docs/ui.md`, "Kicker qoidasi") |
 | 1.24 | 2026-10-15 | Interfeys: `outside_usual` bo'limining nomi "Outside your usual taste" → "Something different" / "Boshqacha kinolar" / "Другое кино" (foydalanuvchi qarori). Eski nom ta'm haqida da'vo qilardi, bo'lim esa embedding masofasi bo'yicha tuziladi, shuning uchun bitta filmda "ta'mingizdan tashqari" va "good" darajasi birga chiqardi |

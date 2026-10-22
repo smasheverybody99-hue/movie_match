@@ -151,14 +151,29 @@ describe("format and translate", () => {
 
   // Both panel fallbacks are whole sentences naming the film, so the two sides read the
   // same way side by side (user's review of the Uzbek copy, 2026-10-15).
+  //
+  // The reason fallback states CLOSENESS since TZ 1.27 (2026-10-22): a reason is now a
+  // trait the film sits at the viewer's own level on, so "ko'p filmlardan kuchliroq" /
+  // "goes further than most films" - the old rule's wording - would claim the opposite of
+  // what the rule measured. It must not read as a comparison against the viewer.
   it("writes both Uzbek panel fallbacks as sentences, not noun phrases", () => {
     const traits = { traits: "Romantika, Zo'ravonlik" };
     expect(translate("uz", "movie.differsFallback", traits)).toBe(
       "Bu film ta'mingizdan shu jihatlari bilan farq qiladi: Romantika, Zo'ravonlik.",
     );
     expect(translate("uz", "movie.whyYouFallback", traits)).toBe(
-      "Ta'mingiz og'gan jihatlarda bu film ko'p filmlardan kuchliroq: Romantika, Zo'ravonlik.",
+      "Ta'mingiz aniq bo'lgan jihatlarda bu film ayni sizning darajangizda: Romantika, Zo'ravonlik.",
     );
+  });
+
+  // The reason side claims a match, so none of the three may describe the film as going
+  // past the viewer's taste: that pairing under "Why it suits you" is the contradiction
+  // TZ 1.27 removed (live, Up, 2026-10-22).
+  it.each(["en", "uz", "ru"] as const)("states the %s reason fallback as a match", (lang) => {
+    const sentence = translate(lang, "movie.whyYouFallback", { traits: "X" }).toLowerCase();
+    for (const comparison of ["further", "more than", "kuchliroq", "ko'proq", "дальше", "больше"]) {
+      expect(sentence).not.toContain(comparison);
+    }
   });
 
   it("uses the same Uzbek string for any count", () => {

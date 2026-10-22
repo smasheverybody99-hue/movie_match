@@ -81,7 +81,7 @@ export function install(): AuthClient {
   function detailOf(id: number): MovieDetail | null {
     const m = byId.get(id);
     if (!m) return null;
-    // One of each outcome of the rule (TZ 1.23): reasons, a single reason, differences,
+    // One of each outcome of the rule (TZ 1.27): reasons, a single reason, differences,
     // and a film with nothing worth naming, whose panel says nothing at all.
     const named = [["psychological_complexity", "plot_twist", "mystery"], ["darkness"], ["pacing", "humor"], []][id % 4] ?? [];
     const side = named.length === 0 ? null : id % 4 === 2 ? "difference" : "reason";

@@ -135,7 +135,7 @@ export const en = {
   // neutral one above, since there is no sentence for it to name.
   "movie.whyKickerReason": "Why it suits you",
   "movie.whyKickerDifference": "How it differs",
-  "movie.whyYouFallback": "Where your taste leans, it goes further than most films: {traits}.",
+  "movie.whyYouFallback": "Where your taste is clearest, this film sits at your level: {traits}.",
   "movie.differsFallback": "Where it differs from your taste: {traits}.",
   "movie.explaining": "Writing the explanation…",
   "movie.noMatch": "Rate 10 films first to see how well this one matches you.",

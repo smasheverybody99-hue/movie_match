@@ -34,11 +34,12 @@ class MovieOut(BaseModel):
 MatchBand = Literal["strong", "good"]
 BAND_DESCRIPTION = "The caller's match band (FR-5); null outside both bands, or without a match"
 
-# The traits the panel names, and which side they fall on (FR-5, TZ 1.23): the same set as
-# app.services.matching.TraitSide (a unit test checks). "reason" - the film goes further
-# the way the caller leans; "difference" - it goes the other way, far enough to say so.
-# Reasons win: a film with any reason never reports differences. Both null and empty means
-# nothing is worth saying, and the client writes no sentence at all.
+# The traits the panel names, and which side they fall on (FR-5, TZ 1.27): the same set as
+# app.services.matching.TraitSide (a unit test checks). "reason" - the film sits at the
+# caller's own level on a trait they have a definite taste for; "difference" - it sits far
+# from them, whichever way, far enough to say so. Reasons win: a film with any reason never
+# reports differences. Both null and empty means nothing is worth saying, and the client
+# writes no sentence at all.
 TraitSide = Literal["reason", "difference"]
 NAMED_TRAITS_DESCRIPTION = "Trait keys worth naming, strongest first; empty when none is"
 TRAIT_SIDE_DESCRIPTION = (

@@ -72,17 +72,21 @@ class Settings(BaseSettings):
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
     # ~$0.08 a month for the heaviest user, inside TZ's $0.20 (docs/costs.md).
     explanation_daily_calls_per_user: int = 20
-    # Which traits the panel names, and on which side (matching.trait_notes, TZ 1.23).
-    # One deviation measure, one direction test, two cuts, in catalogue standard
-    # deviations. A trait is named as a REASON when the film sits at least this far from
-    # the viewer the same way their taste leans...
-    trait_reason_min: float = 0.5
-    # ...and as a DIFFERENCE when it sits at least this far the other way. Dearer on
-    # purpose: "this film is not for you" is a hard claim and must be rare and clear.
-    # Measured 2026-10-15 over seven accounts (docs/phase-2-status.md): of each one's 75
-    # banded films, 86-100% get reasons, 0-13% differences, 0-2% nothing. At 0.5 both ways
-    # 74% of film pages became difference text; at 1.0 both ways 72% of banded films fell
-    # silent. The asymmetry avoids both.
+    # Which traits the panel names, and on which side (matching.trait_notes, TZ 1.27,
+    # ADR 0008). All three cuts are in catalogue standard deviations.
+    #
+    # A REASON is CLOSENESS: the film sits no further than this from the viewer on the
+    # trait, so "it suits you" means the two are at the same level...
+    trait_reason_max_size: float = 0.35
+    # ...and only on a trait the viewer actually leans on - their taste is at least this
+    # far from a typical film. Without this guard a trait where the viewer sits on the
+    # catalogue mean would be named, which says nothing about them (measured 2026-10-22:
+    # the live account sat 0.5 points from the mean on violence and the film 17 points
+    # away was still called a reason, docs/decisions/0008-closeness-reasons.md).
+    trait_reason_lean_min: float = 0.40
+    # A DIFFERENCE is distance: the film sits at least this far from the viewer, whichever
+    # way. Dearer than the reason window on purpose: "this film is not for you" is a hard
+    # claim and must be rare and clear.
     trait_difference_min: float = 1.0
     # Match bands (FR-5, TZ 1.13): the client shows these, not the number. Places are the
     # film's rank among every film with traits, for this user. "strong": one of the N

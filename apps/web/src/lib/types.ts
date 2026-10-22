@@ -22,10 +22,11 @@ export interface Movie {
 export type MatchBand = "strong" | "good";
 
 /**
- * Which side the named traits fall on (FR-5, TZ 1.23). One rule measures how far the film
- * sits from the taste on each trait: "reason" means it goes further the way the viewer
- * leans, "difference" that it goes the other way, far enough to say so. Reasons win, so a
- * film with any reason never reports differences, and a film with neither says nothing.
+ * Which side the named traits fall on (FR-5, TZ 1.27). One rule measures how far the film
+ * sits from the taste on each trait: "reason" means it sits at the viewer's own level on a
+ * trait they have a definite taste for, "difference" that it sits far from them, far enough
+ * to say so. Reasons win, so a film with any reason never reports differences, and a film
+ * with neither says nothing.
  */
 export type TraitSide = "reason" | "difference";
 

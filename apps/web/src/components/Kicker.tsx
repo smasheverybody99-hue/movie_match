@@ -13,9 +13,11 @@ import { shownBand } from "./MatchBand";
  * today; a bigger catalogue will produce one.
  *
  * Silence is not a contradiction: with nothing named there is no sentence, but the band is
- * still true - and a film with nothing named is one that sits closest to the taste on all
- * 14 traits, so it is among the best matches there are. It keeps the red heading. Used only
- * where a film's band or side is shown; plain section labels stay `.eyebrow`.
+ * still true, and the band is what the red heading states. Under TZ 1.27 silence means no
+ * trait is both close to the viewer and one they have a definite taste for, and none is a
+ * standard deviation away either - the film sits in the middle band on all 14, which is no
+ * argument against a match. It keeps the red heading. Used only where a film's band or
+ * side is shown; plain section labels stay `.eyebrow`.
  */
 export function Kicker({
   band,

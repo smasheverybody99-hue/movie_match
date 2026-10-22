@@ -3,7 +3,8 @@
 The statistics (mean and population standard deviation of each trait over every film
 with traits) come from one aggregate query and are kept in memory for a few minutes:
 they move only when the trait pipeline scores more films. The cuts are settings
-(`trait_reason_min`, `trait_difference_min`). See matching.trait_notes for the rule.
+(`trait_reason_max_size`, `trait_reason_lean_min`, `trait_difference_min`). See
+matching.trait_notes for the rule.
 """
 
 import time
@@ -58,6 +59,7 @@ async def load_rule(session: AsyncSession) -> DeviationRule | None:
     settings = get_settings()
     return DeviationRule(
         stats=stats,
-        reason_min=settings.trait_reason_min,
+        reason_max_size=settings.trait_reason_max_size,
+        reason_lean_min=settings.trait_reason_lean_min,
         difference_min=settings.trait_difference_min,
     )

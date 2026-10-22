@@ -135,7 +135,7 @@ export const ru: Record<MessageKey, Message> = {
   "movie.whyKicker": "Вы и этот фильм",
   "movie.whyKickerReason": "Чем вам подходит",
   "movie.whyKickerDifference": "Чем отличается",
-  "movie.whyYouFallback": "В том, к чему склоняется ваш вкус, фильм идёт дальше большинства: {traits}.",
+  "movie.whyYouFallback": "В том, что вам точно нравится, фильм стоит на вашем уровне: {traits}.",
   "movie.differsFallback": "Чем он отличается от вашего вкуса: {traits}.",
   "movie.explaining": "Готовим объяснение…",
   "movie.noMatch": "Сначала оцените 10 фильмов, чтобы увидеть, насколько вам подойдёт этот фильм.",

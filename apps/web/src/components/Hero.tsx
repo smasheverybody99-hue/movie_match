@@ -101,7 +101,7 @@ export function Hero({
   const isSaved = saved.has(movie.id);
   const year = releaseYear(movie);
   const named = item.named_traits.filter(isTraitKey).slice(0, 3);
-  // The same rule as the film page (TZ 1.23): the side decides the sentence, and a film
+  // The same rule as the film page (TZ 1.27): the side decides the sentence, and a film
   // with nothing named gets none at all rather than a claim with nothing behind it.
   const side = named.length > 0 ? item.trait_side : null;
   const sentence =

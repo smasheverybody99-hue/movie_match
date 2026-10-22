@@ -30,12 +30,14 @@ async def test_the_rule_carries_the_configured_cuts(db_session: AsyncSession) ->
     rule = await reasons.load_rule(db_session)
     settings = get_settings()
     assert rule is not None
-    assert (rule.reason_min, rule.difference_min) == (
-        settings.trait_reason_min,
+    assert (rule.reason_max_size, rule.reason_lean_min, rule.difference_min) == (
+        settings.trait_reason_max_size,
+        settings.trait_reason_lean_min,
         settings.trait_difference_min,
     )
-    # A difference is the dearer claim of the two, by decision (TZ 1.23).
-    assert rule.difference_min > rule.reason_min
+    # The two sides must not overlap: a trait close enough to be a reason can never be
+    # far enough to be a difference, so every trait falls on at most one side (TZ 1.27).
+    assert rule.difference_min > rule.reason_max_size
 
 
 async def test_the_statistics_are_kept_until_cleared(db_session: AsyncSession) -> None:

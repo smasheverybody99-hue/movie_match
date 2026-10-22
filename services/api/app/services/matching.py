@@ -131,14 +131,20 @@ TraitSide = Literal["reason", "difference"]
 class DeviationRule:
     """When a trait is worth naming, and on which side. Cuts are in catalogue sds.
 
-    Two cuts, not two rules: the same deviation and the same direction test decide both
-    sides, and only the bar differs. A reason is cheap (0.5) because the panel's job is to
-    say why a film suits someone; a difference is dear (1.0) because "this is not for you"
-    is a hard claim and should be rare and unmistakable (TZ 1.23, user's decision).
+    One distance, `size`, decides both sides, but it means opposite things on them: a
+    reason is a trait the film is CLOSE to the viewer on (`size <= reason_max_size`), a
+    difference is one it is far from them on (`size >= difference_min`). The band between
+    the two says nothing either way.
+
+    `reason_lean_min` guards the reason side: closeness is only worth saying on a trait
+    the viewer leans on, their taste at least that far from a typical film. Without it the
+    traits where the viewer sits on the catalogue mean - the ones that say nothing about
+    them - would be the ones named (TZ 1.27, ADR 0008, user's decision 2026-10-22).
     """
 
     stats: TraitStats
-    reason_min: float = 0.5
+    reason_max_size: float = 0.35
+    reason_lean_min: float = 0.40
     difference_min: float = 1.0
 
 
@@ -169,26 +175,33 @@ def trait_notes(
 ) -> TraitNotes:
     """The traits worth naming for this film, and whether they are reasons or differences.
 
-    One symmetric rule (TZ 1.23, FR-5; user's decision 2026-10-15). Per trait:
+    One distance, two meanings (TZ 1.27, FR-5; user's decision 2026-10-22). Per trait:
 
-        deviation = movie[i] - taste[i]          how far the film sits from the viewer
-        size      = |deviation| / sd[i]          in catalogue standard deviations
-        lean      = taste[i] - mean[i]           which side of a typical film they sit on
-        the same way as their lean, size >= rule.reason_min     -> a reason
-        the other way,              size >= rule.difference_min -> a difference
-        otherwise                                               -> nothing
+        size = |movie[i] - taste[i]| / sd[i]     how far the film sits from the viewer
+        lean = |taste[i] - mean[i]| / sd[i]      how far the viewer sits from a typical film
 
-    Strength is w·size, so a dimension the viewer is consistent about counts for more.
-    Reasons win: a film with any reason is described by its reasons, and differences
-    speak only for a film that has none. Both empty means the panel says nothing, which
-    is the point - a film 3 points from the taste on a 20-point spread has nothing to say
-    either way, and before this it was named as a reason anyway.
+        size <= rule.reason_max_size AND lean >= rule.reason_lean_min -> a reason
+        size >= rule.difference_min                                   -> a difference
+        otherwise                                                     -> nothing
+
+    A reason is now closeness, not direction: "it suits you" says the film sits at the
+    viewer's own level on a trait they have a definite taste for. This replaced the
+    2026-10-15 rule, under which a reason meant the film went *further* the way the
+    viewer leaned - so a film 17 points away from them could be a reason, and the
+    generated sentence said "much gentler than you usually prefer" under a heading
+    reading "Why it suits you" (the live contradiction of 2026-10-22, ADR 0008).
+
+    Reasons are ranked by the SMALLEST size: the closest trait leads, because closeness
+    is the claim. Differences are ranked by w·size, the largest first, so a dimension the
+    viewer is consistent about counts for more. Reasons win: a film with any reason is
+    described by its reasons, and differences speak only for a film that has none. Both
+    empty means the panel says nothing.
 
     Every note can be checked by hand from the stored vectors and the catalogue: subtract
     two numbers and divide by the trait's sd. The match percentage (FR-5) does not use
     this at all. The list can be shorter than `n`. Ties keep TRAIT_KEYS order; a viewer
-    sitting exactly on the catalogue mean has no lean, and a deviation there is read as
-    the other way, which needs the higher cut.
+    sitting on the catalogue mean has no lean, so no trait of theirs can be a reason, and
+    such a film speaks only through its differences, or not at all.
     """
     if weights is None:
         weights = [1.0] * len(taste)
@@ -197,18 +210,21 @@ def trait_notes(
         raise ValueError(f"expected {len(TRAIT_KEYS)} dimensions, got {len(taste)}")
     if n <= 0:
         return TraitNotes()
+    # Each side carries its own sort key, already signed so that the smallest comes first:
+    # the closest trait leads a reason, the largest w·size leads a difference.
     found: dict[TraitSide, list[tuple[float, int]]] = {"reason": [], "difference": []}
     for index, (w, t, m) in enumerate(zip(weights, taste, movie_vector, strict=True)):
         mean, sd = rule.stats.mean[index], rule.stats.sd[index]
         if sd < 1e-9 or w <= 0:  # nothing can stand out on a trait the catalogue shares
             continue
-        deviation = m - t
-        size = abs(deviation) / sd
-        side: TraitSide = "reason" if (deviation > 0) == (t - mean > 0) else "difference"
-        if size >= (rule.reason_min if side == "reason" else rule.difference_min):
-            found[side].append((w * size, index))
+        size = abs(m - t) / sd
+        lean = abs(t - mean) / sd
+        if size <= rule.reason_max_size and lean >= rule.reason_lean_min:
+            found["reason"].append((size, index))
+        if size >= rule.difference_min:
+            found["difference"].append((-w * size, index))
     for side in ("reason", "difference"):
         if found[side]:
-            ranked = sorted(found[side], key=lambda s: (-s[0], s[1]))
+            ranked = sorted(found[side], key=lambda s: (s[0], s[1]))
             return TraitNotes(side, tuple(TRAIT_KEYS[i] for _, i in ranked[:n]))
     return TraitNotes()

@@ -62,17 +62,24 @@ CUTS = BandCuts(strong=100.0, good=70.0, floor=50.0)
 def test_score_drops_below_the_floor_and_sorts_best_first() -> None:
     scored = score(CANDIDATES, TASTE, UNIFORM, RULE, CUTS)
     assert [(s.movie_id, s.match) for s in scored] == [(2, 100), (1, 70), (3, 55)]
-    # Film 2 sits exactly on the taste, so no trait deviates and there is nothing to say
-    # either way; films 1 and 3 sit 1.5 and 2.25 sd back towards the catalogue mean, which
-    # is away from the taste's lean, so they are described by how they differ.
-    assert scored[0].notes == TraitNotes(None, ())
-    assert [s.notes.side for s in scored] == [None, "difference", "difference"]
+    # Film 2 sits exactly on the taste, which under TZ 1.27 is the clearest reason there
+    # is: every trait is 0 sd away and the taste is 1.75 sd from a typical film. Films 1
+    # and 3 sit 1.5 and 2.25 sd away, so they are described by how they differ.
+    assert scored[0].notes == TraitNotes("reason", tuple(TRAIT_KEYS[:3]))
+    assert [s.notes.side for s in scored] == ["reason", "difference", "difference"]
 
 
-def test_a_film_further_out_than_the_taste_is_described_by_its_reasons() -> None:
-    (only,) = score([film(5, beyond(10))], TASTE, UNIFORM, RULE)  # 0.5 sd further out
+def test_a_film_at_the_tastes_own_level_is_described_by_its_reasons() -> None:
+    (only,) = score([film(5, beyond(5))], TASTE, UNIFORM, RULE)  # 0.25 sd out: still close
     assert only.notes.side == "reason"
     assert only.notes.keys == tuple(TRAIT_KEYS[:3])
+
+
+def test_a_film_just_outside_the_reason_window_says_nothing() -> None:
+    """0.5 sd further out than the taste was a reason until TZ 1.27; now it is the band
+    between the cuts, where there is nothing true to say either way."""
+    (only,) = score([film(5, beyond(10))], TASTE, UNIFORM, RULE)
+    assert only.notes == TraitNotes(None, ())
 
 
 def test_score_gives_each_film_its_band() -> None:

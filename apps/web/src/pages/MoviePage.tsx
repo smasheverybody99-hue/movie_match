@@ -104,9 +104,10 @@ function Tags({ detail }: { detail: MovieDetail }) {
  * their axes, read as one statement ("STRONG MATCH" -> "It keeps you guessing..."). No
  * number, no ring (FR-5, TZ 1.13): the sentence is the main signal.
  *
- * Which sentence follows the side the API found (`trait_side`, TZ 1.23): reasons get the
- * why-you text, and a film the viewer's taste leans away from gets a plain statement of
- * how it differs instead - nothing that suggests they will like it. When the rule names
+ * Which sentence follows the side the API found (`trait_side`, TZ 1.27): a reason is a
+ * trait the film sits at the viewer's own level on, and gets the why-you text; a film far
+ * from them gets a plain statement of how it differs instead - nothing that suggests they
+ * will like it. When the rule names
  * nothing at all the panel says nothing: only its heading, no sentence and no axes. The
  * old "it suits your taste overall" line is gone with it, since it claimed a fit with
  * nothing behind it, which is the contradiction a user reported on 2026-10-15.
