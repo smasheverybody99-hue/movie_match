@@ -40,7 +40,11 @@ async def test_an_injection_does_not_change_what_the_model_is_told(
     plain_system = plain_sdk.requests[0]["config"]["system_instruction"]
     system = sdk.requests[0]["config"]["system_instruction"]
     assert system == plain_system
-    assert INJECTION not in system and "reveal" not in system.split("Trait dimensions")[1]
+    # No part of the message reaches the instructions, in any case. ("reveal" alone would
+    # not do: the plot_twist description in traits.json speaks of reveals.)
+    assert INJECTION not in system
+    assert "ignore your instructions" not in system.lower()
+    assert "system prompt" not in system.lower()
     # The words travel as the user's message and nowhere else.
     assert user_texts(sdk.requests[0]) == [f"{INJECTION} {PLAIN}"]
     # Same recorded answer, same behaviour: the same events in the same order.
