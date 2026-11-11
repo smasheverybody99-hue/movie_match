@@ -1,4 +1,4 @@
-import { Bookmark, Dna, House, Search, type LucideIcon } from "lucide-react";
+import { Bookmark, Dna, House, Search, Sparkles, type LucideIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { NavLink, Outlet, useLocation, useMatch, useNavigate } from "react-router-dom";
 
@@ -11,12 +11,13 @@ import { Logo } from "./Logo";
 import { SaveAlert } from "./SaveAlert";
 
 /**
- * Four of the design's five sections: the Assistant arrives in Phase 4. Web: left
- * sidebar from 640px; below that a top bar and a bottom bar (design system, desktop).
+ * The design's five sections. Web: left sidebar from 640px; below that a top bar and a
+ * bottom bar (design system, desktop).
  */
 const SECTIONS: { to: string; label: MessageKey; icon: LucideIcon; end?: boolean }[] = [
   { to: "/", label: "nav.home", icon: House, end: true },
   { to: "/search", label: "nav.search", icon: Search },
+  { to: "/assistant", label: "nav.assistant", icon: Sparkles },
   { to: "/dna", label: "nav.dna", icon: Dna },
   { to: "/watchlist", label: "nav.watchlist", icon: Bookmark },
 ];

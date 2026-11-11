@@ -240,3 +240,14 @@ describe("I18nProvider", () => {
     expect(next.result.current.lang).toBe("ru");
   });
 });
+
+describe("assistant starter prompts (FR-8)", () => {
+  // The first is the deck's own example question, which the Phase 4 manual check asks
+  // verbatim; the Uzbek is the roadmap's wording. The other two are not from the deck: the
+  // deck is not in the repo, and the user asked Claude to write two in the same style
+  // (2026-11-11). Change them freely; change the first only together with the check.
+  it("open with the deck's example question", () => {
+    expect(translate("uz", "assistant.starter.mind")).toBe("90 daqiqam bor, miyamni portlatsin");
+    expect(translate("en", "assistant.starter.mind")).toBe("I have 90 minutes — blow my mind");
+  });
+});

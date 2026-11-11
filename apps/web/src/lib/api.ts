@@ -1,4 +1,8 @@
 import type {
+  AssistantCard,
+  AssistantChatIn,
+  AssistantEvent,
+  AssistantLimit,
   Explanation,
   Lang,
   Me,
@@ -39,17 +43,27 @@ export function isNotFound(error: unknown): boolean {
   return error instanceof ApiError && error.status === 404;
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+/** The assistant's 429: today's messages are used up until `limit.resets_at` (FR-8). */
+export class AssistantLimitError extends ApiError {
+  constructor(readonly limit: AssistantLimit) {
+    super(429, limit.detail);
+    this.name = "AssistantLimitError";
+  }
+}
+
+async function send(path: string, init: RequestInit): Promise<Response> {
   const headers = new Headers(init.headers);
   if (init.body !== undefined) headers.set("Content-Type", "application/json");
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
-
-  let response: Response;
   try {
-    response = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+    return await fetch(`${BASE_URL}${path}`, { ...init, headers });
   } catch (cause) {
     throw new ApiError(0, cause instanceof Error ? cause.message : "Network error");
   }
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await send(path, init);
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
@@ -85,6 +99,103 @@ export function searchQuery(params: SearchParams): string {
   return query.toString();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isLimit(value: unknown): value is AssistantLimit {
+  return isRecord(value) && typeof value.resets_at === "string" && typeof value.limit === "number";
+}
+
+/**
+ * One SSE block (`event: name` + `data: json`) as an AssistantEvent, or null for anything
+ * this client does not know: a newer API may add events, and an old client skips them.
+ */
+export function toAssistantEvent(name: string, data: unknown): AssistantEvent | null {
+  if (!isRecord(data)) return null;
+  switch (name) {
+    case "text":
+      return typeof data.text === "string" ? { type: "text", text: data.text } : null;
+    case "card":
+      return isRecord(data.movie) && typeof data.match === "number"
+        ? { type: "card", card: data as unknown as AssistantCard }
+        : null;
+    case "followups":
+      return Array.isArray(data.items)
+        ? { type: "followups", items: data.items.filter((i): i is string => typeof i === "string") }
+        : null;
+    case "refusal":
+      return data.reason === "off_topic" || data.reason === "leak" ? { type: "refusal", reason: data.reason } : null;
+    case "error":
+      return { type: "error", reason: data.reason === "blocked" ? "blocked" : "failed" };
+    case "done":
+      return { type: "done" };
+    default:
+      return null;
+  }
+}
+
+/** Complete SSE blocks out of `buffer`, and what is left of it (a block still arriving). */
+export function readSse(buffer: string): { events: AssistantEvent[]; rest: string } {
+  const normalised = buffer.replace(/\r\n/g, "\n");
+  const blocks = normalised.split("\n\n");
+  const rest = blocks.pop() ?? "";
+  const events: AssistantEvent[] = [];
+  for (const block of blocks) {
+    let name = "message";
+    const data: string[] = [];
+    for (const line of block.split("\n")) {
+      if (line.startsWith("event:")) name = line.slice(6).trim();
+      else if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+    }
+    let parsed: unknown = null;
+    try {
+      parsed = JSON.parse(data.join("\n"));
+    } catch {
+      continue;
+    }
+    const event = toAssistantEvent(name, parsed);
+    if (event) events.push(event);
+  }
+  return { events, rest };
+}
+
+/**
+ * POST /assistant/chat. Calls `onEvent` for every event as it arrives and resolves when
+ * the stream ends. Throws AssistantLimitError on the daily cap, ApiError otherwise.
+ */
+async function assistantChat(
+  body: AssistantChatIn,
+  onEvent: (event: AssistantEvent) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await send("/assistant/chat", { ...json("POST", body), signal });
+  if (response.status === 429) {
+    const limit: unknown = await response.json().catch(() => null);
+    if (isLimit(limit)) throw new AssistantLimitError(limit);
+  }
+  if (!response.ok || !response.body) {
+    const detail = await response.text().catch(() => "");
+    throw new ApiError(response.status, detail || response.statusText);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      const { events, rest } = readSse(done ? `${buffer}\n\n` : buffer);
+      buffer = rest;
+      events.forEach(onEvent);
+      if (done) return;
+    }
+  } catch (cause) {
+    if (cause instanceof ApiError) throw cause;
+    throw new ApiError(0, cause instanceof Error ? cause.message : "Stream broke");
+  }
+}
+
 export const api = {
   health: () => request<{ status: string; trait_dimensions: number; commit: string | null }>("/health"),
 
@@ -114,6 +225,8 @@ export const api = {
   explanation: (movieId: number, lang: Lang) =>
     request<Explanation>(`/recommendations/${movieId}/explanation?lang=${lang}`),
   dismiss: (movieId: number) => request<void>("/dismissals", json("POST", { movie_id: movieId })),
+
+  assistantChat,
 };
 
 export type Api = typeof api;
