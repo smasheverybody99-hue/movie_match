@@ -150,9 +150,15 @@ jobs:
       # The phase requirement: app/services/ at 85% or more, on its own.
       - name: Coverage of app/services/ (85% minimum)
         working-directory: services/api
-        run: python -m coverage report --include="app/services/*" --fail-under=85
+        # The total also goes out as an annotation: the run log needs a GitHub login, the
+        # check-runs API that serves annotations does not.
+        run: |
+          echo "::notice title=coverage app/services::$(python -m coverage report --include='app/services/*' --format=total)%"
+          python -m coverage report --include="app/services/*" --fail-under=85
 
       # Phase 4 pass condition: app/services/assistant.py at 85% or more, on its own.
       - name: Coverage of app/services/assistant.py (85% minimum)
         working-directory: services/api
-        run: python -m coverage report --include="app/services/assistant.py" --fail-under=85
+        run: |
+          echo "::notice title=coverage assistant.py::$(python -m coverage report --include='app/services/assistant.py' --format=total)%"
+          python -m coverage report --include="app/services/assistant.py" --fail-under=85
