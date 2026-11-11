@@ -45,13 +45,13 @@ Rules:
 
 - **DB**: PostgreSQL via Supabase, `pgvector` for embeddings, HNSW index.
 - **Auth**: Supabase Auth. The API verifies the Supabase JWT; it never issues its own.
-- **AI provider** (ADR 0006): traits, embeddings and explanations go through the
-  `app/providers/` interface, chosen by `LLM_PROVIDER`. **Which provider is open.** The
+- **AI provider** (ADR 0006, 0009): traits, embeddings, explanations and the assistant go
+  through the `app/providers/` interface, chosen by `LLM_PROVIDER`. **Which provider is open.** The
   current implementation is Gemini (ADR 0004): `gemini-3.5-flash-lite` for bulk trait
   extraction (Batch API) and cached "why you'll like this" text, `gemini-embedding-2` for
   embeddings. Never import a vendor SDK outside `app/providers/`. Embedding size is
-  `EMBEDDING_DIM` and must match the column. Claude Sonnet 5 only for the conversational
-  assistant.
+  `EMBEDDING_DIM` and must match the column. The conversational assistant goes through
+  the same interface (ADR 0009): today `gemini-3.5-flash-lite` with function calling.
 - **Movie data**: TMDB. Commercial licence required before public launch — see docs/legal.md.
 
 ## Conventions

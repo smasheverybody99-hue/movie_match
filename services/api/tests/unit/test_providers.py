@@ -88,6 +88,9 @@ class FakeProvider:
     def explainer(self) -> FakeExplainer:
         return FakeExplainer()
 
+    def assistant(self) -> None:
+        return None  # a provider without a chat model: the endpoint answers 503
+
 
 # --- registry ---------------------------------------------------------------------------
 

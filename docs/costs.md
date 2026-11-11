@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-10-02**. Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-11-11** (assistant narxi). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -117,17 +117,33 @@ TZ §5: LLM xarajati foydalanuvchiga oyiga < $0.20. Oddiy foydalanuvchi limitga 
 
 ### Assistant (4-faza)
 
-Model qaror qilingan: Claude Sonnet 5, $2 / $10 per MTok
-([manba](https://platform.claude.com/docs/en/about-claude/pricing)). Limit: kuniga 30 so'rov.
+**Model: Gemini 3.5 Flash-Lite**, provayder interfeysi orqali (ADR 0009, foydalanuvchi
+qarori 2026-11-11). Oldingi reja, Claude Sonnet 5 ($2 / $10), shu qaror bilan bekor
+qilindi. Limit: kuniga 30 xabar (`assistant_daily_calls_per_user`, UTC kun). Bitta xabar —
+ko'pi bilan ikki chaqiruv: tool so'rovi va natijadan keyingi javob. Foydalanuvchi kutgani
+uchun narx **standart** (Batch emas).
 
-| Faraz (taxmin, o'lchanmagan) | Bitta so'rov | Oyiga 20 so'rov | Oyiga 900 so'rov (limit) |
+| Narx, $/MTok | Kirish | Kesh urilgan kirish | Chiqish | Manba |
+|---|---|---|---|---|
+| Gemini 3.5 Flash-Lite, pullik tarif, standart | 0.30 | **0.03** (context caching) | 2.50 | [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) (endi aistudio.google.com/docs/pricing ga yo'naltiradi), tekshirildi 2026-11-11 |
+| O'sha, bepul tarif | $0 | mavjud emas | $0 | o'sha sahifa |
+
+Kesh: implicit caching avtomatik, lekin sahifadagi minimal hajm jadvalida Flash-Lite yo'q.
+Ro'yxatdagi 3.x Flash modellari uchun minimum 4 096 token
+([aistudio.google.com/docs/caching](https://aistudio.google.com/docs/caching), 2026-11-11).
+Bizning prefiks ~1 600 token, shuning uchun hisob **keshsiz** qilingan. Explicit cache
+saqlash uchun soatiga $1.00 / MTok oladi, hozir qo'llanmaydi (ADR 0009).
+
+| Faraz (taxmin, o'lchanmagan) | Bitta xabar | Oyiga 20 xabar | Oyiga 900 xabar (limit) |
 |---|---|---|---|
-| ~3 000 kirish (tool ta'riflari, tarix) + ~400 chiqish token | ~$0.010 | ~$0.20 | ~$9 |
+| 2 chaqiruv: ~4 400 kirish (system prompt + tool sxemasi ~1 600, 4 oldingi navbat, tool natijasi 6 film) + ~200 chiqish | **~$0.0018** | **~$0.04** | ~$1.6 |
+| Off-topic: 1 chaqiruv, ~1 900 kirish + ~10 chiqish | ~$0.0006 | — | — |
 
-**Ochiq masala:** assistant TZ'dagi "< $0.20/oy" byudjetini yolg'iz o'zi tugatadi. 4-faza
-boshlanishidan oldin: yoki limitni pasaytirish, yoki prompt keshlash (kesh o'qish 0.1×
-narx, [manba](https://platform.claude.com/docs/en/about-claude/pricing)), yoki byudjetni
-qayta ko'rish. Bu — foydalanuvchi qarori.
+Token sonlari belgilardan taxmin qilingan (system prompt 3 685 belgi, tool sxemasi 2 735
+belgi, ~4 belgi/token). Qo'lda tekshiruvdagi 20 suhbatning `run=assistant` cost qatorlari bu
+qatorni o'lchov bilan almashtiradi. TZ §5: oyiga < $0.20. Oddiy foydalanishda (20 xabar)
+taxmin chegaradan 5 baravar past. Limitgacha ishlatgan foydalanuvchi chegaradan oshadi:
+limit pulni cheklaydi, byudjetni kafolatlamaydi.
 
 ### Baza
 
@@ -187,7 +203,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 |---|---|---|
 | Bir martalik (trait + embedding) | $0.03 – $0.45 | Provayderga bog'liq, yuqoridagi jadvallar |
 | Oylik: LLM izohlar | ≤ $4 (Gemini) | Eng yomon holat: 50 tester har kuni limitga yetadi, 50 × $0.08. Avval "< $1" yozilgan edi — limit hisobiga noto'g'ri edi (2026-10-02 tuzatildi). Oddiy foydalanishda ancha kam |
-| Oylik: assistant | ~$0.20 × faol tester | 4-fazadan; faraz o'lchanmagan |
+| Oylik: assistant | ~$0.04 × faol tester (20 xabar); eng yomoni ~$1.6 × tester (har kuni 30) | Gemini 3.5 Flash-Lite, ADR 0009; taxmin, F4 qo'lda tekshiruvida o'lchanadi. Bepul tarifda $0 |
 | Oylik: baza + hosting | $0 | Free tariflar; cheklovlari yuqorida |
 | TMDB | $0 | Monetizatsiyagacha |
 
@@ -203,3 +219,4 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
+| 2026-11-11 | Assistant: Claude Sonnet 5 o'rniga Gemini 3.5 Flash-Lite, provayder interfeysi orqali (ADR 0009, foydalanuvchi qarori). Narx 0.30 / 2.50, kesh urilgan kirish 0.03 (sahifa tekshirildi). Taxmin ~$0.0018 bir xabarga, oyiga 20 xabar ≈ $0.04; implicit kesh minimumi Flash-Lite uchun ko'rsatilmagan (3.x Flash: 4 096), hisob keshsiz |

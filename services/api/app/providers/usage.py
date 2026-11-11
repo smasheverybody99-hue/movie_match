@@ -26,9 +26,11 @@ def cost_line(
     pricing: Pricing,
     status: str = "complete",
 ) -> str:
+    # Only the assistant's calls report a prompt cache; the other lines keep their shape.
+    cached = f"cached_tokens={usage.cached_input_tokens} " if usage.cached_input_tokens else ""
     return (
         f"run={run} provider={provider} model={model} requests={usage.requests} "
-        f"input_tokens={usage.input_tokens} output_tokens={usage.output_tokens} "
+        f"input_tokens={usage.input_tokens} {cached}output_tokens={usage.output_tokens} "
         f"usd={pricing.usd(usage):.4f} tokens={'estimated' if usage.estimated else 'reported'} "
         f'status={status} pricing="{pricing.source}"'
     )
