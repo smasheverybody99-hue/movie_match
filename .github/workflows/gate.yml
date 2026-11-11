@@ -151,3 +151,8 @@ jobs:
       - name: Coverage of app/services/ (85% minimum)
         working-directory: services/api
         run: python -m coverage report --include="app/services/*" --fail-under=85
+
+      # Phase 4 pass condition: app/services/assistant.py at 85% or more, on its own.
+      - name: Coverage of app/services/assistant.py (85% minimum)
+        working-directory: services/api
+        run: python -m coverage report --include="app/services/assistant.py" --fail-under=85

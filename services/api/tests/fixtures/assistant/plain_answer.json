@@ -1,0 +1,11 @@
+{
+  "note": "Hand-written in Gemini stream shape: a clarifying answer with no tool call.",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Tell me a little more: a mood, a length, or a decade? [[ask:Something funny]] [[ask:Under two hours]]"}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 1700, "candidatesTokenCount": 30, "totalTokenCount": 1730}
+      }
+    ]
+  ]
+}

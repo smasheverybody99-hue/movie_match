@@ -190,3 +190,38 @@ class UserOut(BaseModel):
     id: uuid.UUID
     display_name: str | None = None
     onboarded: bool = False
+
+
+# --- assistant (FR-8) -------------------------------------------------------------------
+
+
+class AssistantChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=500, description="What the user asked")
+    lang: Lang = "en"
+    new_conversation: bool = Field(
+        default=False, description="Forget the earlier turns before this message"
+    )
+
+    @field_validator("message")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("message is blank")
+        return value.strip()
+
+
+class AssistantCardOut(BaseModel):
+    """A film inside an answer (SSE `card`). The match and band are the caller's own, the
+    same as on the film page."""
+
+    movie: MovieOut
+    match: int = Field(ge=0, le=100)
+    band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
+
+
+class AssistantLimitOut(BaseModel):
+    """The 429 body when the day's messages are used up."""
+
+    detail: str
+    limit: int
+    resets_at: datetime = Field(description="When the count starts again (next UTC midnight)")

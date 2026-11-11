@@ -1,4 +1,4 @@
-"""Request dependencies: authentication, and the explanation generator."""
+"""Request dependencies: authentication, the explanation generator and the assistant."""
 
 import uuid
 
@@ -11,7 +11,7 @@ from app import auth
 from app.config import Settings, get_settings
 from app.db import get_session
 from app.providers import get_provider
-from app.providers.base import Explainer
+from app.providers.base import Assistant, Explainer
 from app.services.users import ensure_user
 
 _bearer = HTTPBearer(auto_error=False)
@@ -91,6 +91,12 @@ async def current_user(
     """
     await ensure_user(session, user_id)
     return user_id
+
+
+def get_assistant(settings: Settings = Depends(get_settings)) -> Assistant | None:
+    """The configured provider's assistant (ADR 0009), or None without its key: the
+    endpoint then answers 503. Tests override this with a recorded or fake model."""
+    return get_provider(settings).assistant()
 
 
 def get_explainer(settings: Settings = Depends(get_settings)) -> Explainer | None:
