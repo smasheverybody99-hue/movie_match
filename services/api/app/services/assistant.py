@@ -623,7 +623,9 @@ async def chat(
     turns = await recent_turns(session, user_id)
     shown_before = {movie_id for turn in turns for movie_id in turn.movie_ids}
     user = await session.get(User, user_id)
-    taste = to_dict([float(v) for v in user.taste_vector]) if user and user.taste_vector else None
+    # pgvector returns a numpy array: compare with None, never test its truth.
+    vector = user.taste_vector if user is not None else None
+    taste = to_dict([float(v) for v in vector]) if vector is not None else None
     weights = dict(user.taste_weights) if user and user.taste_weights else None
     system = system_prompt(taste, weights, lang)
     messages = [*await context_messages(session, turns), ChatMessage("user", message)]

@@ -42,7 +42,7 @@ async def api_client(
     assistant: object = None,
     settings: dict | None = None,
 ) -> AsyncIterator[httpx.AsyncClient]:
-    """The app on `session`. No explanation generator unless a fake one is passed:
+    """The app on `session`. No explanation generator or assistant unless a fake one is passed:
     tests never reach a real LLM. Tokens verify against the test key set, never the
     network; `project_url=""` leaves the server without auth configuration."""
 
