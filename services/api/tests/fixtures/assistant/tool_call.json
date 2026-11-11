@@ -1,0 +1,23 @@
+{
+  "note": "Hand-written in the shape of Gemini's generate_content_stream chunks (camelCase, as the REST API sends them), not recorded from a paid call. Call 1 asks for the tool with a thought signature on the function-call part; call 2 answers after the tool result. 9600001 and 9600002 are films the search returns; 424242 is in no database; 9500001 is a film the user has rated, so the search never returns it.",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "search_movies", "args": {"traits": {"psychological_complexity": 85, "plot_twist": 80}, "mood": "mind_bending", "runtime_max": 90, "year_min": 1990, "exclude_ids": [9600006]}}, "thoughtSignature": "c2lnbmF0dXJlLTE="}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 1850, "candidatesTokenCount": 42, "thoughtsTokenCount": 12, "totalTokenCount": 1904}
+      }
+    ],
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Two short ones that keep you guessing. This one turns on what its hero "}]}}]
+      },
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "believes. [[film:96"}]}}]
+      },
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "00001]] This one saves its reveal for the end. [[film:9600002]] [[film:424242]] [[film:9500001]] [[ask:Something even shorter]] [[ask:Older films like these]]"}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 2400, "cachedContentTokenCount": 1800, "candidatesTokenCount": 70, "thoughtsTokenCount": 0, "totalTokenCount": 2470}
+      }
+    ]
+  ]
+}

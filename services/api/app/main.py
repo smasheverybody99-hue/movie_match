@@ -8,7 +8,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.providers import usage as cost_log
-from app.routers import health, me, movies, onboarding, ratings, recommendations, watchlist
+from app.routers import (
+    assistant,
+    health,
+    me,
+    movies,
+    onboarding,
+    ratings,
+    recommendations,
+    watchlist,
+)
 
 settings = get_settings()
 
@@ -72,3 +81,4 @@ app.include_router(watchlist.router)
 app.include_router(me.router)
 app.include_router(recommendations.router)
 app.include_router(onboarding.router)
+app.include_router(assistant.router)

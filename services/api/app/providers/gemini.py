@@ -1,14 +1,14 @@
-"""Gemini: the current implementation of the three provider protocols (ADR 0004).
+"""Gemini: the current implementation of the provider protocols (ADR 0004, ADR 0009).
 
 Everything Gemini-specific lives here: the SDK, request shapes, job states, the
-`title: none | text:` embedding format, thinking settings, and the prices. Whether Gemini
-stays the provider is open (ADR 0006).
+`title: none | text:` embedding format, thinking settings, function calling, and the
+prices. Whether Gemini stays the provider is open (ADR 0006).
 
 The SDK client is built on the first network call, not in the constructor, so prices and
 dry runs work without GEMINI_API_KEY.
 """
 
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import Any
 
 import httpx
@@ -17,6 +17,8 @@ from google.genai import errors, types
 
 from app.config import Settings
 from app.providers.base import (
+    AssistantEvent,
+    ChatMessage,
     Embedded,
     Explainer,
     Generated,
@@ -24,6 +26,12 @@ from app.providers.base import (
     Pricing,
     ProviderUnavailable,
     RateLimited,
+    StopReason,
+    StreamEnd,
+    TextDelta,
+    ToolCall,
+    ToolRequested,
+    ToolSpec,
     TraitAnswer,
     TraitBatchResult,
     TraitRequest,
@@ -37,6 +45,8 @@ NAME = "gemini"
 TRAIT_MODEL = "gemini-3.5-flash-lite"
 EXPLAIN_MODEL = "gemini-3.5-flash-lite"
 EMBEDDING_MODEL = "gemini-embedding-2"
+# The conversational assistant (ADR 0009): the same Flash-Lite as explanations.
+ASSISTANT_MODEL = "gemini-3.5-flash-lite"
 
 _PRICES = "https://ai.google.dev/gemini-api/docs/pricing, paid tier, checked 2026-09-26"
 # Batch API: half of the $0.30 / $2.50 standard rate.
@@ -48,12 +58,24 @@ EXPLAIN_PRICING = Pricing(0.30, 2.50, f"{EXPLAIN_MODEL} standard; {_PRICES}")
 # Embeddings bill input only. Standard rate: the Batch API would halve ~$0.09 per 5,000
 # films, not worth a second polling loop (ADR 0004).
 EMBEDDING_PRICING = Pricing(0.20, 0.0, f"{EMBEDDING_MODEL} standard; {_PRICES}")
+# A user is waiting, so the standard rate. Input that Gemini serves from its implicit prompt
+# cache bills at the context-caching rate (ADR 0009, docs/costs.md).
+ASSISTANT_PRICING = Pricing(
+    0.30,
+    2.50,
+    f"{ASSISTANT_MODEL} standard, cached input 0.03; "
+    "https://ai.google.dev/gemini-api/docs/pricing, paid tier, checked 2026-11-11",
+    cached_input_usd_per_mtok=0.03,
+)
 
 # Expected trait output is ~250 tokens. The ceiling only guards truncation, and it also has
 # to cover any thinking tokens, which Gemini counts against it and bills as output.
 TRAIT_MAX_OUTPUT_TOKENS = 2048
 EXPLAIN_MAX_OUTPUT_TOKENS = 512  # two sentences need ~80; the rest covers thinking
 THINKING_LEVEL = "MINIMAL"  # scoring or explaining from given facts needs no reasoning
+# A short answer with a few film markers is ~150 tokens; the rest covers thinking and a
+# function call's arguments.
+ASSISTANT_MAX_OUTPUT_TOKENS = 1024
 
 # Embedding 2 returns 3,072 dimensions by default and accepts any output_dimensionality
 # up to that; the API normalises truncated vectors.
@@ -77,6 +99,8 @@ def _usage(metadata: Any) -> Usage:
         requests=1,
         input_tokens=metadata.prompt_token_count or 0,
         output_tokens=(metadata.candidates_token_count or 0) + (metadata.thoughts_token_count or 0),
+        # A part of prompt_token_count, not added to it.
+        cached_input_tokens=getattr(metadata, "cached_content_token_count", None) or 0,
     )
 
 
@@ -382,9 +406,129 @@ class GeminiExplainer:
         )
 
 
+# --- the assistant -------------------------------------------------------------------
+
+
+def chat_contents(messages: Sequence[ChatMessage]) -> list[Any]:
+    """Product messages -> Gemini `contents`.
+
+    A tool call goes back as the model's own parts (`ToolCall.raw`) when it has them:
+    Gemini 3 attaches a thought signature to a function-call part, and the request that
+    carries the function's result must include it unchanged.
+    """
+    contents: list[Any] = []
+    for message in messages:
+        if message.role == "user":
+            contents.append({"role": "user", "parts": [{"text": message.text}]})
+        elif message.role == "assistant" and message.tool_call is not None:
+            call = message.tool_call
+            parts = call.raw or [{"function_call": {"name": call.name, "args": call.args}}]
+            contents.append({"role": "model", "parts": list(parts)})
+        elif message.role == "assistant":
+            contents.append({"role": "model", "parts": [{"text": message.text}]})
+        else:
+            name = message.tool_call.name if message.tool_call else ""
+            response = {"name": name, "response": message.result or {}}
+            contents.append({"role": "user", "parts": [{"function_response": response}]})
+    return contents
+
+
+def chat_config(system: str, tools: Sequence[ToolSpec], allow_tools: bool) -> dict[str, Any]:
+    config: dict[str, Any] = {
+        "system_instruction": system,
+        "max_output_tokens": ASSISTANT_MAX_OUTPUT_TOKENS,
+        "thinking_config": {"thinking_level": THINKING_LEVEL},
+    }
+    if tools:
+        # The tools stay declared after a call: the history then holds a function call and
+        # its response, which Gemini reads against the declarations. NONE forbids a new call.
+        declarations = [
+            {"name": t.name, "description": t.description, "parameters_json_schema": t.parameters}
+            for t in tools
+        ]
+        config["tools"] = [{"function_declarations": declarations}]
+        mode = "AUTO" if allow_tools else "NONE"
+        config["tool_config"] = {"function_calling_config": {"mode": mode}}
+    return config
+
+
+def stop_reason(chunk: Any) -> StopReason | None:
+    """How a streamed chunk ends the answer, or None while it goes on cleanly."""
+    if chunk is None:
+        return None
+    if prompt_blocked(chunk):
+        return "blocked"
+    candidates = chunk.candidates or []
+    if not candidates:
+        return None
+    reason = candidates[0].finish_reason
+    if reason in _CLEAN_STOPS:
+        return None
+    return "truncated" if reason == types.FinishReason.MAX_TOKENS else "blocked"
+
+
+class GeminiAssistant:
+    """The assistant on `generate_content_stream`, one model call per `stream`.
+
+    Text parts are yielded as they arrive. A function call is held back until the stream
+    has ended, because its `raw` must be the model's parts up to the call, thought
+    signatures included. Only the first function call is kept: the product offers one tool
+    and runs it once per turn, and nothing the model sends after that call is shown.
+    """
+
+    provider = NAME
+    pricing = ASSISTANT_PRICING
+
+    def __init__(self, sdk: Any, model: str = ASSISTANT_MODEL) -> None:
+        self.client = sdk  # google.genai async client (`Client(...).aio`)
+        self.model = model
+
+    async def stream(
+        self,
+        system: str,
+        messages: Sequence[ChatMessage],
+        tools: Sequence[ToolSpec],
+        *,
+        allow_tools: bool,
+    ) -> AsyncIterator[AssistantEvent]:
+        usage = Usage(requests=1)
+        stop: StopReason = "done"
+        parts: list[Any] = []
+        call: ToolCall | None = None
+        try:
+            chunks = await self.client.models.generate_content_stream(
+                model=self.model,
+                contents=chat_contents(messages),
+                config=chat_config(system, tools, allow_tools),
+            )
+            async for chunk in chunks:
+                if chunk.usage_metadata is not None:
+                    usage = _usage(chunk.usage_metadata)  # cumulative: the last one counts
+                stop = stop_reason(chunk) or stop
+                candidates = chunk.candidates or []
+                content = candidates[0].content if candidates else None
+                for part in (content.parts if content else None) or []:
+                    if call is not None:
+                        break
+                    parts.append(part)
+                    if part.function_call is not None:
+                        args = dict(part.function_call.args or {})
+                        call = ToolCall(part.function_call.name or "", args, raw=list(parts))
+                    elif part.text and not part.thought:
+                        yield TextDelta(part.text)
+        except errors.APIError as exc:
+            raise (neutral_error(exc) or exc) from exc
+        except NETWORK_ERRORS as exc:
+            raise TransientError(f"network: {type(exc).__name__}: {exc}") from exc
+        if call is not None:
+            yield ToolRequested(call)
+        yield StreamEnd(usage=usage, stop=stop)
+
+
 # --- the provider --------------------------------------------------------------------
 
 _explainers: dict[str, GeminiExplainer] = {}
+_assistants: dict[str, GeminiAssistant] = {}
 
 
 class GeminiProvider:
@@ -410,3 +554,12 @@ class GeminiProvider:
         if key not in _explainers:
             _explainers[key] = GeminiExplainer(genai.Client(api_key=key).aio)
         return _explainers[key]
+
+    def assistant(self) -> GeminiAssistant | None:
+        """One client per process per key, like the explainer."""
+        key = self._settings.gemini_api_key
+        if not key:
+            return None
+        if key not in _assistants:
+            _assistants[key] = GeminiAssistant(genai.Client(api_key=key).aio)
+        return _assistants[key]

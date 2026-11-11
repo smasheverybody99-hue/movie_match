@@ -8,6 +8,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User
+from tests.assistant_recorded import recorded_assistant
 from tests.conftest import rolled_back_session
 from tests.integration.api import api_client, auth, seed_films, token
 from tests.jwt_keys import StaticJWKClient
@@ -35,6 +36,7 @@ PROTECTED = [
     ("POST", "/dismissals", {"movie_id": FILM}),
     ("DELETE", f"/dismissals/{FILM}", None),
     ("GET", "/onboarding/films", None),
+    ("POST", "/assistant/chat", {"message": "Something funny"}),
 ]
 IDS = [f"{m} {p}" for m, p, _ in PROTECTED]
 
@@ -94,7 +96,9 @@ async def test_valid_token_is_let_through(
     seeded: AsyncSession, method: str, path: str, body: dict | None
 ) -> None:
     me = auth(uuid.uuid4())
-    async with api_client(seeded) as client:
+    # The assistant on a recorded answer: without one it is 503, never a real model.
+    assistant, _ = recorded_assistant("plain_answer")
+    async with api_client(seeded, assistant=assistant) as client:
         # rows for the DELETE and /watched routes to act on
         if method != "GET":
             await client.post("/ratings", json={"movie_id": FILM, "score": 8}, headers=me)

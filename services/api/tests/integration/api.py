@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
-from app.deps import get_explainer, get_jwks_client
+from app.deps import get_assistant, get_explainer, get_jwks_client
 from app.main import app
 from app.models import EMBEDDING_DIM, MovieEmbedding, MovieTraits
 from app.pipelines.ingest import SqlIngestStore
@@ -39,9 +39,10 @@ async def api_client(
     project_url: str = PROJECT_URL,
     jwks: StaticJWKClient | None = None,
     explainer: object = None,
+    assistant: object = None,
     settings: dict | None = None,
 ) -> AsyncIterator[httpx.AsyncClient]:
-    """The app on `session`. No explanation generator unless a fake one is passed:
+    """The app on `session`. No explanation generator or assistant unless a fake one is passed:
     tests never reach a real LLM. Tokens verify against the test key set, never the
     network; `project_url=""` leaves the server without auth configuration."""
 
@@ -55,6 +56,7 @@ async def api_client(
     key_set = jwks or StaticJWKClient()
     app.dependency_overrides[get_jwks_client] = lambda: key_set if project_url else None
     app.dependency_overrides[get_explainer] = lambda: explainer
+    app.dependency_overrides[get_assistant] = lambda: assistant
     try:
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
@@ -99,8 +101,8 @@ async def seed_catalogue(session: AsyncSession, films: Sequence[dict]) -> None:
     """Films with traits, an embedding, and optionally a director, runtime and genres.
 
     Each dict: id, vector, and any of director (person id), runtime, popularity,
-    genres ([(id, name)]), backdrop (a TMDB path), embedding (defaults to
-    fake_embedding(vector)).
+    genres ([(id, name)]), backdrop (a TMDB path), release_date ("YYYY-MM-DD"), overview,
+    embedding (defaults to fake_embedding(vector)).
     """
     records = []
     for film in films:
@@ -120,6 +122,8 @@ async def seed_catalogue(session: AsyncSession, films: Sequence[dict]) -> None:
             "backdrop_path": film.get("backdrop"),
             "popularity": film.get("popularity", 1.0),
             "runtime": film.get("runtime", 120),
+            "release_date": film.get("release_date"),
+            "overview": film.get("overview"),
             "genres": [{"id": g, "name": n} for g, n in film.get("genres", [])],
             "credits": {"cast": [], "crew": crew},
         }

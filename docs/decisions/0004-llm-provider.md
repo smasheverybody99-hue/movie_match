@@ -143,8 +143,10 @@ into the measured cost.
   with the reason and never stored with default scores. The review list includes 365 Days.
 - **Prices move.** Google's pages were read on 2026-09-26; `gemini-3.8-flash` input/output
   prices are stated "through 12/31/26". Re-check before stage 3.
-- **The Anthropic account is still needed later.** The Phase 4 assistant remains on
-  Claude Sonnet 5. (Explanations moved to Gemini in the 2026-09-27 amendment.)
+- ~~**The Anthropic account is still needed later.** The Phase 4 assistant remains on
+  Claude Sonnet 5.~~ Superseded 2026-11-11 by ADR 0009: the assistant goes through the
+  provider interface, today Gemini 3.5 Flash-Lite. (Explanations moved to Gemini in the
+  2026-09-27 amendment.)
 
 ## Consequences
 

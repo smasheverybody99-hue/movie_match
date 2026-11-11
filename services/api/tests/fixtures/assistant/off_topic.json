@@ -1,0 +1,11 @@
+{
+  "note": "Hand-written in Gemini stream shape. The model marks the message off-topic, and in the same answer also asks for the tool: the refusal must win, and the tool must not run.",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "[[off_topic]]"}, {"functionCall": {"name": "search_movies", "args": {"mood": "funny"}}}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 1700, "candidatesTokenCount": 8, "totalTokenCount": 1708}
+      }
+    ]
+  ]
+}

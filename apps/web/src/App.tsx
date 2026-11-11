@@ -5,6 +5,7 @@ import { AppShell } from "./components/Layout";
 import { Loading, Skeleton } from "./components/States";
 import { useT } from "./i18n";
 import { useAuth } from "./lib/auth";
+import Assistant from "./pages/Assistant";
 import Dna from "./pages/Dna";
 import Feed from "./pages/Feed";
 import MoviePage from "./pages/MoviePage";
@@ -82,6 +83,7 @@ export default function App() {
       >
         <Route index element={<Feed />} />
         <Route path="search" element={<Search />} />
+        <Route path="assistant" element={<Assistant />} />
         <Route path="movie/:id" element={<MoviePage />} />
         <Route path="watchlist" element={<Watchlist />} />
         <Route path="dna" element={<Dna />} />

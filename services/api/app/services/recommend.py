@@ -20,14 +20,17 @@ Embeddings for retrieval, traits for ranking (docs/architecture.md):
 
 A film appears in at most one section; sections are filled in the order below. The
 pure part (score, pick) takes plain data and is unit-tested without a database.
+
+`search` is the same engine for the assistant (FR-8, Phase 4): the model chooses the
+arguments, this module chooses the films. See its docstring.
 """
 
 import math
 import uuid
 from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Literal
 
 from sqlalchemy import func, select, text
@@ -61,6 +64,7 @@ from app.services.matching import (
 from app.services.mmr import mmr
 from app.services.reasons import load_rule
 from app.services.taste import HIGH_RATING, RatedFilm, rating_weight
+from app.traits import TRAIT_KEYS
 
 MIN_RATINGS = 10  # FR-3: no recommendations before 10 ratings
 MAX_PER_DIRECTOR = 2  # FR-5: per section
@@ -410,3 +414,182 @@ async def recommend(
     await add("outside_usual", await retrieve(session, query, exclude, offset=CANDIDATES))
 
     return Recommendations(rating_count=count, sections=sections)
+
+
+# --- search, for the assistant (FR-8) ----------------------------------------------------
+
+SEARCH_SIZE = 6
+# How much a requested trait counts in a search's ranking. The taste's own weights are
+# 0..1 (taste.py), so a trait the user asked for outweighs any one dimension of their taste.
+REQUEST_WEIGHT = 2.0
+
+
+@dataclass(frozen=True)
+class SearchRequest:
+    """What the assistant's tool asked for. Every field is optional; `targets` maps trait
+    keys (TRAIT_KEYS) to the level wanted, 0..100."""
+
+    targets: Mapping[str, float] = field(default_factory=dict)
+    year_min: int | None = None
+    year_max: int | None = None
+    runtime_max: int | None = None
+    exclude: frozenset[int] = frozenset()
+    k: int = SEARCH_SIZE
+
+
+@dataclass(frozen=True)
+class Hit:
+    """One film a search found.
+
+    `match` and `band` are the user's own (FR-5), from their stored taste and weights, the
+    same numbers the film page shows. `fit` is how close the film is to the request:
+    match_percentage against `search_query`, which is what ranked it.
+    """
+
+    movie: Movie
+    match: int
+    band: MatchBand | None
+    notes: TraitNotes
+    fit: int
+
+
+@dataclass(frozen=True)
+class SearchResult:
+    rating_count: int
+    hits: list[Hit] = field(default_factory=list)
+
+    @property
+    def ratings_needed(self) -> int:
+        return max(MIN_RATINGS - self.rating_count, 0)
+
+
+def search_query(
+    taste: Sequence[float], weights: Sequence[float], targets: Mapping[str, float]
+) -> tuple[list[float], list[float]]:
+    """The taste with the request laid over it: on each requested trait the target replaces
+    the taste's level and the weight becomes REQUEST_WEIGHT; elsewhere the taste stands.
+
+    So "something lighter" from a viewer who likes slow, character-driven films still finds
+    slow, character-driven films, only light ones. Both lists in TRAIT_KEYS order; unknown
+    keys are ignored and targets are clamped to 0..100.
+    """
+    query, query_weights = list(taste), list(weights)
+    for index, key in enumerate(TRAIT_KEYS):
+        if key in targets:
+            query[index] = min(max(float(targets[key]), 0.0), 100.0)
+            query_weights[index] = REQUEST_WEIGHT
+    return query, query_weights
+
+
+def _search_rows(user_exclude: set[int], request: SearchRequest) -> Select:
+    stmt = (
+        select(Movie.id, MovieTraits.vector)
+        .join(MovieTraits, MovieTraits.movie_id == Movie.id)
+        .where(Movie.adult.is_(False))
+    )
+    exclude = user_exclude | set(request.exclude)
+    if exclude:
+        stmt = stmt.where(Movie.id.not_in(exclude))
+    if request.year_min is not None:
+        stmt = stmt.where(Movie.release_date >= date(request.year_min, 1, 1))
+    if request.year_max is not None:
+        stmt = stmt.where(Movie.release_date <= date(request.year_max, 12, 31))
+    if request.runtime_max is not None:
+        stmt = stmt.where(Movie.runtime_minutes <= request.runtime_max)
+    return stmt
+
+
+async def _candidates(session: AsyncSession, movie_ids: Sequence[int]) -> list[Candidate]:
+    directors = (
+        select(func.array_agg(Credit.person_id))
+        .where(Credit.movie_id == Movie.id, Credit.job == "Director")
+        .correlate(Movie)
+        .scalar_subquery()
+    )
+    rows = await session.execute(
+        select(Movie, MovieTraits.vector, directors)
+        .join(MovieTraits, MovieTraits.movie_id == Movie.id)
+        .where(Movie.id.in_(movie_ids))
+    )
+    found = {
+        movie.id: Candidate(
+            movie=movie,
+            vector=[float(v) for v in vector],
+            directors=frozenset(d for d in (director_ids or []) if d is not None),
+        )
+        for movie, vector, director_ids in rows.all()
+    }
+    return [found[i] for i in movie_ids if i in found]
+
+
+async def search(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    request: SearchRequest,
+    now: datetime | None = None,
+) -> SearchResult:
+    """Films for one assistant request, best first; none below MIN_RATINGS (FR-3).
+
+    The same engine as the sections, with the request in place of a section's filter:
+
+    1. Hard filters in SQL: not adult, has traits, not rated / watched / dismissed, not in
+       `request.exclude` (films the conversation already showed), and the year and runtime
+       limits.
+    2. Rank every film that passes by match_raw against `search_query` - the taste with
+       the request laid over it. Not by embedding ANN: the request may point away from the
+       taste ("something funny" from a viewer of bleak dramas), and the nearest films to
+       the taste would never include the films asked for. The floor cut is not applied
+       either, for the same reason: the user asked.
+    3. MMR over the best POOL_FACTOR·k with embedding similarity, at most MAX_PER_DIRECTOR
+       per director, with the recency penalty - exactly `pick`.
+
+    Each hit carries the user's own match and band, so the number on the card is the one
+    on the film page, computable by hand from the stored vectors (CLAUDE.md).
+    """
+    now = now or datetime.now(UTC)
+    count = await rating_count(session, user_id)
+    if count < MIN_RATINGS:
+        return SearchResult(rating_count=count)
+    user = await session.get(User, user_id, populate_existing=True)
+    if user is None or user.taste_vector is None or not user.taste_weights:
+        return SearchResult(rating_count=count)
+    taste = [float(v) for v in user.taste_vector]
+    weights = weights_vector(user.taste_weights)
+    query, query_weights = search_query(taste, weights, request.targets)
+
+    seen = await seen_ids(session, user_id)
+    rows = (await session.execute(_search_rows(seen, request))).all()
+    ranked = sorted(
+        (
+            (match_raw(query, query_weights, [float(v) for v in vector]), movie_id)
+            for movie_id, vector in rows
+        ),
+        key=lambda r: (-r[0], r[1]),
+    )
+    shortlisted = [movie_id for _, movie_id in ranked[: POOL_FACTOR * request.k]]
+    candidates = await _candidates(session, shortlisted)
+    pool = score(candidates, query, query_weights, rule=None)
+    sims = await embedding_similarities(session, [s.movie_id for s in pool])
+    picked = pick(
+        pool,
+        request.k,
+        lambda x, y: sims.get(frozenset((x.movie_id, y.movie_id)), 0.0),
+        now=now,
+        recency_weight=get_settings().recency_weight,
+    )
+
+    rule = await load_rule(session)
+    cuts = await load_cuts(session, user_id, user.taste_updated_at, taste, weights)
+    hits = []
+    for item in picked:
+        vector = item.candidate.vector
+        hits.append(
+            Hit(
+                movie=item.candidate.movie,
+                match=match_percentage(taste, weights, vector),
+                band=match_band(match_raw(taste, weights, vector), cuts),
+                notes=trait_notes(taste, vector, rule, weights=weights) if rule else TraitNotes(),
+                fit=item.match,
+            )
+        )
+    return SearchResult(rating_count=count, hits=hits)

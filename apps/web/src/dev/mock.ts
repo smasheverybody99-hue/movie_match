@@ -72,6 +72,28 @@ function json(body: unknown, status = 200): Response {
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** A canned assistant answer, streamed a piece at a time like the real SSE endpoint. */
+function assistantStream(films: Movie[]): Response {
+  const blocks = [
+    ["text", { text: "Here are a few from your taste " }],
+    ["text", { text: "that fit what you asked." }],
+    ...films.map((m) => ["card", { movie: m, match: 84, band: null }] as const),
+    ["followups", { items: ["Something shorter", "Older films like these"] }],
+    ["done", {}],
+  ] as const;
+  const encoder = new TextEncoder();
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (const [name, data] of blocks) {
+        await wait(250);
+        controller.enqueue(encoder.encode(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`));
+      }
+      controller.close();
+    },
+  });
+  return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+}
+
 export function install(): AuthClient {
   const scenario = flag("mm.mock.scenario") ?? "active";
   let ratings: Rating[] = scenario === "new" ? [] : MOVIES.slice(10, 24).map((m, i) => rating(m.id, 6 + (i % 5)));
@@ -180,6 +202,7 @@ export function install(): AuthClient {
       return json(null, 204);
     }
     if (path === "/me" && method === "DELETE") return json(null, 204);
+    if (path === "/assistant/chat" && method === "POST") return assistantStream(MOVIES.slice(30, 33));
     return json({ detail: "Not found" }, 404);
   }
 

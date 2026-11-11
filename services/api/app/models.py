@@ -272,6 +272,38 @@ class Explanation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class AssistantTurn(Base):
+    """One exchange with the assistant: what the user asked, what it answered, which films
+    it showed. Only the newest `assistant.CONTEXT_TURNS` per user are kept; they are the
+    model's context for the next message (FR-8)."""
+
+    __tablename__ = "assistant_turns"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    question: Mapped[str] = mapped_column(Text)
+    answer: Mapped[str] = mapped_column(Text)  # without film markers
+    movie_ids: Mapped[list] = mapped_column(JSONB, default=list)  # the cards, in order
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AssistantUsage(Base):
+    """Assistant messages per user per UTC day: the `assistant_daily_calls_per_user` cap.
+
+    A counter of its own, because turns are pruned to the last few and could not be
+    counted afterwards."""
+
+    __tablename__ = "assistant_usage"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    calls: Mapped[int] = mapped_column(Integer, default=0)
+
+
 class Dismissal(Base):
     """A film the user said "not for me" to. Recommendations never show it again."""
 

@@ -28,7 +28,7 @@ describe("AppShell", () => {
     shellAt("/");
     const [sidebar] = screen.getAllByRole("navigation", { name: "Main sections" });
     const links = within(sidebar as HTMLElement).getAllByRole("link");
-    expect(links.map((a) => a.textContent)).toEqual(["Home", "Search", "Movie DNA", "Watchlist"]);
+    expect(links.map((a) => a.textContent)).toEqual(["Home", "Search", "Assistant", "Movie DNA", "Watchlist"]);
     for (const link of links) {
       expect(link.querySelector("svg[aria-hidden='true']")).not.toBeNull();
     }

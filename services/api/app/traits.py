@@ -33,6 +33,11 @@ def trait_labels(lang: str) -> dict[str, str]:
     return {d["key"]: d[f"label_{lang}"] for d in _spec()["dimensions"]}
 
 
+def trait_descriptions() -> dict[str, str]:
+    """Trait key -> its English description, from traits.json (the assistant's vocabulary)."""
+    return {d["key"]: d["description"] for d in _spec()["dimensions"]}
+
+
 def to_vector(traits: dict[str, float]) -> list[float]:
     """Dict of trait scores -> ordered vector. Missing dimensions default to 50 (neutral)."""
     return [float(traits.get(key, 50.0)) for key in TRAIT_KEYS]

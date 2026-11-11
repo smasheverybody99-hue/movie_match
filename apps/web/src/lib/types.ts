@@ -155,3 +155,43 @@ export interface WatchlistItem {
   match: number | null;
   band: MatchBand | null;
 }
+
+// --- assistant (FR-8): POST /assistant/chat, a Server-Sent Events stream ----------------
+
+/** Mirrors app.schemas.AssistantChatIn. */
+export interface AssistantChatIn {
+  /** 1-500 characters, not blank. */
+  message: string;
+  lang: Lang;
+  /** Forget the earlier turns before this message. */
+  new_conversation?: boolean;
+}
+
+/** A film inside an answer (event `card`). Mirrors app.schemas.AssistantCardOut. */
+export interface AssistantCard {
+  movie: Movie;
+  /** The caller's match, as on the film page. Not shown. */
+  match: number;
+  band: MatchBand | null;
+}
+
+/** The 429 body when the day's messages are used up. Mirrors app.schemas.AssistantLimitOut. */
+export interface AssistantLimit {
+  detail: string;
+  limit: number;
+  /** ISO time, the next UTC midnight. */
+  resets_at: string;
+}
+
+/** `refusal`: the client shows its own fixed text. Mirrors the router's event payloads. */
+export type AssistantRefusalReason = "off_topic" | "leak";
+export type AssistantErrorReason = "failed" | "blocked";
+
+/** One event of the stream, in the order the API sends them (app/routers/assistant.py). */
+export type AssistantEvent =
+  | { type: "text"; text: string }
+  | { type: "card"; card: AssistantCard }
+  | { type: "followups"; items: string[] }
+  | { type: "refusal"; reason: AssistantRefusalReason }
+  | { type: "error"; reason: AssistantErrorReason }
+  | { type: "done" };

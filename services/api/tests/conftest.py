@@ -21,6 +21,7 @@ import os
 os.environ.setdefault("SCHEMA_CHECK_ON_STARTUP", "false")
 
 import json
+import sys
 from collections.abc import AsyncGenerator, AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -103,6 +104,42 @@ async def db_session(migrated_test_db: None) -> AsyncGenerator[AsyncSession, Non
         pytest.skip("TEST_DATABASE_URL is not set")
     async with rolled_back_session() as session:
         yield session
+
+
+def _workflow_escape(text: str) -> str:
+    return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def _annotate(report: pytest.TestReport | pytest.CollectReport, when: str) -> None:
+    """On GitHub Actions, a failure also becomes an `::error` annotation.
+
+    The run log answers 403 without a GitHub login, and `gh` is not installed on the dev
+    machine, so a red gate could not be read back. Annotations are served by the public
+    check-runs API. GitHub keeps at most 10 error annotations per step. The command must
+    start a line, and pytest's progress dots do not end theirs, hence the leading newline.
+    """
+    if not report.failed or os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    crash = getattr(report.longrepr, "reprcrash", None)
+    message = getattr(crash, "message", None) or str(report.longrepr).strip()[-800:]
+    if isinstance(report, pytest.TestReport):
+        path, line = report.location[0], report.location[1] or 0
+    else:
+        path, line = report.nodeid.split("::")[0], 0
+    title = _workflow_escape(f"{when}: {report.nodeid}"[:200]).replace(",", "%2C")
+    annotation = (
+        f"::error file=services/api/{path},line={line + 1},title={title}"
+        f"::{_workflow_escape(message[:1000])}"
+    )
+    print(f"\n{annotation}", file=sys.__stdout__, flush=True)
+
+
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    _annotate(report, report.when)
+
+
+def pytest_collectreport(report: pytest.CollectReport) -> None:
+    _annotate(report, "collect")
 
 
 @pytest.fixture(autouse=True)

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""
 
     tmdb_api_key: str = ""
-    # Which provider does traits, embeddings and explanations: a key of
+    # Which provider does traits, embeddings, explanations and the assistant: a key of
     # app.providers.PROVIDERS. The choice is open (ADR 0006); "gemini" is what exists.
     llm_provider: str = "gemini"
     # Size of movie_embeddings.embedding. Must equal the column in the database: the API
@@ -42,7 +42,8 @@ class Settings(BaseSettings):
     # Gemini (ADR 0004). Paid tier: the free tier lets Google use submitted content to
     # train its models.
     gemini_api_key: str = ""
-    # Not used by the data pipelines; the Phase 4 assistant still runs on Claude.
+    # Not used: the assistant goes through LLM_PROVIDER like everything else (ADR 0009). Kept
+    # so an existing .env still loads; a Claude provider would read it.
     anthropic_api_key: str = ""
     redis_url: str = ""
 
@@ -67,6 +68,8 @@ class Settings(BaseSettings):
     tmdb_concurrency: int = 8
 
     # Cost guards. Raise deliberately, never silently.
+    # Assistant messages per user per UTC day (FR-8: 30). One message is at most two model
+    # calls (the tool call and the answer after it); off-topic ones count too.
     assistant_daily_calls_per_user: int = 30
     # "Why you'll like this" generations per user per day. Cached ones are free and
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
