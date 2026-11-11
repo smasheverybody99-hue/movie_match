@@ -143,8 +143,25 @@ ular hisobga kirmaydi. Alfa uchun yetadi. Zaxira: API javoblarini gzip bilan siq
 **Supabase Free pauzasi.** Loyiha **bir hafta** davomida bazaga yetarli so'rov
 kelmasa to'xtatiladi; pauzadan taxminan bir hafta oldin ogohlantirish xati keladi.
 Dashboard → loyiha → **Resume project** bilan qaytariladi (ma'lumot saqlanadi, 1 yil
-ichida). Alfa davomida testerlar kunda so'rov yuboradi — xavf faqat tanaffuslarda. Test
-loyihasi (Frankfurt) har push'da CI tomonidan ishlatiladi. Pauzasiz: Supabase Pro, $25/oy.
+ichida). Pauzasiz: Supabase Pro, $25/oy.
+
+**2026-11-11: ikkala loyiha ham to'xtagan edi.** Pooler javobi: `tenant/user
+postgres.<ref> not found`. Jonli API'da `/health` 200 qaytardi, `/health/db` esa 500.
+Sabablar:
+
+- **Asosiy loyiha (Singapur).** cron-job.org `/health` ga ping yuboradi (5-bo'lim), lekin
+  `/health` bazaga tegmaydi (`app/routers/health.py`). Ping Render'ni uyg'oq saqladi, bazaga
+  esa hech narsa yetib bormadi. Testerlar bir hafta kirmadi va loyiha to'xtadi.
+- **Test loyihasi (Frankfurt).** Avvalgi yozuvda "har push'da CI ishlatadi" deyilgan edi.
+  Bu noto'g'ri: gate runner'dagi Postgres + pgvector konteynerida yuradi
+  (`.github/workflows/gate.yml`). Frankfurt'ga faqat mahalliy DB testlari ulanadi, ular esa
+  kam yuradi. 2026-10-22 da ham, 2026-11-11 da ham shu sabab bilan to'xtagan.
+
+Supabase sahifasi faollikni "a few user requests to the database each day over the previous
+week" deb ta'riflaydi. `SELECT 1` yoki ping yetarli-yetarli emasligini u aytmaydi
+(<https://supabase.com/docs/guides/platform/free-project-pausing>, 2026-11-11 da o'qildi).
+Shuning uchun yechim kuzatib boriladi. Pauzadan ~1 hafta oldin ogohlantirish xati keladi:
+kelsa, ping yetmagani shu. Yechim 5-bo'limda.
 
 ## 5. Haqiqiy foydalanuvchi uchun uyg'onish muammosi
 
@@ -163,6 +180,33 @@ yuboradi. Render uxlatadi 15 daqiqa trafiksiz (render.com/docs/free, 2026-10-10)
 ~744 / 750 soat: workspace'da boshqa bepul servis bo'lmasligi shart. CPU 0.1 qoladi. **A**
 (Starter) haqiqiy foydalanuvchilar paydo bo'lganda yoki soat limiti tig'izlashganda; zaxira —
 Google Cloud Run, Singapur (`docs/costs.md`).
+
+**Tuzatish (2026-11-11): ping `/health/db` ga.** cron-job.org'dagi manzil:
+
+```
+https://movie-match-api-mgdn.onrender.com/health/db
+```
+
+Usul `GET`, har 10 daqiqada (o'zgarmaydi), "notify on failure" yoqiq bo'lsin.
+
+- **Render:** bu ham HTTP so'rov, shuning uchun Render avvalgidek uyg'oq qoladi.
+- **Supabase:** har so'rov asosiy bazada `SELECT 1` bajaradi, kuniga 144 ta.
+- **Ogohlantirish:** baza to'xtasa yoki ulanish uzilsa, endpoint 500 qaytaradi. cron-job.org
+  shunda xat yuboradi, ya'ni pauza bir haftadan keyin emas, birinchi 10 daqiqada ko'rinadi.
+  `/health` bunday qila olmasdi.
+- **Kod o'zgarmaydi:** endpoint 2026-10-08 dan beri bor.
+- **O'lchov (2026-11-11, isitilgan):** 0.86–1.05 s, 3 so'rov.
+- **Kuzatish:** Supabase'dan pauza ogohlantirishi kelsa, `SELECT 1` "user request" deb
+  hisoblanmagan bo'ladi. Keyingi qadam bazaga haqiqiy o'qish qiladigan so'rov (masalan,
+  `/movies?limit=1`) yoki Supabase Pro.
+
+**Test loyihasi (Frankfurt) uchun ping yo'q, ataylab.** API unga ulanmaydi, CI ham
+ishlatmaydi. U faqat mahalliy DB testlari uchun kerak. To'xtasa, Supabase panelida
+**Resume project** qilinadi (foydalanuvchi qadami, 1 yil ichida, ma'lumot saqlanadi).
+Doim tayyor turishi kerak bo'lsa, GitHub Actions'da `schedule` bilan kunlik `SELECT 1`
+yozish mumkin. Lekin bu `TEST_DATABASE_URL` ni GitHub secret'iga qo'yishni talab qiladi,
+va GitHub faolsiz repo'da rejalashtirilgan workflow'larni 60 kundan keyin o'chiradi.
+Hozir qilinmaydi.
 
 ## 6. Web: Cloudflare Pages
 
@@ -231,6 +275,8 @@ xatosi bo'lmasligi kerak.
 - Python versiyasi: <https://render.com/docs/python-version>
 - Trafik: <https://render.com/docs/outbound-bandwidth> (Hobby 5 GB)
 - Supabase pauzasi: <https://supabase.com/docs/guides/platform/free-project-pausing>
+  (2026-11-11 da qayta o'qildi: 7 kunlik oyna, "a few user requests to the database each
+  day", ~1 hafta oldin ogohlantirish xati, 1 yil ichida tiklash; ping haqida hech narsa yo'q)
 - Cloudflare Pages, Git: <https://developers.cloudflare.com/pages/get-started/git-integration/>
 - Pages build image (Node versiyasi): <https://developers.cloudflare.com/pages/configuration/build-image/>
 - Pages SPA yo'llari: <https://developers.cloudflare.com/pages/configuration/serving-pages/>
