@@ -125,3 +125,18 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
   sekinlik esa hammasida. Zaxira model sekinlikka yordam bermaydi, 503 esa ikkinchi
   chaqiruvda keladi, va thought signature boshqa modelga o'tmagani uchun almashtirish
   butun xabarni qaytadan yuborishni talab qiladi.
+
+## Qo'shimcha, 2026-11-13: janr argumenti va kirish gapi
+
+- **Tool imzosi o'zgardi:** `search_movies(traits, year_min, year_max, runtime_max, mood,
+  genres, exclude_ids)` (TZ 1.29, phase-04 prompti). `genres` — TMDB'ning 19 janr nomi,
+  kodda qat'iy ro'yxat (`GENRES`), bazadan o'qilmaydi: tool sxemasi prefiksning bir
+  qismi va har chaqiruvda bir xil baytlar bo'lishi kerak. Film berilgan janrlarning
+  hammasiga ega bo'ladi, shuning uchun ko'pi bilan ikkitasi.
+- **Kirish gapi:** model tool'ni chaqirishdan oldin nima izlayotganini bitta gapda aytadi
+  va shu javobning o'zida tool'ni chaqiradi. Birinchi belgi endi birinchi chaqiruvning
+  boshida chiqadi, qidiruv va ikkinchi chaqiruvdan keyin emas. Ikkinchi chaqiruv bu
+  gapni o'z qismlari bilan qaytarib oladi va uni takrorlamaydi.
+- **Prefiks kattalashdi:** ko'rsatmalar 3 025 → 3 643 belgi, tool sxemasi 2 735 → 3 091
+  belgi, ya'ni har chaqiruvga taxminan +280 kirish token (3.5 belgi/token). Narx
+  o'lchovdan keyin `docs/costs.md` da yangilanadi.

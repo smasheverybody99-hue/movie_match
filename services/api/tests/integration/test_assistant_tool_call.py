@@ -4,6 +4,7 @@ recommend.search, and its films are what the model is shown and what the user ge
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services import assistant as service
 from app.services import recommend
 from app.services.recommend import SearchRequest
 from tests.assistant_recorded import card_ids, events, recorded_assistant
@@ -94,3 +95,42 @@ async def test_only_the_films_the_answer_placed_are_shown_in_its_order(
     card = next(data for name, data in stream if name == "card")
     assert set(card) == {"movie", "match", "band"}
     assert 0 <= card["match"] <= 100
+
+
+# --- the opening sentence and genres (2026-11-13) --------------------------------------
+
+
+async def test_the_opening_sentence_shows_before_the_search_and_the_genre_reaches_it(
+    assistant_catalogue: AsyncSession, spy: list[SearchRequest]
+) -> None:
+    me = await new_viewer(assistant_catalogue)
+    assistant, sdk = recorded_assistant("intro_tool_call", "tool_call#2")
+    async with api_client(assistant_catalogue, assistant=assistant) as client:
+        response = await client.post(
+            "/assistant/chat", json={"message": "A short twisty thriller"}, headers=auth(me)
+        )
+    assert response.status_code == 200, response.text
+    stream = events(response.text)
+
+    # The first words come from the first call, before the engine has run.
+    assert stream[0] == ("text", {"text": "Looking for short, twisty thrillers. "})
+    assert [name for name, _ in stream].index("card") > 0
+    assert spy[0].genres == frozenset({"Thriller"})  # "thriller" matched to TMDB's name
+    assert set(card_ids(stream)) <= set(SHORT)
+    # The model gets its own sentence back with the call, so it need not repeat it.
+    model_turn = sdk.requests[1]["contents"][-2]
+    assert model_turn["role"] == "model"
+    assert model_turn["parts"][0].text == "Looking for short, twisty thrillers. "
+    assert model_turn["parts"][1].function_call.name == "search_movies"
+    assert stream[-1] == ("done", {})
+
+
+async def test_a_film_must_have_every_genre_asked_for(
+    assistant_catalogue: AsyncSession,
+) -> None:
+    me = await new_viewer(assistant_catalogue)
+
+    thrillers = await service.search_movies(assistant_catalogue, me, genres=["Thriller"])
+    assert thrillers.hits and {h.movie.id for h in thrillers.hits} <= set(SHORT)
+    both = await service.search_movies(assistant_catalogue, me, genres=["Thriller", "Comedy"])
+    assert both.hits == []

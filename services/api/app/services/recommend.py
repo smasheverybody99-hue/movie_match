@@ -42,8 +42,10 @@ from app.config import get_settings
 from app.models import (
     Credit,
     Dismissal,
+    Genre,
     Movie,
     MovieEmbedding,
+    MovieGenre,
     MovieTraits,
     Rating,
     User,
@@ -434,6 +436,8 @@ class SearchRequest:
     year_max: int | None = None
     runtime_max: int | None = None
     exclude: frozenset[int] = frozenset()
+    # Genre names (TMDB's, as in the genres table): a film must have every one of them.
+    genres: frozenset[str] = frozenset()
     k: int = SEARCH_SIZE
 
 
@@ -496,6 +500,13 @@ def _search_rows(user_exclude: set[int], request: SearchRequest) -> Select:
         stmt = stmt.where(Movie.release_date <= date(request.year_max, 12, 31))
     if request.runtime_max is not None:
         stmt = stmt.where(Movie.runtime_minutes <= request.runtime_max)
+    for name in sorted(request.genres):
+        stmt = stmt.where(
+            select(MovieGenre.movie_id)
+            .join(Genre, Genre.id == MovieGenre.genre_id)
+            .where(MovieGenre.movie_id == Movie.id, Genre.name == name)
+            .exists()
+        )
     return stmt
 
 
@@ -533,8 +544,8 @@ async def search(
     The same engine as the sections, with the request in place of a section's filter:
 
     1. Hard filters in SQL: not adult, has traits, not rated / watched / dismissed, not in
-       `request.exclude` (films the conversation already showed), and the year and runtime
-       limits.
+       `request.exclude` (films the conversation already showed), the year and runtime
+       limits, and every genre asked for.
     2. Rank every film that passes by match_raw against `search_query` - the taste with
        the request laid over it. Not by embedding ANN: the request may point away from the
        taste ("something funny" from a viewer of bleak dramas), and the nearest films to

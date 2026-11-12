@@ -152,10 +152,14 @@ async def test_once_words_are_shown_only_the_total_limit_applies() -> None:
     assert out == [Text("in time")]
 
 
-async def test_the_total_limit_ends_an_answer_that_keeps_trickling() -> None:
+async def test_the_total_limit_ends_an_answer_that_keeps_trickling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # No pause is a stall here, whatever the test machine's timer does with short sleeps.
+    monkeypatch.setattr(service, "STALL_SECONDS", service.TOTAL_SECONDS)
     steps: list[Any] = []
     for _ in range(12):
-        steps += [TextDelta("more "), wait(5)]  # never a stall, but 60 s in all
+        steps += [TextDelta("more "), wait(5)]  # 60 s in all
     provider = Scripted([*steps, ended()])
     call = _Call()
 
@@ -164,9 +168,10 @@ async def test_the_total_limit_ends_an_answer_that_keeps_trickling() -> None:
     assert provider.calls == 1 and call.usage.estimated
 
 
-async def test_no_retry_is_made_without_time_left_for_it() -> None:
+async def test_no_retry_is_made_without_time_left_for_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(service, "MIN_TRY_SECONDS", 15 * SCALE)
     provider = Scripted(
-        [wait(21), TransientError("503 UNAVAILABLE")],
+        [wait(15), TransientError("503 UNAVAILABLE")],  # 10 s left, a retry needs 15
         [TextDelta("never asked"), ended()],
     )
     call = _Call()

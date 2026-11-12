@@ -100,6 +100,7 @@ MAX_RETRY_AFTER_SECONDS = 2.0  # a 429 that asks for a longer wait is not retrie
 # A call cut off by a time limit never gets the provider's token count: it is estimated
 # from characters, over-counting as the pipelines' estimates do.
 CHARS_PER_TOKEN = 3.5
+MAX_GENRES = 2  # a film must have every genre given: more than two finds almost nothing
 YEAR_RANGE = (1900, 2100)
 RUNTIME_RANGE = (30, 400)
 
@@ -117,6 +118,33 @@ MOODS: dict[str, dict[str, float]] = {
     "action_packed": {"action": 80, "pacing": 75},
 }
 
+
+# TMDB's film genres, the names in the genres table (TMDB /genre/movie/list, English).
+# Fixed here rather than read from the database: the tool schema is part of the prompt
+# prefix, which must be the same bytes on every call (ADR 0009). On 2026-11-12 "musical"
+# found Ratatouille and a romantic comedy request sent the made-up trait "comedy".
+GENRES = (
+    "Action",
+    "Adventure",
+    "Animation",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "History",
+    "Horror",
+    "Music",
+    "Mystery",
+    "Romance",
+    "Science Fiction",
+    "TV Movie",
+    "Thriller",
+    "War",
+    "Western",
+)
+_GENRE_BY_KEY = {name.casefold(): name for name in GENRES}
 
 # --- the tool -------------------------------------------------------------------------
 
@@ -151,6 +179,12 @@ def tool_schema() -> dict[str, Any]:
                 "description": "Longest runtime in minutes",
             },
             "mood": {"type": "string", "enum": sorted(MOODS), "description": "A preset mood"},
+            "genres": {
+                "type": "array",
+                "items": {"type": "string", "enum": list(GENRES)},
+                "maxItems": MAX_GENRES,
+                "description": "Only films with every one of these genres",
+            },
             "exclude_ids": {
                 "type": "array",
                 "items": {"type": "integer", "minimum": 1},
@@ -179,6 +213,7 @@ class SearchArgs:
     year_max: int | None = None
     runtime_max: int | None = None
     mood: str | None = None
+    genres: frozenset[str] = frozenset()
     exclude_ids: frozenset[int] = frozenset()
     dropped: tuple[str, ...] = ()
 
@@ -221,6 +256,19 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
     if mood is not None and mood not in MOODS:
         dropped.append("mood")
         mood = None
+    genres: list[str] = []
+    raw_genres = raw.get("genres")
+    if isinstance(raw_genres, list):
+        for value in raw_genres:
+            name = _GENRE_BY_KEY.get(value.strip().casefold()) if isinstance(value, str) else None
+            if name in genres:
+                continue
+            if name is None or len(genres) >= MAX_GENRES:
+                dropped.append(f"genres.{value}")
+            else:
+                genres.append(name)
+    elif raw_genres is not None:
+        dropped.append("genres")
     excluded: set[int] = set()
     raw_exclude = raw.get("exclude_ids")
     if isinstance(raw_exclude, list):
@@ -237,6 +285,7 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
         year_max=year_max,
         runtime_max=runtime_max,
         mood=mood,
+        genres=frozenset(genres),
         exclude_ids=frozenset(excluded),
         dropped=tuple(dropped),
     )
@@ -252,6 +301,7 @@ def search_request(args: SearchArgs, shown: set[int]) -> SearchRequest:
         year_max=args.year_max,
         runtime_max=args.runtime_max,
         exclude=frozenset(args.exclude_ids | shown),
+        genres=args.genres,
     )
 
 
@@ -264,6 +314,7 @@ async def search_movies(
     year_max: int | None = None,
     runtime_max: int | None = None,
     mood: str | None = None,
+    genres: Sequence[str] | None = None,
     exclude_ids: Sequence[int] | None = None,
     shown: set[int] | None = None,
 ) -> SearchResult:
@@ -277,6 +328,7 @@ async def search_movies(
             "year_max": year_max,
             "runtime_max": runtime_max,
             "mood": mood,
+            "genres": list(genres or []),
             "exclude_ids": list(exclude_ids or []),
         }
     )
@@ -315,14 +367,20 @@ What you do:
 1. Films only. If the message is not about finding or choosing a film to watch, reply with
 exactly [[off_topic]] and nothing else, and do not call the tool.
 2. To recommend anything, call search_movies. You know no films yourself: never name,
-suggest or describe a film that search_movies did not return in this conversation.
+suggest or describe a film that search_movies did not return in this conversation. Before
+the call, write one short sentence in the viewer's language that says what kind of film
+you are looking for, without naming any film, then call search_movies.
 3. Turn the request into arguments. Set only what the viewer asked for: a trait level for
 each quality they named (0-100, on the dimensions below), a mood if it fits one, a year
-range, runtime_max in minutes ("I have 90 minutes" means runtime_max 90). The viewer's
-taste is applied by the engine; do not copy it into the arguments.
-4. When the tool answers, write one to three short sentences in plain words, in the
-viewer's language. Show each film you recommend with the marker [[film:ID]], using only ids
-from the tool result, on its own after the sentence about it. Say only what the tool result
+range, runtime_max in minutes ("I have 90 minutes" means runtime_max 90), and genres when
+they named a kind of film: a thriller is Thriller, a musical is Music, a romantic comedy is
+Romance and Comedy. A film must have every genre given, so give two only when both were
+asked for. A genre is never a trait. The viewer's taste is applied by the engine; do not
+copy it into the arguments.
+4. When the tool answers, do not repeat your first sentence: write one to three short
+sentences in plain words, in the viewer's language. Show each film you recommend with the
+marker [[film:ID]], using only ids from the tool result, on its own after the sentence
+about it. Say only what the tool result
 says about a film. Then give two or three follow-up requests the viewer might send next,
 each as [[ask:TEXT]], written the way the viewer would type it, in the viewer's language,
 under 60 characters.
@@ -339,7 +397,9 @@ film titles written out except where the tool result gives them.
 Trait dimensions, 0-100:
 {_VOCABULARY}
 
-Moods: {", ".join(sorted(MOODS))}."""
+Moods: {", ".join(sorted(MOODS))}.
+
+Genres: {", ".join(GENRES)}."""
 
 
 def system_prompt(
@@ -858,6 +918,7 @@ async def chat(
                         year_max=args.year_max,
                         runtime_max=args.runtime_max,
                         mood=args.mood,
+                        genres=sorted(args.genres),
                         exclude_ids=sorted(args.exclude_ids),
                         shown=shown_before,
                     )

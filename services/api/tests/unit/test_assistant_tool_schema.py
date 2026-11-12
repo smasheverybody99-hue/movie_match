@@ -5,6 +5,8 @@ import inspect
 from app.providers.gemini import chat_config
 from app.services import assistant
 from app.services.assistant import (
+    GENRES,
+    MAX_GENRES,
     MOODS,
     TOOL,
     SearchArgs,
@@ -23,7 +25,15 @@ def test_the_schemas_properties_are_search_movies_keyword_arguments() -> None:
     parameters = inspect.signature(search_movies).parameters
     accepted = {name for name in parameters if name not in SERVER_ONLY}
     assert set(tool_schema()["properties"]) == accepted
-    assert accepted == {"traits", "year_min", "year_max", "runtime_max", "mood", "exclude_ids"}
+    assert accepted == {
+        "traits",
+        "year_min",
+        "year_max",
+        "runtime_max",
+        "mood",
+        "genres",
+        "exclude_ids",
+    }
     for name in accepted:
         assert parameters[name].kind is inspect.Parameter.KEYWORD_ONLY
         assert parameters[name].default is None  # every argument is optional
@@ -53,6 +63,7 @@ def test_every_value_the_schema_allows_is_accepted_unchanged() -> None:
         "year_max": props["year_max"]["maximum"],
         "runtime_max": props["runtime_max"]["minimum"],
         "mood": props["mood"]["enum"][0],
+        "genres": props["genres"]["items"]["enum"][:MAX_GENRES],
         "exclude_ids": [1, 2],
     }
     args = parse_args(raw)
@@ -63,6 +74,7 @@ def test_every_value_the_schema_allows_is_accepted_unchanged() -> None:
         year_max=raw["year_max"],
         runtime_max=raw["runtime_max"],
         mood=raw["mood"],
+        genres=frozenset(GENRES[:MAX_GENRES]),
         exclude_ids=frozenset({1, 2}),
     )
 
@@ -75,6 +87,7 @@ def test_what_the_schema_forbids_is_dropped_not_guessed() -> None:
             "runtime_max": "90",
             "mood": "sleepy",
             "exclude_ids": "1,2",
+            "genres": "Thriller",
             "rank_by": "my favourites",
         }
     )
@@ -90,6 +103,7 @@ def test_what_the_schema_forbids_is_dropped_not_guessed() -> None:
         "runtime_max",
         "mood",
         "exclude_ids",
+        "genres",
         "rank_by",
     }
     # Whole numbers sent as floats are fine (some providers send every number that way).
@@ -111,3 +125,25 @@ def test_the_provider_is_given_the_schema_unchanged() -> None:
     assert chat_config("system", [TOOL], allow_tools=False)["tool_config"] == {
         "function_calling_config": {"mode": "NONE"}
     }
+
+
+def test_genres_are_tmdbs_names_and_a_film_must_have_every_one() -> None:
+    genres = tool_schema()["properties"]["genres"]
+    assert genres["items"]["enum"] == list(GENRES)
+    assert genres["maxItems"] == MAX_GENRES == 2
+    assert "every" in genres["description"]
+
+
+def test_genre_names_are_matched_without_case_and_unknown_ones_are_dropped() -> None:
+    # 2026-11-12: a romantic comedy request sent the trait "comedy", which does not exist.
+    args = parse_args({"genres": ["thriller", " Science fiction ", "Thriller"]})
+    assert args.genres == frozenset({"Thriller", "Science Fiction"})
+    assert args.dropped == ()
+    args = parse_args({"genres": ["Musical", "Romance", "Comedy", "Drama", 7]})
+    assert args.genres == frozenset({"Romance", "Comedy"})
+    assert args.dropped == ("genres.Musical", "genres.Drama", "genres.7")
+
+
+def test_the_request_carries_the_genres() -> None:
+    request = search_request(parse_args({"genres": ["Music"]}), shown=set())
+    assert request.genres == frozenset({"Music"})
