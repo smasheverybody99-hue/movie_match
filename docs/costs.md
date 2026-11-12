@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-11-11** (assistant narxi). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-11-12** (assistant narxi o'lchandi). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -120,8 +120,9 @@ TZ §5: LLM xarajati foydalanuvchiga oyiga < $0.20. Oddiy foydalanuvchi limitga 
 **Model: Gemini 3.5 Flash-Lite**, provayder interfeysi orqali (ADR 0009, foydalanuvchi
 qarori 2026-11-11). Oldingi reja, Claude Sonnet 5 ($2 / $10), shu qaror bilan bekor
 qilindi. Limit: kuniga 30 xabar (`assistant_daily_calls_per_user`, UTC kun). Bitta xabar —
-ko'pi bilan ikki chaqiruv: tool so'rovi va natijadan keyingi javob. Foydalanuvchi kutgani
-uchun narx **standart** (Batch emas).
+ko'pi bilan ikki chaqiruv: tool so'rovi va natijadan keyingi javob. 503 (yoki qisqa kutishli
+429) bo'lsa har biri bir marta qayta uriniladi, eng yomoni 4 chaqiruv (2026-11-12, `f4-fixes`).
+Foydalanuvchi kutgani uchun narx **standart** (Batch emas).
 
 | Narx, $/MTok | Kirish | Kesh urilgan kirish | Chiqish | Manba |
 |---|---|---|---|---|
@@ -132,9 +133,24 @@ Kesh: implicit caching avtomatik, lekin sahifadagi minimal hajm jadvalida Flash-
 Ro'yxatdagi 3.x Flash modellari uchun minimum 4 096 token
 ([aistudio.google.com/docs/caching](https://aistudio.google.com/docs/caching), 2026-11-11).
 Bizning prefiks ~1 600 token, shuning uchun hisob **keshsiz** qilingan. Explicit cache
-saqlash uchun soatiga $1.00 / MTok oladi, hozir qo'llanmaydi (ADR 0009).
+saqlash uchun soatiga $1.00 / MTok oladi, hozir qo'llanmaydi (ADR 0009). **O'lchov
+(2026-11-11, 72 xabar): kesh bir marta ham urilmadi** — birorta cost qatorida `cached_tokens`
+yo'q (birinchi chaqiruv ~1 800 kirish token).
 
-| Faraz (taxmin, o'lchanmagan) | Bitta xabar | Oyiga 20 xabar | Oyiga 900 xabar (limit) |
+| O'lchangan (2026-11-11, F4 qo'lda tekshiruvi, Render log'idagi 72 ta `run=assistant` qatori, standart tarif) | Bitta xabar | Oyiga 20 xabar | Oyiga 20 suhbat (55 xabar) | Oyiga 900 xabar (limit) |
+|---|---|---|---|---|
+| Oddiy xabar, 2 chaqiruv (63 ta): o'rtacha 4 393 kirish + 128 chiqish | **$0.00164** (median $0.00162, eng ko'pi $0.00204) | **$0.033** | **$0.086** | $1.48 |
+| Off-topic, 1 chaqiruv (4 ta): ~1 820 kirish + 5 chiqish | $0.00055 | — | — | — |
+
+72 xabar jami **$0.1086** (taxmin $0.14 edi). Bitta suhbat (o'rtacha 2.75 xabar) $0.0043.
+$0.20 chegarasiga oyiga ~122 xabarda yetiladi (~4 kuniga). 5 ta xabar 503 bilan uzilgan,
+ularning cost qatorida faqat birinchi chaqiruv bor edi (`requests=1`): ikkinchi chaqiruvning
+uzilgan qismi hisobda yo'q, farq kichik. `f4-fixes` dan boshlab uzilgan chaqiruv ham
+hisoblanadi.
+
+Quyidagi jadval — o'lchovdan oldingi taxmin, tarix uchun qoladi.
+
+| Faraz (taxmin, 2026-11-11, o'lchov bilan almashtirildi) | Bitta xabar | Oyiga 20 xabar | Oyiga 900 xabar (limit) |
 |---|---|---|---|
 | 2 chaqiruv: ~4 400 kirish (system prompt + tool sxemasi ~1 600, 4 oldingi navbat, tool natijasi 6 film) + ~200 chiqish | **~$0.0018** | **~$0.04** | ~$1.6 |
 | Off-topic: 1 chaqiruv, ~1 900 kirish + ~10 chiqish | ~$0.0006 | — | — |
@@ -203,7 +219,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 |---|---|---|
 | Bir martalik (trait + embedding) | $0.03 – $0.45 | Provayderga bog'liq, yuqoridagi jadvallar |
 | Oylik: LLM izohlar | ≤ $4 (Gemini) | Eng yomon holat: 50 tester har kuni limitga yetadi, 50 × $0.08. Avval "< $1" yozilgan edi — limit hisobiga noto'g'ri edi (2026-10-02 tuzatildi). Oddiy foydalanishda ancha kam |
-| Oylik: assistant | ~$0.04 × faol tester (20 xabar); eng yomoni ~$1.6 × tester (har kuni 30) | Gemini 3.5 Flash-Lite, ADR 0009; taxmin, F4 qo'lda tekshiruvida o'lchanadi. Bepul tarifda $0 |
+| Oylik: assistant | ~$0.033 × faol tester (20 xabar), ~$0.086 (20 suhbat); eng yomoni ~$1.48 × tester (har kuni 30) | Gemini 3.5 Flash-Lite, ADR 0009; **o'lchangan** 2026-11-11 (72 xabar, $0.00164 bittasi). Bepul tarifda $0 |
 | Oylik: baza + hosting | $0 | Free tariflar; cheklovlari yuqorida |
 | TMDB | $0 | Monetizatsiyagacha |
 
@@ -219,4 +235,5 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
+| 2026-11-12 | Assistant narxi o'lchov bilan almashtirildi: 72 xabar $0.1086, oddiy xabar $0.00164 (4 393 / 128 token), off-topic $0.00055; oyiga 20 xabar $0.033, 20 suhbat $0.086, limitda $1.48. Kesh 0 marta urildi. 503 da bir marta qayta urinish: xabar boshiga eng yomoni 4 chaqiruv |
 | 2026-11-11 | Assistant: Claude Sonnet 5 o'rniga Gemini 3.5 Flash-Lite, provayder interfeysi orqali (ADR 0009, foydalanuvchi qarori). Narx 0.30 / 2.50, kesh urilgan kirish 0.03 (sahifa tekshirildi). Taxmin ~$0.0018 bir xabarga, oyiga 20 xabar ≈ $0.04; implicit kesh minimumi Flash-Lite uchun ko'rsatilmagan (3.x Flash: 4 096), hisob keshsiz |
