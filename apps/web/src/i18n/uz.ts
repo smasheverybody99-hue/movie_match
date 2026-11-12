@@ -37,6 +37,7 @@ export const uz: Record<MessageKey, Message> = {
   "assistant.leak": "Buni ayta olmayman. Undan ko'ra film so'rang.",
   "assistant.failed": "Assistant javob bera olmadi. Qayta urinib ko'ring.",
   "assistant.blocked": "Bu savolga javob bera olmayman. Boshqacharoq so'rab ko'ring.",
+  "assistant.busy": "Assistant hozir band. Bir daqiqadan keyin qayta urinib ko'ring.",
   "assistant.limit": {
     one: "Bugungi {n} ta savolingizdan foydalandingiz. Soat {time} da yana so'rashingiz mumkin.",
     other: "Bugungi {n} ta savolingizning hammasidan foydalandingiz. Soat {time} da yana so'rashingiz mumkin.",

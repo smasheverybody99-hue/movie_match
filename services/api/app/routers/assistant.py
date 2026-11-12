@@ -13,7 +13,8 @@ Events, each `event: <name>` + `data: <json>`:
     reset      {}                            drop what this answer showed: a call broke
                                              off and runs again; the events before it
                                              are sent again, then the new attempt
-    error      {"reason": "failed"|"blocked"}
+    error      {"reason": "failed"|"blocked"|"timeout"}  "timeout": the message passed
+                                             its time limit; the client says it is busy
     done       {}
 """
 

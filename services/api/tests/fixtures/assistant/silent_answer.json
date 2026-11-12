@@ -1,0 +1,12 @@
+{
+  "note": "Hand-written, not recorded: the answer after the tool result sends nothing for longer than the time limit allows before the first words. The test shrinks FIRST_TEXT_SECONDS below the pause.",
+  "calls": [
+    [
+      {"sleep": 2.0},
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Too late."}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 2400, "candidatesTokenCount": 5, "totalTokenCount": 2405}
+      }
+    ]
+  ]
+}

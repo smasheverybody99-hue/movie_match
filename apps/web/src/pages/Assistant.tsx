@@ -22,6 +22,14 @@ export const STARTERS: MessageKey[] = [
 
 const MAX_CHARS = 500; // app.schemas.AssistantChatIn
 
+/** What a failed answer says. "timeout": the model did not answer in time (busy). */
+const ERROR_TEXT: Record<NonNullable<Exchange["error"]>, MessageKey> = {
+  failed: "assistant.failed",
+  offline: "assistant.failed",
+  blocked: "assistant.blocked",
+  timeout: "assistant.busy",
+};
+
 /** The reset time in the viewer's own clock and language, e.g. "05:00". */
 export function resetTime(iso: string, lang: string): string {
   return new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -74,7 +82,7 @@ function Answer({ exchange, onRetry }: { exchange: Exchange; onRetry?: () => voi
       )}
       {status === "failed" && (
         <div className="assistant-error" role="alert">
-          <p>{t(exchange.error === "blocked" ? "assistant.blocked" : "assistant.failed")}</p>
+          <p>{t(ERROR_TEXT[exchange.error ?? "failed"])}</p>
           {onRetry && exchange.error !== "blocked" && (
             <button type="button" className="btn btn-secondary btn-sm" onClick={onRetry}>
               {t("common.retry")}

@@ -185,7 +185,8 @@ export interface AssistantLimit {
 
 /** `refusal`: the client shows its own fixed text. Mirrors the router's event payloads. */
 export type AssistantRefusalReason = "off_topic" | "leak";
-export type AssistantErrorReason = "failed" | "blocked";
+/** "timeout": the answer did not come in time; the client says the assistant is busy. */
+export type AssistantErrorReason = "failed" | "blocked" | "timeout";
 
 /** One event of the stream, in the order the API sends them (app/routers/assistant.py). */
 export type AssistantEvent =

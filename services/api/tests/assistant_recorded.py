@@ -7,9 +7,11 @@ parses the chunks, so these tests cover the provider code as well as the service
 reaches a real model.
 
 `"tool_call#2"` plays only the second call of a fixture. A chunk `{"raise": {"code": 503,
-...}}` raises the SDK's own error at that point of the stream, as a 503 under load does.
+...}}` raises the SDK's own error at that point of the stream, as a 503 under load does;
+`{"sleep": 2.0}` waits that many seconds there, as a slow or stalled stream does.
 """
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from typing import Any
@@ -44,6 +46,9 @@ class RecordedSdk:
 
         async def play() -> AsyncIterator[types.GenerateContentResponse]:
             for chunk in chunks:
+                if "sleep" in chunk:
+                    await asyncio.sleep(chunk["sleep"])
+                    continue
                 if "raise" in chunk:
                     error = chunk["raise"]
                     kind = errors.ServerError if error["code"] >= 500 else errors.ClientError

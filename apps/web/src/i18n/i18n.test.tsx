@@ -251,3 +251,14 @@ describe("assistant starter prompts (FR-8)", () => {
     expect(translate("en", "assistant.starter.mind")).toBe("I have 90 minutes — blow my mind");
   });
 });
+
+describe("the assistant's busy message (FR-8 time limit)", () => {
+  // Shown when no answer came within the time limit (first words in 25 s, the end in 45 s;
+  // ADR 0009 amendment 2026-11-13). The user asked for a "busy" message with a retry
+  // button (2026-11-12): it blames the load, not the question, and says when to try.
+  it("says the assistant is busy and when to try again", () => {
+    expect(translate("uz", "assistant.busy")).toBe("Assistant hozir band. Bir daqiqadan keyin qayta urinib ko'ring.");
+    expect(translate("en", "assistant.busy")).toBe("The assistant is busy right now. Try again in a minute.");
+    expect(translate("ru", "assistant.busy")).toBe("Ассистент сейчас занят. Попробуйте ещё раз через минуту.");
+  });
+});

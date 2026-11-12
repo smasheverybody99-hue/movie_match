@@ -69,8 +69,9 @@ class Settings(BaseSettings):
 
     # Cost guards. Raise deliberately, never silently.
     # Assistant messages per user per UTC day (FR-8: 30). One message is at most two model
-    # calls (the tool call and the answer after it), each retried once after a 503, so four
-    # at worst; off-topic ones count too.
+    # calls (the tool call and the answer after it), each retried once after a 503 or a
+    # stalled stream, so four at worst; off-topic ones count too, and so does one that ran
+    # out of time (its tokens were spent).
     assistant_daily_calls_per_user: int = 30
     # "Why you'll like this" generations per user per day. Cached ones are free and
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is

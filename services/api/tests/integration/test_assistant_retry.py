@@ -119,3 +119,45 @@ async def test_a_break_after_the_follow_ups_keeps_the_complete_answer(
     assert len(sdk.requests) == 2  # nothing was lost, so nothing is asked again
     assert turn is not None
     assert "status=interrupted" in _line(caplog, "run=assistant")
+
+
+# --- time limits (ADR 0009 amendment 2026-11-13) ---------------------------------------
+
+
+async def test_an_answer_that_stalls_after_its_first_words_is_tried_again(
+    assistant_catalogue: AsyncSession,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(service, "STALL_SECONDS", 0.2)
+    stream, sdk, turn = await _ask(
+        assistant_catalogue, "tool_call#1", "stalled_answer", "tool_call#2"
+    )
+
+    names = [name for name, _ in stream]
+    assert names.count("reset") == 1
+    assert text_of(_after_reset(stream)).startswith(ANSWER)
+    assert stream[-1] == ("done", {})
+    assert len(sdk.requests) == 3
+    assert turn is not None
+    assert "retries=1 end=done" in _line(caplog, "assistant timing")
+    # The stalled attempt never got the provider's count: estimated, and said so.
+    cost = _line(caplog, "run=assistant")
+    assert "requests=3" in cost and "tokens=estimated" in cost
+
+
+async def test_no_words_within_the_limit_end_as_busy_and_the_cut_call_is_billed(
+    assistant_catalogue: AsyncSession,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(service, "FIRST_TEXT_SECONDS", 1.0)
+    stream, sdk, turn = await _ask(assistant_catalogue, "tool_call#1", "silent_answer")
+
+    assert stream == [("error", {"reason": "timeout"})]
+    assert len(sdk.requests) == 2  # no time was left for another try
+    assert turn is None
+    assert "end=timeout" in _line(caplog, "assistant timing")
+    cost = _line(caplog, "run=assistant")
+    # The tool call as reported (1,850 in), the cut-off answer estimated from characters.
+    assert "requests=2" in cost and "tokens=estimated" in cost and "status=interrupted" in cost
