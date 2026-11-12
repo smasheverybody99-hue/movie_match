@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-11-12** (assistant narxi o'lchandi). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-11-13** (assistant: kattalashgan prefiks narxi — taxmin, o'lchov kutilmoqda). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -141,6 +141,12 @@ yo'q (birinchi chaqiruv ~1 800 kirish token).
 |---|---|---|---|---|
 | Oddiy xabar, 2 chaqiruv (63 ta): o'rtacha 4 393 kirish + 128 chiqish | **$0.00164** (median $0.00162, eng ko'pi $0.00204) | **$0.033** | **$0.086** | $1.48 |
 | Off-topic, 1 chaqiruv (4 ta): ~1 820 kirish + 5 chiqish | $0.00055 | — | — | — |
+| **Taxmin, 2026-11-13 dan** (`genres` va kirish gapi): har chaqiruvga +~280 kirish token (ko'rsatmalar 3 025 → 3 643, tool sxemasi 2 735 → 3 091 belgi; 3.5 belgi/token), kirish gapi +~15 chiqish token | ~$0.0018 | ~$0.037 | ~$0.10 | ~$1.66 |
+
+Oxirgi qator o'lchanmagan: Render log'idagi 2026-11-12 19:33–19:35 UTC dagi 10 ta
+`run=assistant` qatori o'qilgach almashtiriladi. Vaqt chegarasi (TZ 1.28) chaqiruvlar
+sonini o'zgartirmaydi; u kesgan chaqiruv ham pul, uning tokenlari belgilardan hisoblanib
+`tokens=estimated` bilan yoziladi.
 
 72 xabar jami **$0.1086** (taxmin $0.14 edi). Bitta suhbat (o'rtacha 2.75 xabar) $0.0043.
 $0.20 chegarasiga oyiga ~122 xabarda yetiladi (~4 kuniga). 5 ta xabar 503 bilan uzilgan,
@@ -235,5 +241,6 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
+| 2026-11-13 | Assistant: prefiks kattalashdi (`genres` argumenti, kirish gapi; TZ 1.29) — taxmin ~$0.0018 xabarga (o'lchangan $0.00164 + ~280 kirish token × 2 chaqiruv), limitda ~$1.66 oyiga; o'lchov Render log'ini kutmoqda. Kesilgan chaqiruv tokenlari endi taxminan yoziladi (TZ 1.28) |
 | 2026-11-12 | Assistant narxi o'lchov bilan almashtirildi: 72 xabar $0.1086, oddiy xabar $0.00164 (4 393 / 128 token), off-topic $0.00055; oyiga 20 xabar $0.033, 20 suhbat $0.086, limitda $1.48. Kesh 0 marta urildi. 503 da bir marta qayta urinish: xabar boshiga eng yomoni 4 chaqiruv |
 | 2026-11-11 | Assistant: Claude Sonnet 5 o'rniga Gemini 3.5 Flash-Lite, provayder interfeysi orqali (ADR 0009, foydalanuvchi qarori). Narx 0.30 / 2.50, kesh urilgan kirish 0.03 (sahifa tekshirildi). Taxmin ~$0.0018 bir xabarga, oyiga 20 xabar ≈ $0.04; implicit kesh minimumi Flash-Lite uchun ko'rsatilmagan (3.x Flash: 4 096), hisob keshsiz |
