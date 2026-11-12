@@ -128,6 +128,8 @@ export function toAssistantEvent(name: string, data: unknown): AssistantEvent | 
       return data.reason === "off_topic" || data.reason === "leak" ? { type: "refusal", reason: data.reason } : null;
     case "error":
       return { type: "error", reason: data.reason === "blocked" ? "blocked" : "failed" };
+    case "reset":
+      return { type: "reset" };
     case "done":
       return { type: "done" };
     default:

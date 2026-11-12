@@ -64,6 +64,9 @@ export function applyEvent(exchange: Exchange, event: AssistantEvent): Exchange 
       return { ...exchange, parts: [], followups: [], status: "refused", refusal: event.reason };
     case "error":
       return { ...exchange, status: "failed", error: event.reason };
+    case "reset":
+      // The server tries the call again; what came before that call is sent again.
+      return { ...exchange, parts: [], followups: [], status: "waiting" };
     case "done":
       return exchange.status === "refused" ? exchange : { ...exchange, status: "done" };
   }

@@ -144,3 +144,65 @@ def test_there_is_no_assistant_without_a_key() -> None:
     assert GeminiProvider(Settings(_env_file=None)).assistant() is None
     with_key = GeminiProvider(Settings(_env_file=None, gemini_api_key="k")).assistant()
     assert with_key is not None and with_key.model == "gemini-3.5-flash-lite"
+
+
+async def test_a_503_in_the_middle_still_counts_the_tokens_then_raises() -> None:
+    assistant, _ = recorded_assistant("broken_answer")
+    seen: list = []
+    with pytest.raises(TransientError, match="503"):
+        async for event in assistant.stream(
+            "sys", [ChatMessage("user", "x")], [TOOL], allow_tools=False
+        ):
+            seen.append(event)
+    assert [e.text for e in seen if isinstance(e, TextDelta)] == [
+        "Two short ones that keep you guessing. [[film:9600001]] This one"
+    ]
+    # The usage so far comes before the error, so the cost line can count it.
+    assert seen[-1] == StreamEnd(Usage(1, 2400, 20), "interrupted", "503 UNAVAILABLE")
+
+
+async def test_a_503_before_the_first_chunk_counts_one_request() -> None:
+    assistant, _ = recorded_assistant("unavailable")
+    seen: list = []
+    with pytest.raises(TransientError):
+        async for event in assistant.stream(
+            "sys", [ChatMessage("user", "x")], [TOOL], allow_tools=True
+        ):
+            seen.append(event)
+    assert seen == [StreamEnd(Usage(requests=1), "interrupted", "503 UNAVAILABLE")]
+
+
+@pytest.mark.parametrize(
+    ("chunk", "detail"),
+    [
+        (
+            {
+                "candidates": [
+                    {
+                        "content": {"parts": [{"text": "a"}]},
+                        "finishReason": "RECITATION",
+                        "safetyRatings": [
+                            {"category": "HARM_CATEGORY_HARASSMENT", "probability": "NEGLIGIBLE"},
+                            {
+                                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                "probability": "MEDIUM",
+                                "blocked": True,
+                            },
+                        ],
+                    }
+                ]
+            },
+            "finish_reason=RECITATION safety=HARM_CATEGORY_DANGEROUS_CONTENT:MEDIUM:blocked",
+        ),
+        (_ended("SAFETY"), "finish_reason=SAFETY"),
+        ({"promptFeedback": {"blockReason": "OTHER"}}, "block_reason=OTHER"),
+        (
+            {"candidates": [{"content": {"parts": [{"text": "a"}]}, "finishReason": "STOP"}]},
+            "",
+        ),
+    ],
+)
+async def test_an_answer_that_did_not_end_cleanly_says_why(chunk: dict, detail: str) -> None:
+    """2026-11-11: one answer ended "blocked" and the log could not say why."""
+    out = await collect(GeminiAssistant(Chunks([chunk])), [ChatMessage("user", "x")])
+    assert out[-1].detail == detail

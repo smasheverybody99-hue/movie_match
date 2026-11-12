@@ -1,0 +1,12 @@
+{
+  "note": "Hand-written, not recorded: the whole answer arrives, follow-ups included, and only then the stream breaks off with 503 UNAVAILABLE (on 2026-11-11 one answer with three cards ended this way and was thrown away).",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Two short ones that keep you guessing. [[film:9600001]] This one saves its reveal for the end. [[film:9600002]] [[ask:Something even shorter]] [[ask:Older films like these]]"}]}}],
+        "usageMetadata": {"promptTokenCount": 2400, "candidatesTokenCount": 60, "totalTokenCount": 2460}
+      },
+      {"raise": {"code": 503, "status": "UNAVAILABLE", "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later."}}
+    ]
+  ]
+}

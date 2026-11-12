@@ -3,17 +3,24 @@
 from dataclasses import replace
 from datetime import UTC, date, datetime
 
+import pytest
+
 from app.models import Movie
+from app.providers.base import ProviderUnavailable, RateLimited, TransientError
 from app.services.assistant import (
     INSTRUCTIONS,
     MAX_FOLLOWUPS,
+    RETRY_DELAY_SECONDS,
     AnswerFilter,
     Card,
     Event,
     Refusal,
     Text,
+    _Call,
     resets_at,
+    retry_delay,
     system_prompt,
+    timing_line,
     tool_result,
 )
 from app.services.matching import TraitNotes
@@ -141,3 +148,44 @@ def test_the_day_resets_at_the_next_utc_midnight() -> None:
         2026, 11, 12, tzinfo=UTC
     )
     assert resets_at(datetime(2026, 12, 31, 0, 0, tzinfo=UTC)) == datetime(2027, 1, 1, tzinfo=UTC)
+
+
+def test_going_back_to_a_saved_state_forgets_what_came_after() -> None:
+    """A call that runs again reads its answer from where the filter stood before it."""
+    answer = AnswerFilter()
+    answer.allow([hit(1), hit(2)])
+    saved = answer.state()
+    answer.feed("Here. [[film:1]] And [[ask:More]]")
+    assert answer.shown == [1] and answer.finished
+
+    answer.restore(saved)
+    assert (answer.shown, answer.followups, answer.answer) == ([], [], "")
+    assert not answer.finished
+    answer.feed("Again. [[film:1]]")
+    assert answer.shown == [1]  # not dropped as a repeat
+    answer.restore(saved)  # the saved copy itself was not changed by the second run
+    assert answer.shown == [] and set(answer.allowed) == {1, 2}
+
+
+@pytest.mark.parametrize(
+    ("error", "delay"),
+    [
+        (TransientError("503 UNAVAILABLE"), RETRY_DELAY_SECONDS),
+        (RateLimited("429", retry_after=1.5), 1.5),
+        (RateLimited("429", retry_after=30), None),  # a long wait is not worth a user's time
+        (RateLimited("429"), None),  # no hint: likely the day's quota
+        (ProviderUnavailable("403"), None),
+        (ValueError("bug"), None),
+    ],
+)
+def test_only_a_brief_unavailability_is_tried_again(error: Exception, delay: float | None) -> None:
+    assert retry_delay(error) == delay
+
+
+def test_the_timing_line_names_every_stage_and_marks_one_that_did_not_run() -> None:
+    first, second = _Call(seconds=1.234, retries=1), _Call()
+    line = timing_line({"prepare": 0.3, "first_text": 2.5}, first, second, 2.6, "off_topic")
+    assert line == (
+        "prepare=0.30 first_call=1.23 search=- second_call=- first_text=2.50 "
+        "total=2.60 retries=1 end=off_topic"
+    )

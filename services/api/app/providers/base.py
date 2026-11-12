@@ -240,15 +240,18 @@ class ToolRequested:
     call: ToolCall
 
 
-StopReason = Literal["done", "blocked", "truncated"]
+# "interrupted": the stream broke off, and the error follows this event.
+StopReason = Literal["done", "blocked", "truncated", "interrupted"]
 
 
 @dataclass(frozen=True)
 class StreamEnd:
-    """The last event of every stream: what the call used, and how it ended."""
+    """The last event of every stream: what the call used, and how it ended. `detail` says
+    why an answer did not end cleanly (the provider's own reason), for the log."""
 
     usage: Usage
     stop: StopReason = "done"
+    detail: str = ""
 
 
 AssistantEvent = TextDelta | ToolRequested | StreamEnd
@@ -259,8 +262,9 @@ class Assistant(Protocol):
 
     Yields TextDelta and ToolRequested events as they arrive and always ends with one
     StreamEnd. With `allow_tools` False the model is told it may not call a tool (the
-    answer after a tool result), so a conversation turn is at most two calls. Raises
-    RateLimited, TransientError or ProviderUnavailable like the other workers.
+    answer after a tool result). Raises RateLimited, TransientError or ProviderUnavailable
+    like the other workers; when the stream breaks off after it started, a StreamEnd with
+    stop "interrupted" and the usage so far comes first, so the tokens are still counted.
     """
 
     provider: str

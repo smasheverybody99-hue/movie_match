@@ -5,13 +5,16 @@ plays the next call of a fixture in tests/fixtures/assistant/ and keeps the requ
 given, so a test can check what the model would have been sent. The real GeminiAssistant
 parses the chunks, so these tests cover the provider code as well as the service. No test
 reaches a real model.
+
+`"tool_call#2"` plays only the second call of a fixture. A chunk `{"raise": {"code": 503,
+...}}` raises the SDK's own error at that point of the stream, as a 503 under load does.
 """
 
 import json
 from collections.abc import AsyncIterator
 from typing import Any
 
-from google.genai import types
+from google.genai import errors, types
 
 from app.providers.gemini import GeminiAssistant
 from tests.conftest import load_fixture
@@ -20,9 +23,11 @@ from tests.conftest import load_fixture
 class RecordedSdk:
     def __init__(self, *names: str) -> None:
         """The calls of each named fixture, in order; `names` may repeat."""
-        self.calls: list[list[dict]] = [
-            call for name in names for call in load_fixture(f"assistant/{name}.json")["calls"]
-        ]
+        self.calls: list[list[dict]] = []
+        for name in names:
+            fixture, _, which = name.partition("#")
+            calls = load_fixture(f"assistant/{fixture}.json")["calls"]
+            self.calls += [calls[int(which) - 1]] if which else calls
         self.requests: list[dict[str, Any]] = []
 
     @property
@@ -39,6 +44,10 @@ class RecordedSdk:
 
         async def play() -> AsyncIterator[types.GenerateContentResponse]:
             for chunk in chunks:
+                if "raise" in chunk:
+                    error = chunk["raise"]
+                    kind = errors.ServerError if error["code"] >= 500 else errors.ClientError
+                    raise kind(error["code"], {"error": error})
                 yield types.GenerateContentResponse.model_validate(chunk)
 
         return play()

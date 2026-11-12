@@ -194,4 +194,6 @@ export type AssistantEvent =
   | { type: "followups"; items: string[] }
   | { type: "refusal"; reason: AssistantRefusalReason }
   | { type: "error"; reason: AssistantErrorReason }
+  /** A model call broke off and runs again: drop what this answer showed. */
+  | { type: "reset" }
   | { type: "done" };

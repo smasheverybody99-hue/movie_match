@@ -10,6 +10,9 @@ Events, each `event: <name>` + `data: <json>`:
     card       AssistantCardOut              a film, where it stands in the answer
     followups  {"items": ["...", ...]}       two or three chips
     refusal    {"reason": "off_topic"|"leak"}  the client shows its own fixed text
+    reset      {}                            drop what this answer showed: a call broke
+                                             off and runs again; the events before it
+                                             are sent again, then the new attempt
     error      {"reason": "failed"|"blocked"}
     done       {}
 """
@@ -58,6 +61,8 @@ async def _events(
             yield sse("refusal", {"reason": event.reason})
         elif isinstance(event, service.Failed):
             yield sse("error", {"reason": event.reason})
+        elif isinstance(event, service.Reset):
+            yield sse("reset", {})
         else:
             yield sse("done", {})
 

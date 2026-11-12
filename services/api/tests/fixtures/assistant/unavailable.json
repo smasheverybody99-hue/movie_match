@@ -1,0 +1,8 @@
+{
+  "note": "Hand-written, not recorded: Gemini answers 503 UNAVAILABLE before the first chunk, as on 2026-11-11 under high demand. A {\"raise\": ...} entry makes RecordedSdk raise the SDK's ServerError at that point of the stream.",
+  "calls": [
+    [
+      {"raise": {"code": 503, "status": "UNAVAILABLE", "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later."}}
+    ]
+  ]
+}

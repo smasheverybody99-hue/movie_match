@@ -32,7 +32,8 @@ provayder, ikkinchi kalit va ikkinchi narx jadvali paydo bo'ladi.
    keyingi so'rovda uni o'zgartirmasdan qaytarish kerak. `ToolCall.raw` — provayderning o'z
    yozuvi, servis uchun shaffof emas, Gemini uni so'zma-so'z qaytarib yuboradi. Boshqa
    provayder `raw` ni `None` qoldirishi mumkin.
-5. **Bitta xabar — ko'pi bilan ikki chaqiruv**: birinchisida model tool so'rashi mumkin,
+5. **Bitta xabar — ko'pi bilan ikki chaqiruv** (qo'shimcha 2026-11-12: 503 yoki qisqa
+   kutishli 429 da har biri bir marta qayta uriniladi, eng yomoni to'rt; pastda): birinchisida model tool so'rashi mumkin,
    ikkinchisi tool natijasidan keyingi javob, unda tool taqiqlangan (`mode: NONE`).
 6. **Kunlik limit o'zgarmaydi:** `assistant_daily_calls_per_user = 30`, UTC kun (foydalanuvchi
    qarori, TZ o'zgarmaydi). Off-topic xabar ham hisoblanadi, chunki u ham chaqiruv.
@@ -75,3 +76,16 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
 - Bepul tarifda Google yuborilgan matndan o'qitish uchun foydalanishi mumkin (ADR 0006).
   Assistant'da bu foydalanuvchi yozgan matn bo'ladi. Haqiqiy foydalanuvchilardan oldin
   pullik tarif masalasi alohida hal qilinadi.
+
+## Qo'shimcha, 2026-11-12: o'lchov va qayta urinish
+
+- **Narx o'lchandi** (qo'lda tekshiruv, 2026-11-11, 72 xabar, Render log'i): oddiy xabar
+  $0.00164 (taxmin $0.0018 edi), oyiga 20 xabar $0.033. Tafsilot `docs/costs.md` da.
+- **Kesh urilmadi:** 72 qatorning birortasida `cached_tokens` yo'q. Yuqoridagi cheklov
+  tasdiqlandi. Narx keshsiz hisoblangan edi, shuning uchun u o'zgarmaydi.
+- **503 UNAVAILABLE** ("high demand") 72 xabardan 5 tasini oqim o'rtasida uzdi, hammasi
+  ikkinchi chaqiruvda. Endi chaqiruv bir marta qayta uriniladi (1 s kutib; 429 faqat
+  provayder ≤ 2 s kutishni so'rasa). Matn chiqib ulgurgan bo'lsa, mijozga `reset` hodisasi
+  boradi va qayta urinish uning o'rnida chiqadi. Follow-up'lar kelib bo'lgandan keyingi
+  uzilish qayta urinilmaydi: javob to'liq. Shu bilan 5-banddagi "ikki chaqiruv" xatoda
+  to'rttagacha boradi. Kunlik limit xabarni sanaydi, chaqiruvni emas; o'zgarmadi.
