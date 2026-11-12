@@ -1,0 +1,12 @@
+{
+  "note": "Hand-written, not recorded: the answer after the tool result starts, places one film, then the stream breaks off with 503 UNAVAILABLE - the shape of the five failures in the Render log of 2026-11-11 (assistant.py line 666, the second call).",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Two short ones that keep you guessing. [[film:9600001]] This one"}]}}],
+        "usageMetadata": {"promptTokenCount": 2400, "candidatesTokenCount": 20, "totalTokenCount": 2420}
+      },
+      {"raise": {"code": 503, "status": "UNAVAILABLE", "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later."}}
+    ]
+  ]
+}

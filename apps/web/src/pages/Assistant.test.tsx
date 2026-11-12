@@ -134,6 +134,26 @@ describe("Assistant", () => {
     expect(stream.bodies.map((b) => b.message)).toEqual(["Something calm", "Something calm"]);
   });
 
+  it("drops a broken-off start when the server tries again, and shows the new answer", async () => {
+    const stream = controlledStream();
+    renderWithProviders(<Assistant />, ROUTE);
+    await userEvent.type(screen.getByRole("textbox", { name: "Your question" }), "Blow my mind{Enter}");
+    const answer = screen.getByRole("article", { name: "Assistant" });
+    stream.send({ type: "text", text: "Two short ones. " }, { type: "card", card: card(1) }, { type: "text", text: "This" });
+    expect(answer).toHaveTextContent("This");
+
+    stream.send({ type: "reset" });
+    expect(answer).not.toHaveTextContent("Two short ones");
+    expect(within(answer).queryAllByRole("link")).toHaveLength(0);
+    expect(screen.getByRole("status")).toHaveTextContent("Looking through your films…");
+
+    stream.send({ type: "text", text: "Two short ones. " }, { type: "card", card: card(1) }, { type: "done" });
+    await stream.end();
+    expect(within(answer).getAllByRole("link")).toHaveLength(1);
+    expect(answer.textContent?.match(/Two short ones/g)).toHaveLength(1);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("replaces an off-topic answer with its own fixed refusal", async () => {
     const stream = controlledStream();
     renderWithProviders(<Assistant />, ROUTE);
@@ -168,6 +188,7 @@ describe("the assistant stream", () => {
     expect(events.map((e) => e.type)).toEqual(["text", "card"]);
     expect(rest).toBe("event: do");
     expect(readSse('event: future\ndata: {}\n\nevent: done\ndata: {}\n\n').events).toEqual([{ type: "done" }]);
+    expect(readSse("event: reset\ndata: {}\n\n").events).toEqual([{ type: "reset" }]);
   });
 
   it("joins text into one run and cards into one row until the other interrupts", () => {

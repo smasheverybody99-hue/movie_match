@@ -18,6 +18,7 @@ from app.routers import (
     recommendations,
     watchlist,
 )
+from app.services import assistant as assistant_service
 
 settings = get_settings()
 
@@ -47,6 +48,7 @@ async def startup_checks() -> None:
 async def lifespan(app: FastAPI):
     # Startup work goes here. Keep it fast.
     cost_log.configure()
+    assistant_service.configure_logs()
     if settings.schema_check_on_startup and settings.database_url:
         await startup_checks()
     yield

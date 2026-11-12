@@ -467,6 +467,34 @@ def stop_reason(chunk: Any) -> StopReason | None:
     return "truncated" if reason == types.FinishReason.MAX_TOKENS else "blocked"
 
 
+def stop_detail(chunk: Any) -> str:
+    """Why a chunk ended the answer, in Gemini's own words: the block or finish reason, its
+    message, and each safety rating that blocked or rated MEDIUM or HIGH."""
+    feedback = chunk.prompt_feedback
+    if prompt_blocked(chunk) and feedback is not None:
+        message = feedback.block_reason_message
+        said = f" message={message!r}" if message else ""
+        return f"block_reason={_name(feedback.block_reason)}{said}"
+    candidate = (chunk.candidates or [None])[0]
+    if candidate is None:
+        return ""
+    ratings = [
+        f"{_name(r.category)}:{_name(r.probability)}{':blocked' if r.blocked else ''}"
+        for r in candidate.safety_ratings or []
+        if r.blocked or _name(r.probability) in ("MEDIUM", "HIGH")
+    ]
+    detail = f"finish_reason={_name(candidate.finish_reason)}"
+    if candidate.finish_message:
+        detail += f" message={candidate.finish_message!r}"
+    if ratings:
+        detail += f" safety={','.join(ratings)}"
+    return detail
+
+
+def _name(value: Any) -> str:
+    return str(getattr(value, "value", value))
+
+
 class GeminiAssistant:
     """The assistant on `generate_content_stream`, one model call per `stream`.
 
@@ -493,6 +521,7 @@ class GeminiAssistant:
     ) -> AsyncIterator[AssistantEvent]:
         usage = Usage(requests=1)
         stop: StopReason = "done"
+        detail = ""
         parts: list[Any] = []
         call: ToolCall | None = None
         try:
@@ -504,7 +533,9 @@ class GeminiAssistant:
             async for chunk in chunks:
                 if chunk.usage_metadata is not None:
                     usage = _usage(chunk.usage_metadata)  # cumulative: the last one counts
-                stop = stop_reason(chunk) or stop
+                ended = stop_reason(chunk)
+                if ended is not None:
+                    stop, detail = ended, stop_detail(chunk)
                 candidates = chunk.candidates or []
                 content = candidates[0].content if candidates else None
                 for part in (content.parts if content else None) or []:
@@ -517,12 +548,16 @@ class GeminiAssistant:
                     elif part.text and not part.thought:
                         yield TextDelta(part.text)
         except errors.APIError as exc:
+            # A 503 can arrive in the middle of a stream (2026-11-11, five times in 72
+            # messages): the tokens until then are still counted, then the error goes on.
+            yield StreamEnd(usage=usage, stop="interrupted", detail=f"{exc.code} {exc.status}")
             raise (neutral_error(exc) or exc) from exc
         except NETWORK_ERRORS as exc:
+            yield StreamEnd(usage=usage, stop="interrupted", detail=type(exc).__name__)
             raise TransientError(f"network: {type(exc).__name__}: {exc}") from exc
         if call is not None:
             yield ToolRequested(call)
-        yield StreamEnd(usage=usage, stop=stop)
+        yield StreamEnd(usage=usage, stop=stop, detail=detail)
 
 
 # --- the provider --------------------------------------------------------------------

@@ -17,7 +17,8 @@ Money and abuse (CLAUDE.md "Keep the running cost down", FR-8):
 
 * at most `assistant_daily_calls_per_user` messages per user per UTC day (`claim`);
 * at most two model calls per message: the one that may call the tool, and the answer
-  after the tool result, which may not call it again;
+  after the tool result, which may not call it again. Each may be tried once more when the
+  provider is briefly unavailable (a 503, or a 429 with a short wait), so four at worst;
 * the system prompt starts with a fixed block, the same for every user and every call, so
   the provider's prompt cache can serve it (ADR 0009); the user's taste comes after it;
 * context is the last CONTEXT_TURNS turns, the current message included, stored per user
@@ -25,12 +26,19 @@ Money and abuse (CLAUDE.md "Keep the running cost down", FR-8):
 * the user's text only ever goes in the user's own message, never into the instructions,
   and an answer that starts repeating the instructions is cut off (`Leak`).
 
-Every message writes one cost line (`run=assistant`).
+A call that breaks off after its text started is tried again behind a `Reset`: the
+client drops what this answer showed, the events from before that call are sent again,
+and the new attempt streams after them. A break after the follow-ups is not retried: the
+model writes them last, so the answer was already complete.
+
+Every message writes one cost line (`run=assistant`) and one timing line
+(`assistant timing ...`: each stage in seconds, docs/STATUS.md F4).
 """
 
 import asyncio
 import logging
 import re
+import time as clock
 import uuid
 from collections.abc import AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -46,11 +54,13 @@ from app.providers import usage as cost_log
 from app.providers.base import (
     Assistant,
     ChatMessage,
+    RateLimited,
     StreamEnd,
     TextDelta,
     ToolCall,
     ToolRequested,
     ToolSpec,
+    TransientError,
     Usage,
 )
 from app.services import movies, recommend
@@ -69,6 +79,8 @@ MAX_MARKER_CHARS = 120  # a "[[" with no "]]" within this is not a marker
 MAX_EXCLUDE = 100
 OVERVIEW_CHARS = 240  # what the model may say about a film comes from here
 TIMEOUT_SECONDS = 30.0  # per model call
+RETRY_DELAY_SECONDS = 1.0  # before the one more try after a 503
+MAX_RETRY_AFTER_SECONDS = 2.0  # a 429 that asks for a longer wait is not retried
 YEAR_RANGE = (1900, 2100)
 RUNTIME_RANGE = (30, 400)
 
@@ -386,11 +398,17 @@ class Failed:
 
 
 @dataclass(frozen=True)
+class Reset:
+    """Forget what this answer has shown: the call that wrote it broke off and runs again.
+    The events from before that call follow, sent again."""
+
+
+@dataclass(frozen=True)
 class Done:
     pass
 
 
-Event = Text | Card | Followups | Refusal | Failed | Done
+Event = Text | Card | Followups | Refusal | Failed | Reset | Done
 
 
 class AnswerFilter:
@@ -412,6 +430,20 @@ class AnswerFilter:
 
     def allow(self, hits: Sequence[Hit]) -> None:
         self.allowed = {hit.movie.id: hit for hit in hits}
+
+    @property
+    def finished(self) -> bool:
+        """The model writes the follow-ups last (INSTRUCTIONS rule 4): once one is in, the
+        answer is complete, and a call that breaks off after it lost nothing."""
+        return bool(self.followups)
+
+    def state(self) -> dict[str, Any]:
+        """A copy of everything read so far, to go back to when a call runs again."""
+        return {k: v.copy() if isinstance(v, list | dict) else v for k, v in vars(self).items()}
+
+    def restore(self, state: Mapping[str, Any]) -> None:
+        for key, value in state.items():
+            setattr(self, key, value.copy() if isinstance(value, list | dict) else value)
 
     def feed(self, text: str) -> list[Event]:
         self._buffer += text
@@ -585,6 +617,10 @@ class _Call:
     usage: Usage = field(default_factory=Usage)
     tool_call: ToolCall | None = None
     stop: str = "done"
+    detail: str = ""
+    retries: int = 0
+    broke_off: bool = False  # after a complete answer: shown as done, counted as interrupted
+    seconds: float = 0.0
 
 
 async def _stream(
@@ -607,6 +643,66 @@ async def _stream(
             elif isinstance(event, StreamEnd):
                 call.usage = call.usage + event.usage
                 call.stop = event.stop
+                call.detail = event.detail
+
+
+def retry_delay(exc: Exception) -> float | None:
+    """How long to wait before the one more try, or None when another try would not help:
+    a 503 passes in a moment, a 429 only when the provider asks for a short wait."""
+    if isinstance(exc, TransientError):
+        return RETRY_DELAY_SECONDS
+    if isinstance(exc, RateLimited) and exc.retry_after is not None:
+        return exc.retry_after if exc.retry_after <= MAX_RETRY_AFTER_SECONDS else None
+    return None
+
+
+async def _call(
+    assistant: Assistant,
+    system: str,
+    messages: Sequence[ChatMessage],
+    answer: AnswerFilter,
+    call: _Call,
+    sent: list[Event],
+    *,
+    allow_tools: bool,
+) -> AsyncIterator[Event]:
+    """One model call, tried once more when the provider is briefly unavailable.
+
+    `sent` is every event of this message so far. If the attempt that broke off had shown
+    something, Reset goes out and the events from before this call are sent again; the
+    answer filter goes back to where it stood, so the retry reads as the first attempt.
+    """
+    began = clock.perf_counter()
+    mark, state = len(sent), answer.state()
+    try:
+        for attempt in (1, 2):
+            try:
+                async for event in _stream(
+                    assistant, system, messages, answer, call, allow_tools=allow_tools
+                ):
+                    sent.append(event)
+                    yield event
+                return
+            except (TransientError, RateLimited) as exc:
+                if answer.finished:
+                    log.warning("assistant call broke off after a complete answer: %s", exc)
+                    call.stop, call.broke_off = "done", True
+                    return
+                delay = retry_delay(exc)
+                if attempt == 2 or delay is None:
+                    raise
+                log.warning("assistant call failed, one more try in %.1f s: %s", delay, exc)
+                call.retries += 1
+                call.tool_call, call.stop = None, "done"
+                answer.restore(state)
+                if len(sent) > mark:
+                    del sent[mark:]
+                    yield Reset()
+                    for event in list(sent):
+                        yield event
+                await asyncio.sleep(delay)
+    finally:
+        call.seconds = clock.perf_counter() - began
 
 
 async def chat(
@@ -620,79 +716,133 @@ async def chat(
 
     The caller has already claimed the message against the daily cap.
     """
-    turns = await recent_turns(session, user_id)
-    shown_before = {movie_id for turn in turns for movie_id in turn.movie_ids}
-    user = await session.get(User, user_id)
-    # pgvector returns a numpy array: compare with None, never test its truth.
-    vector = user.taste_vector if user is not None else None
-    taste = to_dict([float(v) for v in vector]) if vector is not None else None
-    weights = dict(user.taste_weights) if user and user.taste_weights else None
-    system = system_prompt(taste, weights, lang)
-    messages = [*await context_messages(session, turns), ChatMessage("user", message)]
-
-    answer = AnswerFilter()
+    began = clock.perf_counter()
     first, second = _Call(), _Call()
-    hits: list[Hit] = []
+    timing: dict[str, float] = {}
+    end = "failed"
     try:
-        async for event in _stream(assistant, system, messages, answer, first, allow_tools=True):
-            yield event
-        call = first.tool_call
-        if answer.refused is None and first.stop == "done" and call is not None:
-            if call.name != TOOL_NAME:
-                log.warning("assistant asked for an unknown tool %r", call.name)
-            else:
-                args = parse_args(call.args)
-                if args.dropped:
-                    log.info("assistant tool arguments dropped: %s", ", ".join(args.dropped))
-                result = await search_movies(
-                    session,
-                    user_id,
-                    traits=args.traits,
-                    year_min=args.year_min,
-                    year_max=args.year_max,
-                    runtime_max=args.runtime_max,
-                    mood=args.mood,
-                    exclude_ids=sorted(args.exclude_ids),
-                    shown=shown_before,
-                )
-                hits = result.hits
-                answer.allow(hits)
-                genres = await movies.genre_names(session, [h.movie.id for h in hits])
-                after = [
-                    *messages,
-                    ChatMessage("assistant", tool_call=call),
-                    ChatMessage("tool", tool_call=call, result=tool_result(result, genres)),
-                ]
-                async for event in _stream(
-                    assistant, system, after, answer, second, allow_tools=False
-                ):
-                    yield event
-        for event in answer.close():
-            yield event
-    except Exception:  # the stream has started: the client must hear how it ended
-        log.warning("assistant failed", exc_info=True)
-        _record(assistant, first.usage + second.usage, "interrupted")
-        yield Failed("failed")
-        return
-    _record(assistant, first.usage + second.usage, "complete")
+        turns = await recent_turns(session, user_id)
+        shown_before = {movie_id for turn in turns for movie_id in turn.movie_ids}
+        user = await session.get(User, user_id)
+        # pgvector returns a numpy array: compare with None, never test its truth.
+        vector = user.taste_vector if user is not None else None
+        taste = to_dict([float(v) for v in vector]) if vector is not None else None
+        weights = dict(user.taste_weights) if user and user.taste_weights else None
+        system = system_prompt(taste, weights, lang)
+        messages = [*await context_messages(session, turns), ChatMessage("user", message)]
+        timing["prepare"] = clock.perf_counter() - began
 
-    if answer.refused is None and "blocked" in (first.stop, second.stop):
-        yield Failed("blocked")
+        answer = AnswerFilter()
+        hits: list[Hit] = []
+        sent: list[Event] = []
+
+        def seen(event: Event) -> Event:
+            if "first_text" not in timing and isinstance(event, Text):
+                timing["first_text"] = clock.perf_counter() - began
+            return event
+
+        try:
+            async for event in _call(
+                assistant, system, messages, answer, first, sent, allow_tools=True
+            ):
+                yield seen(event)
+            call = first.tool_call
+            if answer.refused is None and first.stop == "done" and call is not None:
+                if call.name != TOOL_NAME:
+                    log.warning("assistant asked for an unknown tool %r", call.name)
+                else:
+                    searching = clock.perf_counter()
+                    args = parse_args(call.args)
+                    if args.dropped:
+                        log.info("assistant tool arguments dropped: %s", ", ".join(args.dropped))
+                    result = await search_movies(
+                        session,
+                        user_id,
+                        traits=args.traits,
+                        year_min=args.year_min,
+                        year_max=args.year_max,
+                        runtime_max=args.runtime_max,
+                        mood=args.mood,
+                        exclude_ids=sorted(args.exclude_ids),
+                        shown=shown_before,
+                    )
+                    hits = result.hits
+                    answer.allow(hits)
+                    genres = await movies.genre_names(session, [h.movie.id for h in hits])
+                    timing["search"] = clock.perf_counter() - searching
+                    after = [
+                        *messages,
+                        ChatMessage("assistant", tool_call=call),
+                        ChatMessage("tool", tool_call=call, result=tool_result(result, genres)),
+                    ]
+                    async for event in _call(
+                        assistant, system, after, answer, second, sent, allow_tools=False
+                    ):
+                        yield seen(event)
+            for event in answer.close():
+                yield seen(event)
+        except Exception:  # the stream has started: the client must hear how it ended
+            log.warning("assistant failed", exc_info=True)
+            _record(assistant, first.usage + second.usage, "interrupted")
+            yield Failed("failed")
+            return
+        broke_off = first.broke_off or second.broke_off
+        _record(assistant, first.usage + second.usage, "interrupted" if broke_off else "complete")
+        for name, part in (("first", first), ("second", second)):
+            if part.stop in ("blocked", "truncated"):
+                log.warning("assistant %s call ended %s: %s", name, part.stop, part.detail)
+
+        if answer.refused is None and "blocked" in (first.stop, second.stop):
+            end = "blocked"
+            yield Failed("blocked")
+            return
+        if answer.refused is None:
+            # A film the engine found but the answer never placed still gets its card:
+            # the recommendation is the engine's, the sentence only introduces it.
+            for hit in hits:
+                if hit.movie.id not in answer.shown:
+                    answer.shown.append(hit.movie.id)
+                    yield Card(hit)
+            if answer.followups:
+                yield Followups(list(answer.followups))
+        if answer.dropped:
+            log.info("assistant markers dropped: %s", answer.dropped)
+        stored = "" if answer.refused else " ".join(answer.answer.split())
+        await save_turn(session, user_id, message, stored, list(answer.shown))
+        end = answer.refused or "done"
+        yield Done()
+    finally:
+        total = clock.perf_counter() - began
+        log.info("assistant timing %s", timing_line(timing, first, second, total, end))
+
+
+def timing_line(
+    timing: Mapping[str, float], first: _Call, second: _Call, total: float, end: str
+) -> str:
+    """`prepare=0.31 first_call=1.52 search=0.40 second_call=1.93 first_text=4.10
+    total=4.20 retries=0 end=done`, in seconds; a stage that did not run is `-`."""
+
+    def seconds(value: float | None) -> str:
+        return f"{value:.2f}" if value else "-"
+
+    return (
+        f"prepare={seconds(timing.get('prepare'))} first_call={seconds(first.seconds)} "
+        f"search={seconds(timing.get('search'))} second_call={seconds(second.seconds)} "
+        f"first_text={seconds(timing.get('first_text'))} total={total:.2f} "
+        f"retries={first.retries + second.retries} end={end}"
+    )
+
+
+def configure_logs() -> None:
+    """Show this module's INFO lines (timings, dropped markers and arguments) in the API
+    process. Without a handler only Python's fallback runs, and it prints warnings alone:
+    on 2026-11-11 the dropped-marker lines never reached the Render log. Idempotent."""
+    if log.handlers:
         return
-    if answer.refused is None:
-        # A film the engine found but the answer never placed still gets its card:
-        # the recommendation is the engine's, the sentence only introduces it.
-        for hit in hits:
-            if hit.movie.id not in answer.shown:
-                answer.shown.append(hit.movie.id)
-                yield Card(hit)
-        if answer.followups:
-            yield Followups(list(answer.followups))
-    if answer.dropped:
-        log.info("assistant markers dropped: %s", answer.dropped)
-    stored = "" if answer.refused else " ".join(answer.answer.split())
-    await save_turn(session, user_id, message, stored, list(answer.shown))
-    yield Done()
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+    log.addHandler(handler)
+    log.setLevel(logging.INFO)
 
 
 def _record(assistant: Assistant, usage: Usage, status: str) -> None:
