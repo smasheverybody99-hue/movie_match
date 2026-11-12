@@ -1,0 +1,15 @@
+{
+  "note": "Hand-written, not recorded: the answer after the tool result starts, places one film, then sends nothing - the shape of the answer of 2026-11-12 16:32 that showed its first words at 20 s and was cut off by the old 30 s per-call limit (TimeoutError in the Render log). The test shrinks STALL_SECONDS below the pause.",
+  "calls": [
+    [
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": "Two short ones that keep you guessing. [[film:9600001]] This one"}]}}],
+        "usageMetadata": {"promptTokenCount": 2400, "candidatesTokenCount": 20, "totalTokenCount": 2420}
+      },
+      {"sleep": 2.0},
+      {
+        "candidates": [{"content": {"role": "model", "parts": [{"text": " never arrives."}]}, "finishReason": "STOP"}]
+      }
+    ]
+  ]
+}

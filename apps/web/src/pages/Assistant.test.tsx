@@ -134,6 +134,18 @@ describe("Assistant", () => {
     expect(stream.bodies.map((b) => b.message)).toEqual(["Something calm", "Something calm"]);
   });
 
+  it("says the assistant is busy, with a retry, when the answer did not come in time", async () => {
+    const stream = controlledStream();
+    renderWithProviders(<Assistant />, ROUTE);
+    await userEvent.type(screen.getByRole("textbox", { name: "Your question" }), "Something calm{Enter}");
+    stream.send({ type: "error", reason: "timeout" });
+    await stream.end();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("The assistant is busy right now. Try again in a minute.");
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(stream.bodies.map((b) => b.message)).toEqual(["Something calm", "Something calm"]);
+  });
+
   it("drops a broken-off start when the server tries again, and shows the new answer", async () => {
     const stream = controlledStream();
     renderWithProviders(<Assistant />, ROUTE);
@@ -189,6 +201,10 @@ describe("the assistant stream", () => {
     expect(rest).toBe("event: do");
     expect(readSse('event: future\ndata: {}\n\nevent: done\ndata: {}\n\n').events).toEqual([{ type: "done" }]);
     expect(readSse("event: reset\ndata: {}\n\n").events).toEqual([{ type: "reset" }]);
+    expect(readSse('event: error\ndata: {"reason": "timeout"}\n\n').events).toEqual([
+      { type: "error", reason: "timeout" },
+    ]);
+    expect(readSse('event: error\ndata: {"reason": "new"}\n\n').events).toEqual([{ type: "error", reason: "failed" }]);
   });
 
   it("joins text into one run and cards into one row until the other interrupts", () => {

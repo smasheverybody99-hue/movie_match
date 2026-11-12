@@ -127,7 +127,10 @@ export function toAssistantEvent(name: string, data: unknown): AssistantEvent | 
     case "refusal":
       return data.reason === "off_topic" || data.reason === "leak" ? { type: "refusal", reason: data.reason } : null;
     case "error":
-      return { type: "error", reason: data.reason === "blocked" ? "blocked" : "failed" };
+      return {
+        type: "error",
+        reason: data.reason === "blocked" || data.reason === "timeout" ? data.reason : "failed",
+      };
     case "reset":
       return { type: "reset" };
     case "done":

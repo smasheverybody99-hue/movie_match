@@ -18,7 +18,12 @@ Money and abuse (CLAUDE.md "Keep the running cost down", FR-8):
 * at most `assistant_daily_calls_per_user` messages per user per UTC day (`claim`);
 * at most two model calls per message: the one that may call the tool, and the answer
   after the tool result, which may not call it again. Each may be tried once more when the
-  provider is briefly unavailable (a 503, or a 429 with a short wait), so four at worst;
+  provider is briefly unavailable (a 503, a 429 with a short wait, or a stream that
+  stalled), so four at worst;
+* a time limit on the whole message (`Limits`): the first words within
+  FIRST_TEXT_SECONDS and the end within TOTAL_SECONDS, or it ends as "timeout" and the
+  client says the assistant is busy. A call the limit cuts off is billed all the same, so
+  its tokens are estimated from characters;
 * the system prompt starts with a fixed block, the same for every user and every call, so
   the provider's prompt cache can serve it (ADR 0009); the user's taste comes after it;
 * context is the last CONTEXT_TURNS turns, the current message included, stored per user
@@ -36,7 +41,9 @@ Every message writes one cost line (`run=assistant`) and one timing line
 """
 
 import asyncio
+import json
 import logging
+import math
 import re
 import time as clock
 import uuid
@@ -78,9 +85,22 @@ MAX_FOLLOWUP_CHARS = 80
 MAX_MARKER_CHARS = 120  # a "[[" with no "]]" within this is not a marker
 MAX_EXCLUDE = 100
 OVERVIEW_CHARS = 240  # what the model may say about a film comes from here
-TIMEOUT_SECONDS = 30.0  # per model call
+# Time limits of one message (FR-8, ADR 0009 amendment 2026-11-13). Measured 2026-11-12,
+# a slow day at Gemini: the first call took 6-19 s, the first words came at 15-39 s, and
+# one answer stalled after its first words until the old 30 s per-call limit.
+FIRST_TEXT_SECONDS = 25.0  # no words by then: the message ends as "timeout" (busy)
+TOTAL_SECONDS = 45.0  # the whole message, however far it got
+# A stream that has started and then sends nothing for this long has stalled: it is tried
+# again like a 503. Not applied before the first event: a call that only asks for the tool
+# sends nothing until it ends, which took up to 19 s on 2026-11-12 and still succeeded.
+STALL_SECONDS = 10.0
+MIN_TRY_SECONDS = 5.0  # a retry needs at least this long before the limit, or is not made
 RETRY_DELAY_SECONDS = 1.0  # before the one more try after a 503
 MAX_RETRY_AFTER_SECONDS = 2.0  # a 429 that asks for a longer wait is not retried
+# A call cut off by a time limit never gets the provider's token count: it is estimated
+# from characters, over-counting as the pipelines' estimates do.
+CHARS_PER_TOKEN = 3.5
+MAX_GENRES = 2  # a film must have every genre given: more than two finds almost nothing
 YEAR_RANGE = (1900, 2100)
 RUNTIME_RANGE = (30, 400)
 
@@ -98,6 +118,33 @@ MOODS: dict[str, dict[str, float]] = {
     "action_packed": {"action": 80, "pacing": 75},
 }
 
+
+# TMDB's film genres, the names in the genres table (TMDB /genre/movie/list, English).
+# Fixed here rather than read from the database: the tool schema is part of the prompt
+# prefix, which must be the same bytes on every call (ADR 0009). On 2026-11-12 "musical"
+# found Ratatouille and a romantic comedy request sent the made-up trait "comedy".
+GENRES = (
+    "Action",
+    "Adventure",
+    "Animation",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "History",
+    "Horror",
+    "Music",
+    "Mystery",
+    "Romance",
+    "Science Fiction",
+    "TV Movie",
+    "Thriller",
+    "War",
+    "Western",
+)
+_GENRE_BY_KEY = {name.casefold(): name for name in GENRES}
 
 # --- the tool -------------------------------------------------------------------------
 
@@ -132,6 +179,12 @@ def tool_schema() -> dict[str, Any]:
                 "description": "Longest runtime in minutes",
             },
             "mood": {"type": "string", "enum": sorted(MOODS), "description": "A preset mood"},
+            "genres": {
+                "type": "array",
+                "items": {"type": "string", "enum": list(GENRES)},
+                "maxItems": MAX_GENRES,
+                "description": "Only films with every one of these genres",
+            },
             "exclude_ids": {
                 "type": "array",
                 "items": {"type": "integer", "minimum": 1},
@@ -160,6 +213,7 @@ class SearchArgs:
     year_max: int | None = None
     runtime_max: int | None = None
     mood: str | None = None
+    genres: frozenset[str] = frozenset()
     exclude_ids: frozenset[int] = frozenset()
     dropped: tuple[str, ...] = ()
 
@@ -202,6 +256,19 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
     if mood is not None and mood not in MOODS:
         dropped.append("mood")
         mood = None
+    genres: list[str] = []
+    raw_genres = raw.get("genres")
+    if isinstance(raw_genres, list):
+        for value in raw_genres:
+            name = _GENRE_BY_KEY.get(value.strip().casefold()) if isinstance(value, str) else None
+            if name in genres:
+                continue
+            if name is None or len(genres) >= MAX_GENRES:
+                dropped.append(f"genres.{value}")
+            else:
+                genres.append(name)
+    elif raw_genres is not None:
+        dropped.append("genres")
     excluded: set[int] = set()
     raw_exclude = raw.get("exclude_ids")
     if isinstance(raw_exclude, list):
@@ -218,6 +285,7 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
         year_max=year_max,
         runtime_max=runtime_max,
         mood=mood,
+        genres=frozenset(genres),
         exclude_ids=frozenset(excluded),
         dropped=tuple(dropped),
     )
@@ -233,6 +301,7 @@ def search_request(args: SearchArgs, shown: set[int]) -> SearchRequest:
         year_max=args.year_max,
         runtime_max=args.runtime_max,
         exclude=frozenset(args.exclude_ids | shown),
+        genres=args.genres,
     )
 
 
@@ -245,6 +314,7 @@ async def search_movies(
     year_max: int | None = None,
     runtime_max: int | None = None,
     mood: str | None = None,
+    genres: Sequence[str] | None = None,
     exclude_ids: Sequence[int] | None = None,
     shown: set[int] | None = None,
 ) -> SearchResult:
@@ -258,6 +328,7 @@ async def search_movies(
             "year_max": year_max,
             "runtime_max": runtime_max,
             "mood": mood,
+            "genres": list(genres or []),
             "exclude_ids": list(exclude_ids or []),
         }
     )
@@ -296,14 +367,20 @@ What you do:
 1. Films only. If the message is not about finding or choosing a film to watch, reply with
 exactly [[off_topic]] and nothing else, and do not call the tool.
 2. To recommend anything, call search_movies. You know no films yourself: never name,
-suggest or describe a film that search_movies did not return in this conversation.
+suggest or describe a film that search_movies did not return in this conversation. Before
+the call, write one short sentence in the viewer's language that says what kind of film
+you are looking for, without naming any film, then call search_movies.
 3. Turn the request into arguments. Set only what the viewer asked for: a trait level for
 each quality they named (0-100, on the dimensions below), a mood if it fits one, a year
-range, runtime_max in minutes ("I have 90 minutes" means runtime_max 90). The viewer's
-taste is applied by the engine; do not copy it into the arguments.
-4. When the tool answers, write one to three short sentences in plain words, in the
-viewer's language. Show each film you recommend with the marker [[film:ID]], using only ids
-from the tool result, on its own after the sentence about it. Say only what the tool result
+range, runtime_max in minutes ("I have 90 minutes" means runtime_max 90), and genres when
+they named a kind of film: a thriller is Thriller, a musical is Music, a romantic comedy is
+Romance and Comedy. A film must have every genre given, so give two only when both were
+asked for. A genre is never a trait. The viewer's taste is applied by the engine; do not
+copy it into the arguments.
+4. When the tool answers, do not repeat your first sentence: write one to three short
+sentences in plain words, in the viewer's language. Show each film you recommend with the
+marker [[film:ID]], using only ids from the tool result, on its own after the sentence
+about it. Say only what the tool result
 says about a film. Then give two or three follow-up requests the viewer might send next,
 each as [[ask:TEXT]], written the way the viewer would type it, in the viewer's language,
 under 60 characters.
@@ -320,7 +397,9 @@ film titles written out except where the tool result gives them.
 Trait dimensions, 0-100:
 {_VOCABULARY}
 
-Moods: {", ".join(sorted(MOODS))}."""
+Moods: {", ".join(sorted(MOODS))}.
+
+Genres: {", ".join(GENRES)}."""
 
 
 def system_prompt(
@@ -389,7 +468,9 @@ class Refusal:
     reason: RefusalReason
 
 
-FailReason = Literal["failed", "blocked"]
+# "timeout": the message passed a time limit before the answer was complete; the client
+# says the assistant is busy and offers to try again.
+FailReason = Literal["failed", "blocked", "timeout"]
 
 
 @dataclass(frozen=True)
@@ -621,6 +702,46 @@ class _Call:
     retries: int = 0
     broke_off: bool = False  # after a complete answer: shown as done, counted as interrupted
     seconds: float = 0.0
+    estimated: int = 0  # attempts cut off by a time limit, whose tokens are estimated
+
+
+class OutOfTime(Exception):
+    """The message passed one of its time limits: the answer ends as "timeout"."""
+
+
+class Limits:
+    """The time limits of one message, on the event loop's clock: words within
+    FIRST_TEXT_SECONDS, the end within TOTAL_SECONDS. `texted` is set when the first
+    words go out, which leaves only the total."""
+
+    def __init__(self) -> None:
+        self.began = asyncio.get_running_loop().time()
+        self.texted = False
+
+    def deadline(self) -> float:
+        total = self.began + TOTAL_SECONDS
+        return total if self.texted else min(total, self.began + FIRST_TEXT_SECONDS)
+
+    def left(self) -> float:
+        return self.deadline() - asyncio.get_running_loop().time()
+
+
+def estimated_usage(system: str, messages: Sequence[ChatMessage], received: int) -> Usage:
+    """A call the time limit cut off: what it was sent (instructions, tool, messages) and
+    the `received` characters of text, counted from characters."""
+    sent = len(system) + len(json.dumps(TOOL.parameters))
+    for message in messages:
+        sent += len(message.text)
+        if message.tool_call is not None:
+            sent += len(json.dumps(message.tool_call.args))
+        if message.result is not None:
+            sent += len(json.dumps(message.result, ensure_ascii=False))
+    return Usage(
+        requests=1,
+        input_tokens=math.ceil(sent / CHARS_PER_TOKEN),
+        output_tokens=math.ceil(received / CHARS_PER_TOKEN),
+        estimated=True,
+    )
 
 
 async def _stream(
@@ -629,12 +750,35 @@ async def _stream(
     messages: Sequence[ChatMessage],
     answer: AnswerFilter,
     call: _Call,
+    limits: Limits,
     *,
     allow_tools: bool,
 ) -> AsyncIterator[Event]:
-    async with asyncio.timeout(TIMEOUT_SECONDS):
-        async for event in assistant.stream(system, messages, [TOOL], allow_tools=allow_tools):
+    """One attempt. Each wait for the provider's next event is bounded by the message's
+    limit, and once the stream has started also by STALL_SECONDS. Nothing is yielded while
+    a time limit is armed, so a slow reader of the stream is never what it cancels."""
+    events = aiter(assistant.stream(system, messages, [TOOL], allow_tools=allow_tools))
+    loop = asyncio.get_running_loop()
+    started, received = False, 0
+    try:
+        while True:
+            deadline = limits.deadline()
+            stall = loop.time() + STALL_SECONDS if started else math.inf
+            try:
+                async with asyncio.timeout_at(min(deadline, stall)):
+                    event = await anext(events)
+            except StopAsyncIteration:
+                return
+            except TimeoutError:
+                # The provider never said what the cut-off attempt used: estimate it.
+                call.usage = call.usage + estimated_usage(system, messages, received)
+                call.estimated += 1
+                if deadline <= stall:
+                    raise OutOfTime("no answer within the message's time limit") from None
+                raise TransientError(f"stalled: nothing for {STALL_SECONDS:.0f} s") from None
+            started = True
             if isinstance(event, TextDelta):
+                received += len(event.text)
                 for out in answer.feed(event.text):
                     yield out
             elif isinstance(event, ToolRequested):
@@ -644,11 +788,16 @@ async def _stream(
                 call.usage = call.usage + event.usage
                 call.stop = event.stop
                 call.detail = event.detail
+    finally:
+        close = getattr(events, "aclose", None)  # an async generator: end it here, not in gc
+        if close is not None:
+            await close()
 
 
 def retry_delay(exc: Exception) -> float | None:
     """How long to wait before the one more try, or None when another try would not help:
-    a 503 passes in a moment, a 429 only when the provider asks for a short wait."""
+    a 503 or a stalled stream passes in a moment, a 429 only when the provider asks for a
+    short wait."""
     if isinstance(exc, TransientError):
         return RETRY_DELAY_SECONDS
     if isinstance(exc, RateLimited) and exc.retry_after is not None:
@@ -663,10 +812,12 @@ async def _call(
     answer: AnswerFilter,
     call: _Call,
     sent: list[Event],
+    limits: Limits,
     *,
     allow_tools: bool,
 ) -> AsyncIterator[Event]:
-    """One model call, tried once more when the provider is briefly unavailable.
+    """One model call, tried once more when the provider is briefly unavailable or the
+    stream stalls, if the message's time limit leaves room for it.
 
     `sent` is every event of this message so far. If the attempt that broke off had shown
     something, Reset goes out and the events from before this call are sent again; the
@@ -678,19 +829,21 @@ async def _call(
         for attempt in (1, 2):
             try:
                 async for event in _stream(
-                    assistant, system, messages, answer, call, allow_tools=allow_tools
+                    assistant, system, messages, answer, call, limits, allow_tools=allow_tools
                 ):
                     sent.append(event)
                     yield event
                 return
-            except (TransientError, RateLimited) as exc:
+            except (TransientError, RateLimited, OutOfTime) as exc:
                 if answer.finished:
                     log.warning("assistant call broke off after a complete answer: %s", exc)
                     call.stop, call.broke_off = "done", True
                     return
                 delay = retry_delay(exc)
-                if attempt == 2 or delay is None:
+                if attempt == 2 or delay is None or isinstance(exc, OutOfTime):
                     raise
+                if limits.left() < delay + MIN_TRY_SECONDS:
+                    raise OutOfTime(f"no time left to try again after: {exc}") from exc
                 log.warning("assistant call failed, one more try in %.1f s: %s", delay, exc)
                 call.retries += 1
                 call.tool_call, call.stop = None, "done"
@@ -717,6 +870,7 @@ async def chat(
     The caller has already claimed the message against the daily cap.
     """
     began = clock.perf_counter()
+    limits = Limits()
     first, second = _Call(), _Call()
     timing: dict[str, float] = {}
     end = "failed"
@@ -739,11 +893,12 @@ async def chat(
         def seen(event: Event) -> Event:
             if "first_text" not in timing and isinstance(event, Text):
                 timing["first_text"] = clock.perf_counter() - began
+                limits.texted = True
             return event
 
         try:
             async for event in _call(
-                assistant, system, messages, answer, first, sent, allow_tools=True
+                assistant, system, messages, answer, first, sent, limits, allow_tools=True
             ):
                 yield seen(event)
             call = first.tool_call
@@ -763,6 +918,7 @@ async def chat(
                         year_max=args.year_max,
                         runtime_max=args.runtime_max,
                         mood=args.mood,
+                        genres=sorted(args.genres),
                         exclude_ids=sorted(args.exclude_ids),
                         shown=shown_before,
                     )
@@ -776,11 +932,17 @@ async def chat(
                         ChatMessage("tool", tool_call=call, result=tool_result(result, genres)),
                     ]
                     async for event in _call(
-                        assistant, system, after, answer, second, sent, allow_tools=False
+                        assistant, system, after, answer, second, sent, limits, allow_tools=False
                     ):
                         yield seen(event)
             for event in answer.close():
                 yield seen(event)
+        except OutOfTime as exc:
+            log.warning("assistant out of time: %s", exc)
+            _record(assistant, first.usage + second.usage, "interrupted")
+            end = "timeout"
+            yield Failed("timeout")
+            return
         except Exception:  # the stream has started: the client must hear how it ended
             log.warning("assistant failed", exc_info=True)
             _record(assistant, first.usage + second.usage, "interrupted")
@@ -797,12 +959,11 @@ async def chat(
             yield Failed("blocked")
             return
         if answer.refused is None:
-            # A film the engine found but the answer never placed still gets its card:
-            # the recommendation is the engine's, the sentence only introduces it.
-            for hit in hits:
-                if hit.movie.id not in answer.shown:
-                    answer.shown.append(hit.movie.id)
-                    yield Card(hit)
+            # Only the films the answer placed are shown. Until 2026-11-13 the engine's
+            # other hits were appended as cards too, and the manual checks found them off
+            # the request (The Lion King for "blow my mind", a Harry Potter for a heist).
+            if hits and not answer.shown:
+                log.warning("assistant placed none of the %d films found", len(hits))
             if answer.followups:
                 yield Followups(list(answer.followups))
         if answer.dropped:

@@ -49,6 +49,7 @@ export const en = {
   "assistant.leak": "I can't share that. Ask me for a film instead.",
   "assistant.failed": "The assistant couldn't answer. Try again.",
   "assistant.blocked": "I can't answer that one. Try asking another way.",
+  "assistant.busy": "The assistant is busy right now. Try again in a minute.",
   "assistant.limit": {
     one: "You've asked today's {n} question. You can ask again at {time}.",
     other: "You've asked all {n} of today's questions. You can ask again at {time}.",

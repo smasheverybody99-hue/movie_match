@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.19 · 2026-10-12 · Holat: tasdiqlangan
+Versiya 1.29 · 2026-11-13 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -340,6 +340,11 @@ Tabiiy tildagi so'rov strukturali qidiruvga aylantiriladi.
 **Qabul mezoni:**
 - "90 daqiqam bor, miyamni portlatsin" kabi so'rov ishlaydi.
 - Javob oqim bilan keladi, birinchi belgi 2 soniya ichida.
+- "Thriller", "musical" kabi janr so'ralsa, faqat shu janrdagi filmlar chiqadi (tool'ning
+  `genres` argumenti, TMDB janr nomlari; bir nechta berilsa, film hammasiga ega bo'ladi).
+- Birinchi belgi 25 soniyagacha kelmasa yoki javob 45 soniyada tugamasa, xabar "assistant
+  band" degan aniq matn va "Qayta urinish" tugmasi bilan tugaydi; bunday xabar ham kunlik
+  limitdan hisoblanadi. Uzoq kutish ko'rinmas bo'lib qolmaydi.
 - Foydalanuvchiga kuniga 30 ta so'rov; limit tugaganda aniq matn ko'rsatiladi.
 - Kino mavzusidan tashqari savolga javob bermaydi.
 - Prompt injection urinishi tizim ko'rsatmasini o'zgartira olmaydi.
@@ -482,6 +487,8 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.29 | 2026-11-13 | FR-8: **janr filtri** — `search_movies` ga `genres` argumenti (TMDB'ning 19 janr nomi, ko'pi bilan ikkitasi, film hammasiga ega bo'lishi kerak); phase-04 promptidagi tool imzosi shunga o'zgardi. **Kirish gapi** — model tool'ni chaqirishdan oldin nima izlayotganini bitta gapda aytadi (film nomisiz), shuning uchun birinchi belgi qidiruv va ikkinchi chaqiruvni kutmaydi. **Joylashtirilmagan kartochkalar ko'rsatilmaydi** — faqat javob o'zi qo'ygan filmlar. Sabab: qo'lda tekshiruvlarda "musical" ga Ratatouille, thriller so'roviga Bambi chiqdi, model esa mavjud bo'lmagan `comedy` traitini yubordi; javobdan keyin qo'shilgan kartochkalar so'rovga mos emasdi (The Lion King "blow my mind" ga) (foydalanuvchi qarori, 2026-11-12) |
+| 1.28 | 2026-11-13 | FR-8: **xabar uchun vaqt chegarasi** — birinchi belgi 25 s, butun javob 45 s; o'tsa "assistant band" matni va "Qayta urinish" tugmasi (uch tilda). Sabab: 2026-11-12 da Gemini sekin edi (birinchi chaqiruv 6–19 s, birinchi belgi 15–39 s), har chaqiruvga 30 s va to'rttagacha chaqiruv bilan foydalanuvchi ~2 daqiqa kutishi mumkin edi; bitta xabar 52 s da xato bilan tugadi. Oqim boshlanib, 10 s jim qolsa — 503 kabi bir marta qayta uriniladi. "2 soniya" mezoni o'zgarmadi va hali bajarilmagan (foydalanuvchi qarori; ADR 0009 qo'shimchasi 2026-11-13) |
 | 1.27 | 2026-10-22 | FR-5: **"sabab" yaqinlikni bildiradi, yo'nalishni emas** — 1.23 ning kesimlari o'rniga: sabab = kattalik ≤ 0.35 σ **va** yo'nalish ≥ 0.40 σ (yo'nalish endi ma'no emas, qo'riqchi), farq = kattalik ≥ 1.0 σ, orasi — jim; sabablar eng kichik kattalik bo'yicha saralanadi. Sabablar ustunligi, `named_traits` + `trait_side` shartnomasi va match formulasi o'zgarmadi. FR-6: **sabab prompti qayta yozildi** — har jumla moslikni aytadi, taqqoslash shakllari ("more than you", "gentler than") taqiqlandi; farq prompti o'zgarmadi; eski sabab izohlari keshdan o'chirildi. Sabab: jonli saytda "WHY IT SUITS YOU" ostida "much gentler than you usually prefer" turdi — ikkisi ham eski qoidaga ko'ra rost edi, ya'ni ziddiyat qoidaning o'zida (foydalanuvchi o'rtachadan 2.3 ball narida, film undan 16.7 ball narida = "mos"). O'lchov: 500 filmdan 495 tasi sabab tomonida edi → endi 44.8 / 50.6 / 66.2% (uch akkaunt), jim 0%. Takrorlanish hal bo'lmadi (eng ko'p nomlangan trait sabab filmlarining 64.3 / 51.8 / 43.5% ida) — backlog'ga. Qaror, raqamlar va rad etilgan uch variant: `docs/decisions/0008-closeness-reasons.md` |
 | 1.26 | 2026-10-16 | FR-6: farq promptida **taqqoslash majburiy** — har jumlada foydalanuvchi odatda nimani tanlashi va film shunga qarshi qayerda turishi; faqat filmni ta'riflash yetmaydi, farqni baholovchi so'zlar taqiqlanadi. Sabab: jonli jumlalardan biri (Casablanca) foydalanuvchini umuman eslamagan, ya'ni farq bayoni film retsenziyasiga aylangan. "Sizga yoqadi" taqiqi o'z kuchida (foydalanuvchi qarori) |
 | 1.25 | 2026-10-16 | FR-5: **panel sarlavhasi ostidagi jumlani nomlaydi**, band'ni emas — tomon `reason` da "Why it suits you", `difference` da "How it differs", band `strong` bo'lmasa va hech narsa nomlanmasa neytral "You and this film". Qizil "STRONG MATCH" `strong` da qoladi, **faqat tomon `difference` bo'lsa bosiladi**: farq jumlasi band bilan ziddiyat hosil qiladi (1.23/1.24 dagi ziddiyat qaytib kelardi), jimlik esa ziddiyat emas — jumla yo'q, band rost, va hech narsa nomlanmagan film 14 traitda ta'mga eng yaqin turgani uchun eng mos filmlardan biri. Uch tilda matn foydalanuvchi tomonidan tanlangan. Sabab: band va tomon boshqa o'lchovlar, shuning uchun band'li sarlavha jumla maqtovmi yoki farq bayonimi — aytmasdi (foydalanuvchi qarori, qizil qoidasi 2026-10-16 da aniqlashtirildi; matnlar va holatlar jadvali `docs/ui.md`, "Kicker qoidasi") |

@@ -33,7 +33,8 @@ provayder, ikkinchi kalit va ikkinchi narx jadvali paydo bo'ladi.
    yozuvi, servis uchun shaffof emas, Gemini uni so'zma-so'z qaytarib yuboradi. Boshqa
    provayder `raw` ni `None` qoldirishi mumkin.
 5. **Bitta xabar — ko'pi bilan ikki chaqiruv** (qo'shimcha 2026-11-12: 503 yoki qisqa
-   kutishli 429 da har biri bir marta qayta uriniladi, eng yomoni to'rt; pastda): birinchisida model tool so'rashi mumkin,
+   kutishli 429 da har biri bir marta qayta uriniladi, eng yomoni to'rt; 2026-11-13: to'xtab
+   qolgan oqim ham, va butun xabarga 25 s / 45 s chegara; pastda): birinchisida model tool so'rashi mumkin,
    ikkinchisi tool natijasidan keyingi javob, unda tool taqiqlangan (`mode: NONE`).
 6. **Kunlik limit o'zgarmaydi:** `assistant_daily_calls_per_user = 30`, UTC kun (foydalanuvchi
    qarori, TZ o'zgarmaydi). Off-topic xabar ham hisoblanadi, chunki u ham chaqiruv.
@@ -89,3 +90,53 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
   boradi va qayta urinish uning o'rnida chiqadi. Follow-up'lar kelib bo'lgandan keyingi
   uzilish qayta urinilmaydi: javob to'liq. Shu bilan 5-banddagi "ikki chaqiruv" xatoda
   to'rttagacha boradi. Kunlik limit xabarni sanaydi, chaqiruvni emas; o'zgarmadi.
+
+## Qo'shimcha, 2026-11-13: xabar uchun vaqt chegarasi
+
+- **Nima bo'ldi** (jonli o'lchov 2026-11-12, 10 xabar, Render log'idagi `assistant timing`
+  qatorlari, 9 tasi log'da): birinchi chaqiruv median 9.0 s (5.9–19.1), ikkinchisi 16.3 s
+  (6.1–40.2), birinchi belgi 17.7 s (14.7–39.1), jami 33.3 s. Bizning kod (`prepare` +
+  `search`) 0.1 s. 503 lar: uchta, ikki xabarda, hammasi ikkinchi chaqiruvda; biri qayta
+  urinishda tiklandi, ikkinchisi ikki marta 503 olib 51.7 s da yiqildi. Yana bir javob
+  birinchi so'zlaridan keyin to'xtab qoldi va eski 30 s chaqiruv chegarasida
+  `TimeoutError` bilan tugadi. Ya'ni eng yomoni ~2 daqiqa kutish, oxirida umumiy xato.
+- **Qaror** (foydalanuvchi, 2026-11-12, "B varianti"): xabarning o'ziga chegara.
+  `FIRST_TEXT_SECONDS = 25` — birinchi belgi shu vaqtgacha; `TOTAL_SECONDS = 45` — butun
+  javob. O'tsa, `error {reason: "timeout"}` va mijoz "assistant band" matnini "Qayta
+  urinish" tugmasi bilan ko'rsatadi. Har chaqiruvdagi 30 s chegara olib tashlandi.
+- **Timeout ham qayta urinishga kiradi:** oqim boshlangandan keyin `STALL_SECONDS = 10`
+  davomida hech narsa kelmasa, u 503 kabi bir marta qayta uriniladi (`reset` bilan).
+  Birinchi hodisagacha bu qoida yo'q: faqat tool so'raydigan chaqiruv oxirigacha hech narsa
+  yubormaydi va 2026-11-12 da 19 s gacha olib, muvaffaqiyatli tugagan. Qayta urinish
+  chegaraga kamida `MIN_TRY_SECONDS = 5` qolganda qilinadi, aks holda xabar "timeout".
+  Follow-up'lar kelib bo'lgan bo'lsa, chegara javobni buzmaydi (avvalgi qoida).
+- **Kesilgan chaqiruv ham pul:** provayder unga token sonini aytmaydi, shuning uchun u
+  belgilardan hisoblanadi (3.5 belgi = 1 token, ko'proq sanaydi) va xarajat qatorida
+  `tokens=estimated` bo'ladi. 2026-11-12 dagi kesilgan javobning tokenlari umuman
+  yozilmagan edi (`requests=1`, aslida ikki chaqiruv).
+- **Rad etildi:** har urinishga "birinchi bo'lak 8 s ichida" qoidasi (rejada taklif
+  qilingan edi): 2026-11-12 da birinchi chaqiruvlarning 6/9 tasi 8 s dan uzoq davom etib
+  muvaffaqiyatli tugagan, qoida ularni behuda qayta yuborardi.
+- **Narxi:** chaqiruvlar soni o'zgarmadi (eng yomoni to'rt), narx ham. Chegara faqat
+  kutishni qisqartiradi. O'lchovdagi 10 xabarda B varianti 4 tasini kesgan bo'lardi,
+  shulardan 3 tasi 35–47 s da muvaffaqiyatli tugagan edi: bu foydalanuvchi tanlagan narx.
+  11-11 dagi 72 xabarning birortasi kesilmasdi (eng uzuni 16.3 s).
+- **Zaxira model (1e) qilinmadi** (foydalanuvchi qarori): 503 xabarlarning 2/9 qismida,
+  sekinlik esa hammasida. Zaxira model sekinlikka yordam bermaydi, 503 esa ikkinchi
+  chaqiruvda keladi, va thought signature boshqa modelga o'tmagani uchun almashtirish
+  butun xabarni qaytadan yuborishni talab qiladi.
+
+## Qo'shimcha, 2026-11-13: janr argumenti va kirish gapi
+
+- **Tool imzosi o'zgardi:** `search_movies(traits, year_min, year_max, runtime_max, mood,
+  genres, exclude_ids)` (TZ 1.29, phase-04 prompti). `genres` — TMDB'ning 19 janr nomi,
+  kodda qat'iy ro'yxat (`GENRES`), bazadan o'qilmaydi: tool sxemasi prefiksning bir
+  qismi va har chaqiruvda bir xil baytlar bo'lishi kerak. Film berilgan janrlarning
+  hammasiga ega bo'ladi, shuning uchun ko'pi bilan ikkitasi.
+- **Kirish gapi:** model tool'ni chaqirishdan oldin nima izlayotganini bitta gapda aytadi
+  va shu javobning o'zida tool'ni chaqiradi. Birinchi belgi endi birinchi chaqiruvning
+  boshida chiqadi, qidiruv va ikkinchi chaqiruvdan keyin emas. Ikkinchi chaqiruv bu
+  gapni o'z qismlari bilan qaytarib oladi va uni takrorlamaydi.
+- **Prefiks kattalashdi:** ko'rsatmalar 3 025 → 3 643 belgi, tool sxemasi 2 735 → 3 091
+  belgi, ya'ni har chaqiruvga taxminan +280 kirish token (3.5 belgi/token). Narx
+  o'lchovdan keyin `docs/costs.md` da yangilanadi.

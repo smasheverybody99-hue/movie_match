@@ -15,7 +15,10 @@ A user can ask in plain language and get real recommendations from the existing 
 ## Build
 
 1. **Tool definition** — `app/services/assistant.py`
-   - One tool: `search_movies(traits, year_min, year_max, runtime_max, mood, exclude_ids)`.
+   - One tool: `search_movies(traits, year_min, year_max, runtime_max, mood, genres,
+     exclude_ids)`. `genres` added 2026-11-13 (TZ 1.29): TMDB's genre names, a film must
+     have every one given, at most two. The manual checks had "musical" answered with
+     Ratatouille and a thriller request with Bambi, because nothing could ask for a genre.
    - The tool implementation calls the Phase 2 recommendation service. The model chooses
      arguments; it never ranks films itself and never names a film from its own knowledge.
 2. **Endpoint** — `POST /assistant/chat`, Server-Sent Events stream.
