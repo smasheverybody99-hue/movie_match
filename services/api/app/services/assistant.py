@@ -898,12 +898,11 @@ async def chat(
             yield Failed("blocked")
             return
         if answer.refused is None:
-            # A film the engine found but the answer never placed still gets its card:
-            # the recommendation is the engine's, the sentence only introduces it.
-            for hit in hits:
-                if hit.movie.id not in answer.shown:
-                    answer.shown.append(hit.movie.id)
-                    yield Card(hit)
+            # Only the films the answer placed are shown. Until 2026-11-13 the engine's
+            # other hits were appended as cards too, and the manual checks found them off
+            # the request (The Lion King for "blow my mind", a Harry Potter for a heist).
+            if hits and not answer.shown:
+                log.warning("assistant placed none of the %d films found", len(hits))
             if answer.followups:
                 yield Followups(list(answer.followups))
         if answer.dropped:

@@ -80,14 +80,14 @@ async def test_the_model_is_shown_the_engines_films_and_its_own_call_back(
     assert film["runtime_minutes"] <= 90 and film["year"] >= 1990
 
 
-async def test_every_film_the_engine_found_is_shown_once_in_the_answers_order(
+async def test_only_the_films_the_answer_placed_are_shown_in_its_order(
     assistant_catalogue: AsyncSession, spy: list[SearchRequest]
 ) -> None:
     stream, _ = await _ask(assistant_catalogue, spy)
 
-    ids = card_ids(stream)
-    assert ids[:2] == [9_600_001, 9_600_002]  # where the answer placed them
-    assert sorted(ids) == sorted(SHORT[:5])  # the rest follow, none twice
+    # The engine found five; the answer placed two. The other three are not appended
+    # (until 2026-11-13 they were, and the manual checks found them off the request).
+    assert card_ids(stream) == [9_600_001, 9_600_002]
     followups = [data["items"] for name, data in stream if name == "followups"]
     assert followups == [["Something even shorter", "Older films like these"]]
     assert stream[-1] == ("done", {})

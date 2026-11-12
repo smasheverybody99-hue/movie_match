@@ -59,7 +59,7 @@ async def test_a_503_before_anything_is_shown_is_tried_again_unseen(
     assert sdk.requests[0]["contents"] == sdk.requests[1]["contents"]
     assert "reset" not in [name for name, _ in stream]
     assert text_of(stream).startswith(ANSWER)
-    assert card_ids(stream)[:2] == [9_600_001, 9_600_002]
+    assert card_ids(stream) == [9_600_001, 9_600_002]
     assert stream[-1] == ("done", {})
     assert turn is not None
     assert "retries=1 end=done" in _line(caplog, "assistant timing")
@@ -78,7 +78,7 @@ async def test_a_503_in_the_middle_of_the_answer_resets_it_and_the_retry_takes_i
     assert card_ids(before) == [9_600_001]  # what the broken attempt had shown
     after = _after_reset(stream)
     assert text_of(after).startswith(ANSWER)
-    assert card_ids(after)[:2] == [9_600_001, 9_600_002]  # shown again, not dropped as repeats
+    assert card_ids(after) == [9_600_001, 9_600_002]  # shown again, not dropped as repeats
     assert after[-1] == ("done", {})
     assert len(sdk.requests) == 3
     assert sdk.requests[1]["contents"] == sdk.requests[2]["contents"]
@@ -112,7 +112,7 @@ async def test_a_break_after_the_follow_ups_keeps_the_complete_answer(
 
     names = [name for name, _ in stream]
     assert "reset" not in names and "error" not in names
-    assert card_ids(stream)[:2] == [9_600_001, 9_600_002]
+    assert card_ids(stream) == [9_600_001, 9_600_002]
     followups = [data["items"] for name, data in stream if name == "followups"]
     assert followups == [["Something even shorter", "Older films like these"]]
     assert stream[-1] == ("done", {})
