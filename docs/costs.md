@@ -1,6 +1,6 @@
 # Xarajatlar — Movie Match
 
-Oxirgi tekshiruv: **2026-11-13** (assistant: kattalashgan prefiks narxi o'lchandi — suhbat boshidagi xabar $0.00184, suhbat ichida ~$0.00193). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
+Oxirgi tekshiruv: **2026-11-13** (assistant: `intro` bilan suhbat boshidagi xabar $0.00185 o'lchandi; Render'dagi Gemini kaliti bepul tarifda — 15 RPM, tarif qarori kutilmoqda). Narx o'zgarsa yoki yangi provayder ko'rib chiqilsa, shu
 fayl yangilanadi (CLAUDE.md qoidasi). Har narx yonida manba bor; manbasiz raqam — hisob
 yoki taxmin, va u shunday deb belgilangan.
 
@@ -142,6 +142,7 @@ yo'q (birinchi chaqiruv ~1 800 kirish token).
 | Oddiy xabar, 2 chaqiruv (63 ta): o'rtacha 4 393 kirish + 128 chiqish | **$0.00164** (median $0.00162, eng ko'pi $0.00204) | **$0.033** | **$0.086** | $1.48 |
 | Off-topic, 1 chaqiruv (4 ta): ~1 820 kirish + 5 chiqish | $0.00055 | — | — | — |
 | **O'lchangan, 2026-11-12 19:33–19:34 UTC** (`556e676`: `genres` va kirish gapi, TZ 1.29; Render log'idagi 10 ta `run=assistant` qatori, hammasi 2 chaqiruv, `tokens=reported`, `status=complete`; **hammasi yangi suhbat, kontekstsiz**): o'rtacha 4 713 kirish + 169 chiqish | **$0.00184** (median $0.00186, 0.00167–0.00195; jami $0.0184) | — | — | — |
+| **O'lchangan, 2026-11-13 06:17–06:18 UTC** (`f930295`: kirish gapi tool'ning `intro` argumentida; Render log'idagi 8 ta `status=complete` qatori, hammasi 2 chaqiruv, `tokens=reported`; hammasi yangi suhbat, kontekstsiz; yana 2 tasi 429 bilan birinchi chaqiruvda to'xtadi, `requests=1`, 0 token): o'rtacha 4 847 kirish + 159 chiqish | **$0.00185** (median $0.00187, 0.00162–0.00203; jami $0.0148) — 19:33 dagidan farqi +$0.00001, ya'ni `intro` narxni sezilarli o'zgartirmadi | — | — | — |
 | **Suhbat ichidagi xabar, o'rtacha** (taxmin: 2026-11-11 ning kontekstli o'rtachasi 4 393 / 128 + yangi prefiks farqi +507 / +55) | ~$0.00193 | ~$0.039 | ~$0.106 | ~$1.73 |
 
 O'lchangan qator — suhbatning birinchi xabari: o'lchov skripti har xabarni
@@ -152,6 +153,8 @@ o'lchandi: 2026-11-12 16:27 dagi 6 ta to'liq xabar (`84ac291`, ular ham yangi su
 4 206 / 114) bilan solishtirganda +507 kirish (chaqiruvga ~250, taxmin ~280 edi), +55 chiqish
 (taxmin ~15). $0.20 chegarasiga oyiga ~103 xabarda yetiladi. Namuna 10 xabar: kichik. Vaqt chegarasi (TZ 1.28) chaqiruvlar sonini o'zgartirmaydi; u kesgan chaqiruv ham
 pul, uning tokenlari belgilardan hisoblanib `tokens=estimated` bilan yoziladi.
+
+**Render'dagi kalit bepul tarifda (2026-11-13 da aniqlandi).** 06:18:08 va 06:18:09 UTC dagi ikkita 429 javobi: "Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite, description: Generate content requests per minute limit exceeded on Free Tier", "Please retry in 51.8s". Demak yuqoridagi dollar raqamlari pullik tarif narxida hisoblangan narx, haqiqatda hisob-kitob qilinmagan. Bepul tarifda: daqiqasiga 15 so'rov (assistant xabari 2 so'rov, ya'ni **butun servis bo'yicha daqiqasiga ~7 xabar**), limit loyiha bo'yicha, kalit bo'yicha emas; kirish va chiqish "Free of charge", lekin "Used to improve our products: Yes". ADR 0004: foydalanuvchi ma'lumoti bor har qanday so'rov pullik kalitda bo'lishi kerak. Pullik tarif (Tier 1): billing hisobini ulash, odatda darhol; billing tier cap $250, 10 daqiqalik oynada $10 xarajat chegarasi. Tier 1 ning Flash-Lite uchun RPM/TPM/RPD raqamlari rasmiy sahifada yo'q, AI Studio'dagi loyiha sahifasida ko'rinadi. Manba: [aistudio.google.com/docs/rate-limits](https://aistudio.google.com/docs/rate-limits), [aistudio.google.com/docs/pricing](https://aistudio.google.com/docs/pricing), tekshirildi 2026-11-13. Tarif tanlash foydalanuvchining qarori.
 
 72 xabar jami **$0.1086** (taxmin $0.14 edi). Bitta suhbat (o'rtacha 2.75 xabar) $0.0043.
 $0.20 chegarasiga oyiga ~122 xabarda yetiladi (~4 kuniga). 5 ta xabar 503 bilan uzilgan,
@@ -246,6 +249,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
+| 2026-11-13 | Assistant: `intro` bilan narx o'lchandi — Render log'i 06:17–06:18 UTC, 8 xabar, o'rtacha 4 847 / 159 token, $0.00185 (taxmin +$0.00007 edi, o'lchovda +$0.00001). Render'dagi Gemini kaliti **bepul tarifda** ekani 429 javobidan aniqlandi (daqiqasiga 15 so'rov, Flash-Lite); dollar raqamlari pullik tarif narxida, hisob-kitob qilinmagan. Tier 1 shartlari rasmiy sahifadan tekshirildi |
 | 2026-11-13 | Assistant: kirish gapi tool'ning `intro` argumentiga ko'chdi (ADR 0009 qo'shimchasi 2) — tool sxemasi 3 091 → 3 331 belgi, taxminan +$0.00007 xabarga (~+140 kirish, ~+12 chiqish token); tashxisga 6 ta to'g'ridan-to'g'ri chaqiruv (~1 980 kirish + ~25 chiqish token har biri, ~$0.004 jami). O'lchov deploy'dan keyin |
 | 2026-11-13 | Assistant: kattalashgan prefiks taxmini o'lchov bilan almashtirildi — Render log'i, 2026-11-12 19:33–19:34 UTC, 10 xabar (hammasi yangi suhbat, kontekstsiz — shu kuni keyinroq aniqlandi va tuzatildi): o'rtacha 4 713 / 169 token, **$0.00184** suhbat boshidagi xabar; suhbat ichidagi o'rtacha ~$0.00193 (taxmin), oyiga 20 xabar ~$0.039, 20 suhbat ~$0.106, limitda ~$1.73; qayta urinish 0, kesilgan chaqiruv 0 |
 | 2026-11-13 | Assistant: prefiks kattalashdi (`genres` argumenti, kirish gapi; TZ 1.29) — taxmin ~$0.0018 xabarga (o'lchangan $0.00164 + ~280 kirish token × 2 chaqiruv), limitda ~$1.66 oyiga; o'lchov Render log'ini kutmoqda. Kesilgan chaqiruv tokenlari endi taxminan yoziladi (TZ 1.28) |

@@ -313,6 +313,19 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
     )
 
 
+# What may end the intro as written; a quote or bracket after it is looked through.
+_SENTENCE_ENDS = ".!?…:;"
+_CLOSERS = "\"')]" + chr(0xBB) + chr(0x201D) + chr(0x2019)  # and the curly closing quotes
+
+
+def full_stop(sentence: str) -> str:
+    """The intro with a full stop when the model left it without one. On 2026-11-13 three
+    of eight intros had none and ran into the answer: "...true events Here is"."""
+    if sentence.rstrip(_CLOSERS)[-1:] in tuple(_SENTENCE_ENDS):
+        return sentence
+    return sentence + "."
+
+
 def search_request(args: SearchArgs, shown: set[int]) -> SearchRequest:
     """The engine's request: the mood's levels under the explicit traits, and every film
     this conversation has already shown excluded whether or not the model asked."""
@@ -946,7 +959,7 @@ async def chat(
                     # The intro goes out before the search and the second call: it is what
                     # the viewer reads first. Not when the model already wrote text itself.
                     if args.intro and not answer.answer:
-                        for event in answer.say(args.intro + " "):
+                        for event in answer.say(full_stop(args.intro) + " "):
                             sent.append(event)
                             yield seen(event)
                 if call.name == TOOL_NAME and answer.refused is None:  # an intro may leak

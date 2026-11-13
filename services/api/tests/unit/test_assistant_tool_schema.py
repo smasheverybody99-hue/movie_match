@@ -169,3 +169,24 @@ def test_the_intro_is_required_one_short_sentence_and_is_never_a_search_argument
         args = parse_args({"intro": bad})
         assert (args.intro, args.dropped) == ("", ("intro",))
     assert search_request(parse_args({"intro": "Hello."}), shown=set()).targets == {}
+
+
+def test_an_intro_without_a_full_stop_gets_one_so_it_does_not_run_into_the_answer() -> None:
+    # 2026-11-13: "...a moving drama based on true events Here is" (3 of 8 intros).
+    stop = assistant.full_stop
+    assert stop("Looking for a moving drama based on true events") == (
+        "Looking for a moving drama based on true events."
+    )
+    assert stop("Kechqurun uchun romantik komediya qidirmoqdaman") == (
+        "Kechqurun uchun romantik komediya qidirmoqdaman."
+    )
+    for written in (
+        "Looking for a tense thriller.",
+        "Ready for something light?",
+        "Ищу мюзикл на вечер!",
+        "Here is what I found:",
+        'Looking for "something calm."',
+        "Looking for films (short ones.)",
+        "Thinking…",
+    ):
+        assert stop(written) == written
