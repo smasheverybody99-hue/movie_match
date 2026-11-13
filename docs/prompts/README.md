@@ -32,14 +32,16 @@ tartibi chapdagi ustunda. Oldingi "Hafta" ustuni (17 haftalik reja) tarix uchun
 | 5 | `phase-04-assistant.md` | AI assistant | 2026-11-15 | Tool-use testlari + injection testlari |
 | 6 | `phase-05-alpha.md` | Yopiq alfa | kod 2026-11-18, testerlar 2026-11-19, qaror 2026-12-03 | Texnik gate + **mahsulot darvozasi** (12 tester, 2 hafta, 15% / 70%) |
 | 7 | `phase-06-mobile.md` | Flutter ilova, **Android birinchi**, alfa paytida | Android yopiq testi 2026-11-28 | Widget testlari + qurilma ko'rigi |
-| 8 | `phase-09a-web-launch.md` | Web launch tayyorligi va ochiq web launch | 2026-12-05 | Xavfsizlik + tiklash; F5 mahsulot darvozasi o'tgan |
-| 9 | `phase-08-social.md` | Smart Watchlist, Group Match, sayqal | F9a dan keyin | Performance byudjeti |
-| 10 | `phase-07-character.md` | Character Match (yurist ko'rigigacha flag ortida) | F8 dan keyin | Matching testlari + huquqiy ko'rik |
-| 11 | `phase-09b-store-launch.md` | Do'konlarga ariza | 2026-12-12 | Do'kon talablari + Play yopiq testi 14 kun |
+| 8 | `phase-09a-web-launch.md` | Web launch tayyorligi va ochiq web launch | 2026-12-05 | Xavfsizlik + tiklash; F5 mahsulot darvozasi o'tgan (15% va 70%) |
+| 9 | `phase-09b-store-launch.md` | Do'konga ariza (Google Play) | ariza 2026-12-12; ko'rinish 2026-12-19 dan oldin emas | F6 gate'i, F9a, Play yopiq testi 14 kun; F7/F8 ni kutmaydi (TZ 1.31) |
+| 10 | `phase-08-social.md` | Smart Watchlist, Group Match, sayqal | do'kondan keyin, yangilanish | Performance byudjeti |
+| 11 | `phase-07-character.md` | Character Match (yurist ko'rigigacha flag ortida) | F8 dan keyin, yangilanish | Matching testlari + huquqiy ko'rik |
+| — | iOS | hozir rejalanmaydi | alohida qaror, 2027-yil yanvar | — |
 
-**Darvoza qoidasi o'zgardi (TZ 1.30):** qurish alfa paytida ketadi (F6, F9a), lekin ochiq
-launch (web va do'kon) faqat F5 mahsulot darvozasidan keyin. 15% yiqilsa — dvigatel qayta
-ishlanadi va launch to'xtaydi. Texnik gate qoidasi o'zgarmagan: bitta test yiqilsa ham
+**Darvoza qoidasi o'zgardi (TZ 1.30, 1.31):** qurish alfa paytida ketadi (F6, F9a), lekin ochiq
+launch (web va do'kon) faqat F5 mahsulot darvozasidan keyin — 15% ham, 70% ham. 15%
+yiqilsa dvigatel qayta ishlanadi; 70% yiqilsa onboarding tuzatiladi va qayta o'lchanadi;
+ikkala holda ham launch to'xtaydi. Texnik gate qoidasi o'zgarmagan: bitta test yiqilsa ham
 keyingi faza boshlanmaydi.
 
 ## Har promptda o'zgartiriladigan joy

@@ -59,7 +59,9 @@ cd apps/web && npm run lint && npm run typecheck && npm test
       same 12 join the Google Play closed test (Phase 6), which needs 12 testers opted in
       for 14 consecutive days
 - [ ] At least 2 weeks of data collected (2026-11-19 — 2026-12-03)
-- [ ] **Recommendation → watched within 7 days is at least 15%**
+- [ ] **Recommendation → watched within 7 days is at least 15%**, counted only over
+      recommendations whose 7-day window has closed (TZ 1.31; on 2026-12-03 those shown
+      up to 2026-11-26). Report how many recommendations that is
 - [ ] Onboarding completion is at least 70% (with 12 testers: at least 9)
 - [ ] 5 user interviews of 20 minutes each (was 10), notes written up in
       `docs/research/alpha-interviews.md`
@@ -68,6 +70,9 @@ cd apps/web && npm run lint && npm run typecheck && npm test
 roughly 47–91%; the 15% metric counts recommendations, but they cluster in 12 people.
 Report the numbers with their intervals and read them together with the interviews.
 
+**Both criteria are required for launch (TZ 1.31).** If onboarding completion is below
+70%: fix onboarding and measure it again; the engine is not reworked; the launch waits.
+
 If the 15% metric is not met: **stop the launch.** Phase 9a's public web launch and Phase
 9b's store submission do not happen. Go back to Phase 2 and rework the engine — the most
 likely causes are the trait definitions, the weighting, or the diversification. Re-run the
@@ -75,7 +80,10 @@ alpha afterwards. Building does not stop with it: the Android app and launch rea
 work go on during the alpha (TZ 1.30).
 
 Do not change ranking, onboarding or the metric definitions while the alpha runs: a change
-in the middle splits two weeks of data into two smaller samples.
+in the middle splits two weeks of data into two smaller samples (user decision, TZ 1.31).
+Before testers arrive, only two backlog items: the NSFW handling and telling the viewer
+that today's explanations are used up. The recency quality floor and film-specific
+onboarding chips wait until after the alpha.
 
 ## Report
 

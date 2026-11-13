@@ -1,14 +1,15 @@
 # Phase 8 — Social features and polish
 
-Read `CLAUDE.md` first. **Phase 9a (web launch) must be done** and Phase 5's product gate
-passed (TZ 1.30 order: F9a → F8 → F7 → F9b). Phase 6's gate must be green: the features
-below go to web and mobile.
+Read `CLAUDE.md` first. **Phase 9a (web launch) must be done and Phase 9b (Google Play)
+submitted**; Phase 5's product gate passed (TZ 1.31 order: F9a → F9b → F8 → F7). This
+phase ships as an update to the live web and the store app. Phase 6's gate must be
+green: the features below go to web and mobile.
 
 ## Goal
 
 Finish the feature set and bring performance and accessibility up to the targets in
-`docs/TZ.md` section 5. After this phase and Phase 7, no new features before the store
-launch.
+`docs/TZ.md` section 5. The performance and accessibility targets come after the public
+web launch in this order (TZ 1.30, accepted by the user).
 
 ## Build
 

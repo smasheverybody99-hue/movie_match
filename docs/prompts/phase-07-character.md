@@ -1,9 +1,8 @@
 # Phase 7 — Character Match
 
 Read `CLAUDE.md` and **`docs/legal.md`** first. **Phase 8's gate must be green** (TZ 1.30
-order: F8 before F7) and Phase 5's product gate passed. The feature ships behind a flag
-until the lawyer's review is recorded; the store submission (Phase 9b, 2026-12-12) may go
-out with the flag off.
+order: F8 before F7) and Phase 5's product gate passed. It ships after the store launch,
+as an update (TZ 1.31), behind a flag until the lawyer's review is recorded.
 
 This feature carries legal risk. The constraints below are not style preferences.
 
@@ -90,4 +89,4 @@ Manual checklist:
 1. Gate output and coverage.
 2. The 6 quiz results and whether they seemed right.
 3. The legal review outcome.
-4. Do not start Phase 9b without the user.
+4. Do not start the next work without the user.

@@ -2,12 +2,13 @@
 
 Read `CLAUDE.md` and `docs/legal.md` first. TZ 1.30 split Phase 9 in two: this file is the
 web launch (target **2026-12-05**); the store submission is `phase-09b-store-launch.md`
-(2026-12-12).
+(2026-12-12; TZ 1.31: it does not wait for Phases 7 and 8).
 
 Preconditions (TZ 1.30): the readiness work below is built **during the alpha**, from
 2026-11-19. The public launch itself needs **Phase 5's product gate passed** (decision
-2026-12-03: 15% and 70%). If the 15% metric fails, this launch does not happen and the
-engine is reworked. Phases 7 and 8 come after this one and are not required for it.
+2026-12-03): both 15% and 70% (TZ 1.31). If 15% fails, the engine is reworked; if 70%
+fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
+and 8 come after the store launch and are not required for it.
 
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
@@ -84,4 +85,4 @@ Manual checklist:
 2. The restore test result.
 3. What the unaided sign-up test revealed.
 4. A go / no-go recommendation for the public web launch with the reason.
-5. Do not start Phase 8 without the user.
+5. Do not start Phase 9b without the user.
