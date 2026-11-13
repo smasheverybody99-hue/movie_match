@@ -157,7 +157,17 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
   ko'rsatilmaydi. Birinchi belgi ≈ `prepare` + birinchi chaqiruv (o'lchovda median 1.29 s).
 - **Tool imzosi:** `search_movies(intro, traits, year_min, year_max, runtime_max, mood,
   genres, exclude_ids)`; `intro` qidiruvga bormaydi. TZ 1.29 izohi va phase-04 promptidagi
-  imzo foydalanuvchi tasdig'ini kutadi.
+  imzo yangilandi (foydalanuvchi tasdig'i, 2026-11-13).
+- **Nuqta** (jonli o'lchov 2026-11-13 06:17, `f930295`): 8 intro'dan 3 tasi tinish
+  belgisisiz keldi va javobga qo'shilib ketdi ("...true events Here is"). Server endi
+  oxirida `.!?…:;` (yopuvchi qo'shtirnoq yoki qavsdan oldin ham) bo'lmasa nuqta qo'shadi
+  (`full_stop`). Modelga qaytariladigan chaqiruv o'zgarmaydi.
+- **Bepul tarif** (o'sha o'lchov): 10 xabardan 2 tasi birinchi chaqiruvda 429 bilan
+  tugadi — `generate_content_free_tier_requests`, limit 15 RPM, "retry in 51.8s"
+  (`MAX_RETRY_AFTER_SECONDS = 2` dan uzoq, shuning uchun qayta urinilmadi; kod
+  mo'ljallanganidek ishladi). Ya'ni Render'dagi kalit bepul tarifda: butun servisga
+  daqiqasiga ~7 xabar va "Oqibatlar" dagi ma'lumot sharti amalda. Tarif qarori
+  foydalanuvchida (`docs/costs.md`, `docs/phase-4-status.md`).
 - **Prefiks:** tool sxemasi 3 091 → 3 331 belgi (~+70 kirish token chaqiruvga, xabarga
   ~+140), intro ~+12 chiqish token: taxminan +$0.00007 xabarga, deploy'dan keyin o'lchanadi.
 - **Vaqt qatori:** `assistant timing` endi router bosqichlari bilan boshlanadi (`jwt`,
