@@ -19,12 +19,15 @@ from app.traits import TRAIT_KEYS
 
 # Server-side only: the films the conversation has shown, added whatever the model says.
 SERVER_ONLY = {"session", "user_id", "shown"}
+# Shown, not searched with: the opening sentence the viewer reads while the search runs.
+SHOWN_ONLY = {"intro"}
 
 
 def test_the_schemas_properties_are_search_movies_keyword_arguments() -> None:
     parameters = inspect.signature(search_movies).parameters
     accepted = {name for name in parameters if name not in SERVER_ONLY}
-    assert set(tool_schema()["properties"]) == accepted
+    assert set(tool_schema()["properties"]) - SHOWN_ONLY == accepted
+    assert "intro" not in parameters
     assert accepted == {
         "traits",
         "year_min",
@@ -65,6 +68,7 @@ def test_every_value_the_schema_allows_is_accepted_unchanged() -> None:
         "mood": props["mood"]["enum"][0],
         "genres": props["genres"]["items"]["enum"][:MAX_GENRES],
         "exclude_ids": [1, 2],
+        "intro": "x" * props["intro"]["maxLength"],
     }
     args = parse_args(raw)
     assert args.dropped == ()
@@ -76,6 +80,7 @@ def test_every_value_the_schema_allows_is_accepted_unchanged() -> None:
         mood=raw["mood"],
         genres=frozenset(GENRES[:MAX_GENRES]),
         exclude_ids=frozenset({1, 2}),
+        intro=raw["intro"],
     )
 
 
@@ -147,3 +152,20 @@ def test_genre_names_are_matched_without_case_and_unknown_ones_are_dropped() -> 
 def test_the_request_carries_the_genres() -> None:
     request = search_request(parse_args({"genres": ["Music"]}), shown=set())
     assert request.genres == frozenset({"Music"})
+
+
+def test_the_intro_is_required_one_short_sentence_and_is_never_a_search_argument() -> None:
+    # 2026-11-13: Gemini Flash-Lite sent the call with no text before it in six of six
+    # diagnosis calls; a prompt that demanded the text once wrote it and made no call.
+    schema = tool_schema()
+    assert schema["required"] == ["intro"]
+    intro = schema["properties"]["intro"]
+    assert (intro["type"], intro["maxLength"]) == ("string", assistant.MAX_INTRO_CHARS)
+    assert "naming no film" in intro["description"]
+    assert parse_args({"intro": "  Looking for\na tense   thriller. "}).intro == (
+        "Looking for a tense thriller."
+    )
+    for bad in ("", "   ", "x" * (assistant.MAX_INTRO_CHARS + 1), 42, ["a"]):
+        args = parse_args({"intro": bad})
+        assert (args.intro, args.dropped) == ("", ("intro",))
+    assert search_request(parse_args({"intro": "Hello."}), shown=set()).targets == {}

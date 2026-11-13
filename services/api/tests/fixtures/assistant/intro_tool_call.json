@@ -1,13 +1,13 @@
 {
-  "note": "Hand-written, not recorded: the first call writes the opening sentence (INSTRUCTIONS rule 2, since 2026-11-13) and then asks for the tool in the same response, with a thought signature on the function-call part. Play it with tool_call#2 for the answer.",
+  "note": "Hand-written, not recorded, in the shape the 2026-11-13 diagnosis calls showed (gemini-3.5-flash-lite, thinking MINIMAL): the first call sends no text at all, only the function call with a thought signature, then an empty part with the finish reason. The opening sentence is the call's intro argument (INSTRUCTIONS rule 2). Play it with tool_call#2 for the answer.",
   "calls": [
     [
       {
-        "candidates": [{"content": {"role": "model", "parts": [{"text": "Looking for short, twisty thrillers. "}]}}]
+        "candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "search_movies", "args": {"intro": "Looking for short, twisty thrillers.", "traits": {"plot_twist": 80}, "runtime_max": 90, "genres": ["thriller"]}}, "thoughtSignature": "c2lnbmF0dXJlLTE="}]}}]
       },
       {
-        "candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "search_movies", "args": {"traits": {"plot_twist": 80}, "runtime_max": 90, "genres": ["thriller"]}}, "thoughtSignature": "c2lnbmF0dXJlLTE="}]}, "finishReason": "STOP"}],
-        "usageMetadata": {"promptTokenCount": 1900, "candidatesTokenCount": 50, "thoughtsTokenCount": 0, "totalTokenCount": 1950}
+        "candidates": [{"content": {"role": "model", "parts": [{"text": ""}]}, "finishReason": "STOP"}],
+        "usageMetadata": {"promptTokenCount": 1990, "candidatesTokenCount": 34, "thoughtsTokenCount": 0, "totalTokenCount": 2024}
       }
     ]
   ]
