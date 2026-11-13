@@ -140,3 +140,26 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
 - **Prefiks kattalashdi:** ko'rsatmalar 3 025 → 3 643 belgi, tool sxemasi 2 735 → 3 091
   belgi, ya'ni har chaqiruvga taxminan +280 kirish token (3.5 belgi/token). Narx
   o'lchovdan keyin `docs/costs.md` da yangilanadi.
+
+## Qo'shimcha, 2026-11-13 (2): kirish gapi tool argumentiga ko'chdi
+
+- **Nima topildi:** jonli o'lchovda (2026-11-12 19:33, 10 xabar) birinchi matn har safar
+  ikkinchi chaqiruv ichida keldi, ya'ni yuqoridagi "kirish gapi" ishlamagan. Tashxis (6 ta
+  to'g'ridan-to'g'ri chaqiruv, xom chunk'lar): `gemini-3.5-flash-lite` MINIMAL thinking bilan
+  funksiya chaqiruvini oldidan matnsiz yuboradi — bizning Gemini moduli hech narsa
+  tashlamaydi. Promptni kuchaytirish yordam bermadi. Namunali prompt en va ru da matn
+  yozdirdi, lekin uz da model gapni yozib tool'ni **chaqirmadi** (filmsiz javob). LOW
+  thinking matn yozdi, lekin thinking tokenlari va vaqt qo'shiladi.
+- **Qaror (foydalanuvchi, 2026-11-13):** gap `search_movies` ning majburiy `intro`
+  argumenti (ko'pi bilan 160 belgi, film nomisiz). Server uni birinchi chaqiruv tugashi
+  bilan, qidiruv va ikkinchi chaqiruvdan oldin ko'rsatadi; leak tekshiruvidan o'tadi,
+  marker o'qilmaydi; Reset bo'lsa qayta yuboriladi. Model o'zi matn yozgan bo'lsa intro
+  ko'rsatilmaydi. Birinchi belgi ≈ `prepare` + birinchi chaqiruv (o'lchovda median 1.29 s).
+- **Tool imzosi:** `search_movies(intro, traits, year_min, year_max, runtime_max, mood,
+  genres, exclude_ids)`; `intro` qidiruvga bormaydi. TZ 1.29 izohi va phase-04 promptidagi
+  imzo foydalanuvchi tasdig'ini kutadi.
+- **Prefiks:** tool sxemasi 3 091 → 3 331 belgi (~+70 kirish token chaqiruvga, xabarga
+  ~+140), intro ~+12 chiqish token: taxminan +$0.00007 xabarga, deploy'dan keyin o'lchanadi.
+- **Vaqt qatori:** `assistant timing` endi router bosqichlari bilan boshlanadi (`jwt`,
+  `user`, `claim`, `forget`) va `first_call_text` (birinchi chaqiruvda model yozgan matn,
+  belgi) ni ko'rsatadi — FR-8 ning 2 s i foydalanuvchi yuborgan paytdan hisoblanadi.
