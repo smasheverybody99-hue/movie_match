@@ -189,7 +189,11 @@ export default function Assistant() {
           className="field"
           value={draft}
           maxLength={MAX_CHARS}
-          onChange={(e) => setDraft(e.target.value)}
+          onFocus={chat.warm}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            chat.warm();
+          }}
           placeholder={t("assistant.placeholder")}
           disabled={chat.limit !== null}
           autoComplete="off"

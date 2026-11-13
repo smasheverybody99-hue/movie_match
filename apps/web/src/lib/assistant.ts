@@ -78,8 +78,17 @@ interface Ask {
   newConversation: boolean;
 }
 
+/**
+ * How often the screen may open the connection to the API ahead of a message. A new
+ * connection to the API cost ~1.0 s more than a reused one (2026-11-13, /health from the
+ * dev machine: 1.43 s vs 0.42 s, medians of 5), and FR-8 gives the first words 2 s from
+ * the moment the message is sent. A page loaded a while ago may hold no open connection.
+ */
+export const WARM_EVERY_MS = 30_000;
+
 export function useAssistantChat() {
   const { lang } = useI18n();
+  const warmedAt = useRef(-Infinity);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const nextId = useRef(1);
   // The first message from this screen starts a new conversation on the API as well.
@@ -138,10 +147,21 @@ export function useAssistantChat() {
 
   const last = exchanges.at(-1);
   const limit = [...exchanges].reverse().find((e) => e.status === "limit")?.limit ?? null;
+  /** While the viewer types: a cheap request, so the message finds the connection open. */
+  const warm = useCallback(() => {
+    const now = Date.now();
+    if (now - warmedAt.current < WARM_EVERY_MS) return;
+    warmedAt.current = now;
+    void Promise.resolve()
+      .then(() => api.health())
+      .catch(() => undefined); // only the open connection matters, not the answer
+  }, []);
+
   return {
     exchanges,
     ask,
     restart,
+    warm,
     busy: mutation.isPending,
     /** Set once today's cap is hit: the screen stops offering to send. */
     limit: limit && new Date(limit.resetsAt).getTime() > Date.now() ? limit : null,

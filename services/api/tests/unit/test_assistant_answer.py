@@ -183,9 +183,12 @@ def test_only_a_brief_unavailability_is_tried_again(error: Exception, delay: flo
 
 
 def test_the_timing_line_names_every_stage_and_marks_one_that_did_not_run() -> None:
-    first, second = _Call(seconds=1.234, retries=1), _Call()
-    line = timing_line({"prepare": 0.3, "first_text": 2.5}, first, second, 2.6, "off_topic")
+    first, second = _Call(seconds=1.234, retries=1, text_chars=14), _Call()
+    before = {"jwt": 0.004, "user": 0.012, "claim": 0.021}  # no new conversation: no forget
+    timing = {"prepare": 0.3, "first_text": 2.5}
+    line = timing_line(timing, first, second, 2.6, "off_topic", before)
     assert line == (
-        "prepare=0.30 first_call=1.23 search=- second_call=- first_text=2.50 "
+        "jwt=0.00 user=0.01 claim=0.02 forget=- prepare=0.30 first_call=1.23 "
+        "first_call_text=14 search=- second_call=- first_text=2.50 "
         "total=2.60 retries=1 end=off_topic"
     )

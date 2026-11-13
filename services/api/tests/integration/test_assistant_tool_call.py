@@ -1,6 +1,8 @@
 """A recorded model response asks for search_movies: the right arguments reach
 recommend.search, and its films are what the model is shown and what the user gets."""
 
+import logging
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,9 +102,12 @@ async def test_only_the_films_the_answer_placed_are_shown_in_its_order(
 # --- the opening sentence and genres (2026-11-13) --------------------------------------
 
 
-async def test_the_opening_sentence_shows_before_the_search_and_the_genre_reaches_it(
-    assistant_catalogue: AsyncSession, spy: list[SearchRequest]
+async def test_the_intro_shows_before_the_search_and_the_genre_reaches_it(
+    assistant_catalogue: AsyncSession,
+    spy: list[SearchRequest],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
+    caplog.set_level(logging.INFO, logger="app.services.assistant")
     me = await new_viewer(assistant_catalogue)
     assistant, sdk = recorded_assistant("intro_tool_call", "tool_call#2")
     async with api_client(assistant_catalogue, assistant=assistant) as client:
@@ -112,17 +117,25 @@ async def test_the_opening_sentence_shows_before_the_search_and_the_genre_reache
     assert response.status_code == 200, response.text
     stream = events(response.text)
 
-    # The first words come from the first call, before the engine has run.
+    # The model wrote no text in the first call: the first words are the call's intro.
     assert stream[0] == ("text", {"text": "Looking for short, twisty thrillers. "})
-    assert [name for name, _ in stream].index("card") > 0
+    assert stream[1] == (
+        "text",
+        {"text": "Two short ones that keep you guessing. This one turns on what its hero "},
+    )
+    assert [name for name, _ in stream].index("card") > 1
     assert spy[0].genres == frozenset({"Thriller"})  # "thriller" matched to TMDB's name
     assert set(card_ids(stream)) <= set(SHORT)
-    # The model gets its own sentence back with the call, so it need not repeat it.
+    # The model gets its own call back, intro included, so it need not repeat it.
     model_turn = sdk.requests[1]["contents"][-2]
     assert model_turn["role"] == "model"
-    assert model_turn["parts"][0].text == "Looking for short, twisty thrillers. "
-    assert model_turn["parts"][1].function_call.name == "search_movies"
+    call = model_turn["parts"][0].function_call
+    assert call.name == "search_movies"
+    assert call.args["intro"] == "Looking for short, twisty thrillers."
     assert stream[-1] == ("done", {})
+    line = next(r.getMessage() for r in caplog.records if "assistant timing" in r.getMessage())
+    assert "first_call_text=0 " in line
+    assert line.startswith("assistant timing jwt=")
 
 
 async def test_a_film_must_have_every_genre_asked_for(

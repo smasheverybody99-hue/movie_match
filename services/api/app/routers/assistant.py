@@ -19,6 +19,7 @@ Events, each `event: <name>` + `data: <json>`:
 """
 
 import json
+import time as clock
 import uuid
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -29,7 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
-from app.deps import current_user, get_assistant
+from app.deps import current_user, current_user_id, get_assistant
 from app.providers.base import Assistant
 from app.routers.common import movie_out
 from app.schemas import AssistantCardOut, AssistantChatIn, AssistantLimitOut
@@ -68,6 +69,18 @@ async def _events(
             yield sse("done", {})
 
 
+async def _arrived() -> float:
+    """When the request reached the handler's dependencies (the body is already read).
+    Declared first in `chat`, so it runs before authentication."""
+    return clock.perf_counter()
+
+
+async def _verified(_: uuid.UUID = Depends(current_user_id)) -> float:
+    """When the token was verified: `current_user_id` is cached per request, so the
+    `current_user` that follows reuses it and only adds the users row."""
+    return clock.perf_counter()
+
+
 @router.post(
     "/chat",
     response_class=StreamingResponse,
@@ -80,6 +93,8 @@ async def _events(
 )
 async def chat(
     body: AssistantChatIn,
+    arrived: float = Depends(_arrived),
+    verified: float = Depends(_verified),
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
     assistant: Assistant | None = Depends(get_assistant),
@@ -87,8 +102,12 @@ async def chat(
 ) -> StreamingResponse | JSONResponse:
     if assistant is None:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "The assistant is not configured")
+    # Everything before the stream, for the timing line: FR-8's 2 s is counted by the
+    # viewer from the moment they send, not from when the model is called.
+    user_ready = clock.perf_counter()
     cap = settings.assistant_daily_calls_per_user
     resets_at = await service.claim(session, user_id, cap)
+    claimed = clock.perf_counter()
     if resets_at is not None:
         body_out = AssistantLimitOut(
             detail="Daily assistant limit reached", limit=cap, resets_at=resets_at
@@ -100,7 +119,13 @@ async def chat(
         )
     if body.new_conversation:
         await service.forget(session, user_id)
-    events = service.chat(session, user_id, body.message, body.lang, assistant)
+    before = {
+        "jwt": verified - arrived,
+        "user": user_ready - verified,
+        "claim": claimed - user_ready,
+        "forget": clock.perf_counter() - claimed,
+    }
+    events = service.chat(session, user_id, body.message, body.lang, assistant, before=before)
     return StreamingResponse(
         _events(session, events),
         media_type="text/event-stream",

@@ -78,6 +78,7 @@ from app.traits import TRAIT_KEYS, to_dict, trait_descriptions
 log = logging.getLogger(__name__)
 
 TOOL_NAME = "search_movies"
+BEFORE_STAGES = ("jwt", "user", "claim", "forget")  # the router's, before chat() starts
 CONTEXT_TURNS = 5  # FR-8: the current message and the four before it
 MAX_MESSAGE_CHARS = 500
 MAX_FOLLOWUPS = 3
@@ -101,6 +102,11 @@ MAX_RETRY_AFTER_SECONDS = 2.0  # a 429 that asks for a longer wait is not retrie
 # from characters, over-counting as the pipelines' estimates do.
 CHARS_PER_TOKEN = 3.5
 MAX_GENRES = 2  # a film must have every genre given: more than two finds almost nothing
+# The opening sentence travels in the tool call (`intro`), not as text before it: Gemini
+# Flash-Lite at MINIMAL thinking sends a function call with no text before it, and a
+# prompt that demanded the text once wrote it and then made no call (2026-11-13, six
+# diagnosis calls). Longer than this is not one short sentence and is not shown.
+MAX_INTRO_CHARS = 160
 YEAR_RANGE = (1900, 2100)
 RUNTIME_RANGE = (30, 400)
 
@@ -155,7 +161,15 @@ def tool_schema() -> dict[str, Any]:
     year = {"type": "integer", "minimum": YEAR_RANGE[0], "maximum": YEAR_RANGE[1]}
     return {
         "type": "object",
+        "required": ["intro"],
         "properties": {
+            "intro": {
+                "type": "string",
+                "maxLength": MAX_INTRO_CHARS,
+                "description": "One short sentence in the viewer's language that says what "
+                "kind of film you are looking for, naming no film. The viewer reads it while "
+                "the search runs.",
+            },
             "traits": {
                 "type": "object",
                 "description": "Only the qualities the user asked for: the level wanted, "
@@ -215,6 +229,7 @@ class SearchArgs:
     mood: str | None = None
     genres: frozenset[str] = frozenset()
     exclude_ids: frozenset[int] = frozenset()
+    intro: str = ""  # shown, never searched with
     dropped: tuple[str, ...] = ()
 
 
@@ -278,6 +293,12 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
                 excluded.add(movie_id)
     elif raw_exclude is not None:
         dropped.append("exclude_ids")
+    intro = ""
+    raw_intro = raw.get("intro")
+    if isinstance(raw_intro, str) and 0 < len(" ".join(raw_intro.split())) <= MAX_INTRO_CHARS:
+        intro = " ".join(raw_intro.split())
+    elif raw_intro is not None:
+        dropped.append("intro")
     dropped.extend(sorted(set(raw) - set(tool_schema()["properties"])))
     return SearchArgs(
         traits=traits,
@@ -287,6 +308,7 @@ def parse_args(raw: Mapping[str, Any]) -> SearchArgs:
         mood=mood,
         genres=frozenset(genres),
         exclude_ids=frozenset(excluded),
+        intro=intro,
         dropped=tuple(dropped),
     )
 
@@ -367,9 +389,9 @@ What you do:
 1. Films only. If the message is not about finding or choosing a film to watch, reply with
 exactly [[off_topic]] and nothing else, and do not call the tool.
 2. To recommend anything, call search_movies. You know no films yourself: never name,
-suggest or describe a film that search_movies did not return in this conversation. Before
-the call, write one short sentence in the viewer's language that says what kind of film
-you are looking for, without naming any film, then call search_movies.
+suggest or describe a film that search_movies did not return in this conversation. Put
+one short sentence in the call's intro argument: in the viewer's language, what kind of
+film you are looking for, naming no film. The viewer sees it while the search runs.
 3. Turn the request into arguments. Set only what the viewer asked for: a trait level for
 each quality they named (0-100, on the dimensions below), a mood if it fits one, a year
 range, runtime_max in minutes ("I have 90 minutes" means runtime_max 90), and genres when
@@ -377,7 +399,7 @@ they named a kind of film: a thriller is Thriller, a musical is Music, a romanti
 Romance and Comedy. A film must have every genre given, so give two only when both were
 asked for. A genre is never a trait. The viewer's taste is applied by the engine; do not
 copy it into the arguments.
-4. When the tool answers, do not repeat your first sentence: write one to three short
+4. When the tool answers, do not repeat the intro: write one to three short
 sentences in plain words, in the viewer's language. Show each film you recommend with the
 marker [[film:ID]], using only ids from the tool result, on its own after the sentence
 about it. Say only what the tool result
@@ -532,6 +554,13 @@ class AnswerFilter:
 
     def close(self) -> list[Event]:
         return self._drain(final=True)
+
+    def say(self, text: str) -> list[Event]:
+        """Plain text that is not the model's streamed answer (the tool call's intro): no
+        markers are read in it, but it is checked for a leak like any other text."""
+        out: list[Event] = []
+        self._text(text, out)
+        return out
 
     def _drain(self, final: bool) -> list[Event]:
         out: list[Event] = []
@@ -703,6 +732,7 @@ class _Call:
     broke_off: bool = False  # after a complete answer: shown as done, counted as interrupted
     seconds: float = 0.0
     estimated: int = 0  # attempts cut off by a time limit, whose tokens are estimated
+    text_chars: int = 0  # streamed text the model wrote in this call, every attempt
 
 
 class OutOfTime(Exception):
@@ -779,6 +809,7 @@ async def _stream(
             started = True
             if isinstance(event, TextDelta):
                 received += len(event.text)
+                call.text_chars += len(event.text)
                 for out in answer.feed(event.text):
                     yield out
             elif isinstance(event, ToolRequested):
@@ -864,10 +895,13 @@ async def chat(
     message: str,
     lang: Lang,
     assistant: Assistant,
+    *,
+    before: Mapping[str, float] | None = None,
 ) -> AsyncIterator[Event]:
     """One message: events for the client, ending with Done (or Failed).
 
-    The caller has already claimed the message against the daily cap.
+    The caller has already claimed the message against the daily cap. `before` is how long
+    the request took to get here, by stage (the router's), for the timing line.
     """
     began = clock.perf_counter()
     limits = Limits()
@@ -906,10 +940,17 @@ async def chat(
                 if call.name != TOOL_NAME:
                     log.warning("assistant asked for an unknown tool %r", call.name)
                 else:
-                    searching = clock.perf_counter()
                     args = parse_args(call.args)
                     if args.dropped:
                         log.info("assistant tool arguments dropped: %s", ", ".join(args.dropped))
+                    # The intro goes out before the search and the second call: it is what
+                    # the viewer reads first. Not when the model already wrote text itself.
+                    if args.intro and not answer.answer:
+                        for event in answer.say(args.intro + " "):
+                            sent.append(event)
+                            yield seen(event)
+                if call.name == TOOL_NAME and answer.refused is None:  # an intro may leak
+                    searching = clock.perf_counter()
                     result = await search_movies(
                         session,
                         user_id,
@@ -974,20 +1015,36 @@ async def chat(
         yield Done()
     finally:
         total = clock.perf_counter() - began
-        log.info("assistant timing %s", timing_line(timing, first, second, total, end))
+        log.info(
+            "assistant timing %s", timing_line(timing, first, second, total, end, before or {})
+        )
 
 
 def timing_line(
-    timing: Mapping[str, float], first: _Call, second: _Call, total: float, end: str
+    timing: Mapping[str, float],
+    first: _Call,
+    second: _Call,
+    total: float,
+    end: str,
+    before: Mapping[str, float],
 ) -> str:
-    """`prepare=0.31 first_call=1.52 search=0.40 second_call=1.93 first_text=4.10
-    total=4.20 retries=0 end=done`, in seconds; a stage that did not run is `-`."""
+    """`jwt=0.00 user=0.01 claim=0.01 forget=- prepare=0.31 first_call=1.52
+    first_call_text=0 search=0.40 second_call=1.93 first_text=4.10 total=4.20 retries=0
+    end=done`, in seconds; a stage that did not run is `-`.
+
+    The four stages before `prepare` come from the router (`before`); the viewer's first
+    words come at their sum plus `first_text`, plus the network. `first_call_text` is how
+    many characters of text the model itself wrote in the first call (2026-11-13: none,
+    ever, which is why the opening sentence is the tool call's `intro`)."""
 
     def seconds(value: float | None) -> str:
         return f"{value:.2f}" if value else "-"
 
+    stages = " ".join(f"{name}={seconds(before.get(name))}" for name in BEFORE_STAGES)
     return (
+        f"{stages} "
         f"prepare={seconds(timing.get('prepare'))} first_call={seconds(first.seconds)} "
+        f"first_call_text={first.text_chars} "
         f"search={seconds(timing.get('search'))} second_call={seconds(second.seconds)} "
         f"first_text={seconds(timing.get('first_text'))} total={total:.2f} "
         f"retries={first.retries + second.retries} end={end}"

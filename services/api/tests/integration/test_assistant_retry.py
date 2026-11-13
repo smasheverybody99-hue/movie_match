@@ -87,6 +87,23 @@ async def test_a_503_in_the_middle_of_the_answer_resets_it_and_the_retry_takes_i
     assert "retries=1 end=done" in _line(caplog, "assistant timing")
 
 
+async def test_a_reset_in_the_answer_sends_the_intro_again_before_the_retry(
+    assistant_catalogue: AsyncSession,
+) -> None:
+    stream, sdk, turn = await _ask(
+        assistant_catalogue, "intro_tool_call", "broken_answer", "tool_call#2"
+    )
+
+    intro = ("text", {"text": "Looking for short, twisty thrillers. "})
+    assert stream[0] == intro
+    after = _after_reset(stream)
+    assert after[0] == intro  # shown before the search, so it is part of what is sent again
+    assert text_of(after).startswith("Looking for short, twisty thrillers. " + ANSWER)
+    assert after[-1] == ("done", {})
+    assert turn is not None and turn.answer.count("Looking for short") == 1
+    assert len(sdk.requests) == 3  # the call, the broken answer, the answer again
+
+
 async def test_a_second_503_ends_with_the_error_and_both_attempts_are_counted(
     assistant_catalogue: AsyncSession, caplog: pytest.LogCaptureFixture
 ) -> None:
