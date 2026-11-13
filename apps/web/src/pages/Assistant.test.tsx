@@ -51,6 +51,26 @@ describe("Assistant", () => {
     chat.mockReset();
   });
 
+  it("opens the connection while the viewer types, at most once in 30 s", async () => {
+    // FR-8's 2 s start when the message is sent; a new connection to the API cost ~1 s.
+    const health = vi.mocked(api.health);
+    health.mockReset();
+    health.mockResolvedValue({ status: "ok", trait_dimensions: 14, commit: null });
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    renderWithProviders(<Assistant />, ROUTE);
+    expect(health).not.toHaveBeenCalled();
+
+    const input = screen.getByLabelText("Your question");
+    await userEvent.click(input);
+    await userEvent.type(input, "Something");
+    expect(health).toHaveBeenCalledTimes(1);
+
+    now.mockReturnValue(1_000_000 + 30_000);
+    await userEvent.type(input, "!");
+    expect(health).toHaveBeenCalledTimes(2);
+    now.mockRestore();
+  });
+
   it("renders three starter prompts on an empty conversation, and asking one sends it", async () => {
     const stream = controlledStream();
     renderWithProviders(<Assistant />, ROUTE);
