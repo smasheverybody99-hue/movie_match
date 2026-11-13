@@ -1,6 +1,6 @@
 # Holat — Movie Match
 
-Oxirgi yangilanish: 2026-11-13 (**F4 tuzatishlari jonli (`556e676`)**: xabarga vaqt chegarasi — birinchi belgi 25 s, jami 45 s, aks holda "band" matni (TZ 1.28); faqat javob joylashtirgan kartochkalar; `genres` argumenti va kirish gapi (TZ 1.29). Deploy'dan keyingi 10 xabar: 10/10 `done`, birinchi belgi median **3.54 s** (11-12 da 20.2 s), janr so'rovlari to'g'ri, ortiqcha kartochka yo'q; FR-8 "2 s" mezoni hali bajarilmagan — pastda); 2026-11-11 (**F4 `main` da va jonli: migratsiya `0005` asosiy bazada (18 → 20 jadval), merge `b179b30`, `/health` shu commit'ni ko'rsatadi; qo'lda tekshiruv test akkauntlarini kutmoqda. Ikkala Supabase loyihasi to'xtagan edi: ping `/health` bazaga tegmaydi — ping `/health/db` ga o'tadi**, `docs/deploy.md` 4–5-bo'lim); 2026-11-11 (**F4 kodi tayyor, `f4-assistant` branch'ida, CI yashil (run 107)** — assistant provayder interfeysi orqali, Gemini 3.5 Flash-Lite, ADR 0009; tafsilot pastda); 2026-10-23 (**"sabab" yaqinlikni bildiradi**, TZ 1.27 + ADR 0008: sabab = kattalik ≤ 0.35 σ **va** yo'nalish ≥ 0.40 σ, farq = kattalik ≥ 1.0 σ, orasi jim; sabab prompti qayta yozildi, taqqoslash shakllari taqiqlandi; izoh keshi (15 qator) bekor qilindi. Sabab: jonli saytda "WHY IT SUITS YOU" ostida "much gentler than you usually prefer" turdi — ziddiyat qoidaning o'zida edi, chunki eski sabab yo'nalishni o'lchardi. O'lchov: eski qoidada `d394a840` uchun 500 filmdan 495 tasi sabab tomonida edi → yangi qoidada uch akkauntda 44.8 / 50.6 / 66.2%. gate 2026-10-23 da yashil (run 100) va `441211d` jonli; kesh deploy'dan keyin qayta tekshirildi — 0 qator, o'chirishga narsa yo'q — pastga qara); 2026-10-15 (**bitta simmetrik trait qoidasi**, TZ 1.23: sabab 0.5 σ, farq 1.0 σ, sabablar ustun, ikkalasi bo'lmasa jim; API `reasons` → `named_traits` + `trait_side`; farq uchun alohida prompt. Sabab: "Outside your usual taste" ostidagi filmda "sizga mos" izohi. O'lchov va asos: `docs/phase-2-status.md`. **5-bosqich ham shu bilan yopildi** — 82 va 85 orasidagi 3 ball endi sabab emas. **Izohlar jonli xizmatda yaratilyapti** — 2026-10-13 dagi "yaratilmayapti" yozuvi tasdiqlanmagan taxmin edi (Render log'i o'qilmagan): keshda `gemini-3.5-flash-lite` 2026-10-15 03:58–03:59 (UTC) da yozgan 3 qator bor edi (Aliens `en`, Godzilla `en` va `uz`) — ya'ni ziddiyat haqidagi xabardagi Godzilla jumlasi ham haqiqiy generatsiya, zaxira shablon emas. 10–13 oktabr orasidagi bo'shliq nosozlik emas, urinish bo'lmagani. Kesh endi bo'sh: 10 qator foydalanuvchi qarori bilan o'chirildi (eski qoida va eski prompt bilan yozilgan edi), har biri keyingi so'rovda ~$0.00013 ga qayta yaratiladi. Keyingi: 3-bosqich (qidiruv)); 2026-10-13 (**tester fikri**: zaxira jumlasi matni tuzatildi (`c70f1fc`), hero teginishda to'xtaydi (`f22d548`); tavsiyalarning eski tomonga og'ishi o'lchandi — ANN neytral, match 34%, **MMR 40%** — qaror kutilmoqda (`docs/phase-2-status.md`); recency jarimasi `w = 0.02` qo'yildi (TZ 1.21); izoh indikatori tuzatildi — API sababni beradi (TZ 1.22). **Ochiq:** NSFW bandi. ~~izohlar 2026-10-10 dan keyin yaratilmayapti~~ — **yopildi 2026-10-15**, pastga qara); 2026-10-10 (**uyqu: Render Starter o'rniga cron-job.org ping**, foydalanuvchi qarori); 2026-10-10 (**FR-3 bajarildi**: foydalanuvchi jonli saytda onboarding'dan o'tdi, kutish sezilmadi — alohida vaqt o'lchovi qilinmaydi, foydalanuvchi qarori); 2026-10-09 (**logo, yuklanish holatlari va o'tish effektlari tugadi**, dialog portal tuzatishi; oxirgi commit `a6dffc6`, CI run 61 yashil); 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
+Oxirgi yangilanish: 2026-11-13 (**roadmap tezlashtirildi, TZ 1.30**: F4 15-noyabr, testerlar 19-noyabr, web launch 5-dekabr, do'konlarga ariza 12-dekabr; qurish alfa paytida, ochiq launch alfadan keyin; F9 → F9a + F9b — "Keyingi qadam"); 2026-11-13 (**F4 tuzatishlari jonli (`556e676`)**: xabarga vaqt chegarasi — birinchi belgi 25 s, jami 45 s, aks holda "band" matni (TZ 1.28); faqat javob joylashtirgan kartochkalar; `genres` argumenti va kirish gapi (TZ 1.29). Deploy'dan keyingi 10 xabar: 10/10 `done`, birinchi belgi median **3.54 s** (11-12 da 20.2 s), janr so'rovlari to'g'ri, ortiqcha kartochka yo'q; FR-8 "2 s" mezoni hali bajarilmagan — pastda); 2026-11-11 (**F4 `main` da va jonli: migratsiya `0005` asosiy bazada (18 → 20 jadval), merge `b179b30`, `/health` shu commit'ni ko'rsatadi; qo'lda tekshiruv test akkauntlarini kutmoqda. Ikkala Supabase loyihasi to'xtagan edi: ping `/health` bazaga tegmaydi — ping `/health/db` ga o'tadi**, `docs/deploy.md` 4–5-bo'lim); 2026-11-11 (**F4 kodi tayyor, `f4-assistant` branch'ida, CI yashil (run 107)** — assistant provayder interfeysi orqali, Gemini 3.5 Flash-Lite, ADR 0009; tafsilot pastda); 2026-10-23 (**"sabab" yaqinlikni bildiradi**, TZ 1.27 + ADR 0008: sabab = kattalik ≤ 0.35 σ **va** yo'nalish ≥ 0.40 σ, farq = kattalik ≥ 1.0 σ, orasi jim; sabab prompti qayta yozildi, taqqoslash shakllari taqiqlandi; izoh keshi (15 qator) bekor qilindi. Sabab: jonli saytda "WHY IT SUITS YOU" ostida "much gentler than you usually prefer" turdi — ziddiyat qoidaning o'zida edi, chunki eski sabab yo'nalishni o'lchardi. O'lchov: eski qoidada `d394a840` uchun 500 filmdan 495 tasi sabab tomonida edi → yangi qoidada uch akkauntda 44.8 / 50.6 / 66.2%. gate 2026-10-23 da yashil (run 100) va `441211d` jonli; kesh deploy'dan keyin qayta tekshirildi — 0 qator, o'chirishga narsa yo'q — pastga qara); 2026-10-15 (**bitta simmetrik trait qoidasi**, TZ 1.23: sabab 0.5 σ, farq 1.0 σ, sabablar ustun, ikkalasi bo'lmasa jim; API `reasons` → `named_traits` + `trait_side`; farq uchun alohida prompt. Sabab: "Outside your usual taste" ostidagi filmda "sizga mos" izohi. O'lchov va asos: `docs/phase-2-status.md`. **5-bosqich ham shu bilan yopildi** — 82 va 85 orasidagi 3 ball endi sabab emas. **Izohlar jonli xizmatda yaratilyapti** — 2026-10-13 dagi "yaratilmayapti" yozuvi tasdiqlanmagan taxmin edi (Render log'i o'qilmagan): keshda `gemini-3.5-flash-lite` 2026-10-15 03:58–03:59 (UTC) da yozgan 3 qator bor edi (Aliens `en`, Godzilla `en` va `uz`) — ya'ni ziddiyat haqidagi xabardagi Godzilla jumlasi ham haqiqiy generatsiya, zaxira shablon emas. 10–13 oktabr orasidagi bo'shliq nosozlik emas, urinish bo'lmagani. Kesh endi bo'sh: 10 qator foydalanuvchi qarori bilan o'chirildi (eski qoida va eski prompt bilan yozilgan edi), har biri keyingi so'rovda ~$0.00013 ga qayta yaratiladi. Keyingi: 3-bosqich (qidiruv)); 2026-10-13 (**tester fikri**: zaxira jumlasi matni tuzatildi (`c70f1fc`), hero teginishda to'xtaydi (`f22d548`); tavsiyalarning eski tomonga og'ishi o'lchandi — ANN neytral, match 34%, **MMR 40%** — qaror kutilmoqda (`docs/phase-2-status.md`); recency jarimasi `w = 0.02` qo'yildi (TZ 1.21); izoh indikatori tuzatildi — API sababni beradi (TZ 1.22). **Ochiq:** NSFW bandi. ~~izohlar 2026-10-10 dan keyin yaratilmayapti~~ — **yopildi 2026-10-15**, pastga qara); 2026-10-10 (**uyqu: Render Starter o'rniga cron-job.org ping**, foydalanuvchi qarori); 2026-10-10 (**FR-3 bajarildi**: foydalanuvchi jonli saytda onboarding'dan o'tdi, kutish sezilmadi — alohida vaqt o'lchovi qilinmaydi, foydalanuvchi qarori); 2026-10-09 (**logo, yuklanish holatlari va o'tish effektlari tugadi**, dialog portal tuzatishi; oxirgi commit `a6dffc6`, CI run 61 yashil); 2026-10-08 (**F3 qo'lda tekshiruvi**: onboarding 3:10, (a) xatosi tuzatildi, tarmoq kechikishi va Lighthouse deploy'dan keyin; **deploy — F4 dan oldin alohida qadam**, tayyorgarlik `docs/deploy.md`); 2026-10-06 (**dizayn v2 yopildi**: 0–5 bosqich bajarildi va tasdiqlandi; keyingi qadam — F3 qo'lda tekshiruvi); 2026-10-06 (4-bosqich: Movie DNA radial diagrammasi; hero: "For you" 6-filmdan, mobil boshqaruv rasm ustida; 5-bosqich: qidiruv kartalari Home bilan bir xil; 3-bosqich yakuni: hero kicker va jumla, balandlik pasaytirildi; "good" interfeysdan olindi, TZ 1.16; 4-bosqich faqat radial DNA, TZ 1.15); 2026-10-05 (dizayn 3-bosqich: Home hero, `backdrop_path` har filmda); 2026-10-05 (film sahifasi: daraja — panel sarlavhasi; "yaxshi" 15%, TZ 1.14); 2026-10-05 (FR-5: match darajasi, TZ 1.13; dizayn 2-bosqich tuzatishlari); 2026-10-04 (dizayn 1-bosqich); 2026-10-02 · F1 ma'lumot qismi yopildi (500 film) · Tillar: en standart, uz, ru (TZ 1.8) · **LLM provayderi tanlanmagan** (ADR 0006)
 
 Bitta sahifada: qaysi faza tugagan, nima chala, keyingi qadam. Tafsilotlar faza
 hisobotlarida: `docs/phase-1-status.md`, `docs/phase-2-status.md`, `docs/phase-3-status.md`. Fazalar ro'yxati:
@@ -96,19 +96,108 @@ secret yo'q (`.github/workflows/gate.yml`).
 
 ## Keyingi qadam
 
-**F4 (2026-11-13).** Kod jonli (`556e676`), qo'lda tekshiruv va ikki tuzatish to'plami
-bajarildi (yuqoridagi jadval). Qolgani:
-1. ~~Render log'i~~ — o'qildi 2026-11-13: $0.00184 xabar, bosqich vaqtlari yuqoridagi
-   jadvalda; `docs/costs.md` dagi taxmin o'lchov bilan almashtirildi.
-2. **FR-8 "birinchi belgi 2 s" bajarilmagan:** eng yaxshi o'lchovda ham median 3.54 s
-   (mijoz), 2.55 s (server). Kirish gapi birinchi chaqiruvda kelmayapti (yuqorida).
-   Birinchi belgi birinchi chaqiruvning javobini kutadi (Gemini). Qaror foydalanuvchida.
-3. F4 faza hisoboti va F4 gate'i — foydalanuvchi qarori bilan; F5 boshlanmagan.
-4. F3 band 5: film sahifasining jonli Lighthouse o'lchovi (LCP + INP), foydalanuvchi qo'lda.
-5. Ixtiyoriy: Supabase panelida Frankfurt test loyihasini qayta yoqish (mahalliy DB testlari
-   uchun; CI unga bog'liq emas). Uning parolini almashtirish — foydalanuvchi qarori.
-- ~~F4 qo'lda tekshiruvi~~ (2026-11-11), ~~migratsiya `0005` va merge~~ (2026-11-11),
-  ~~cron-job.org ping `/health/db` ga~~ (foydalanuvchi almashtirdi) — bajarildi.
+**Tezlashtirilgan tartib (TZ 1.30, foydalanuvchi qarori 2026-11-13).** Doira o'zgarmadi.
+Tartib va sanalar: `docs/TZ.md` §2 "Tartib va maqsad sanalar", `docs/prompts/README.md`,
+`docs/roadmap.html`. Qisqasi: F4 yopish 15-noyabr → F5 alfa kodi 18-noyabr → testerlar
+19-noyabr → F6 Android (alfa paytida), Play yopiq testi 28-noyabr → alfa qarori 3-dekabr →
+F9a web launch 5-dekabr → F8 → F7 (flag ortida) → F9b do'konlarga ariza 12-dekabr. Qurish
+alfa paytida ketadi, ochiq launch alfa natijasidan keyin; 15% yiqilsa dvigatel qayta
+ishlanadi va launch to'xtaydi. F5 darvozasi: 12 tester, 2 hafta, 5 suhbat.
+
+1. **F4 yopish (15-noyabr).** `f4-fixes-4` jonli: merge `f56ffa5`, branch'da gate run 120
+   (https://github.com/smasheverybody99-hue/movie_match/actions/runs/43428201282) va `main`
+   da run 121 (https://github.com/smasheverybody99-hue/movie_match/actions/runs/43428706789)
+   yashil, coverage annotatsiyasi `assistant.py` 98%, `app/services` 98%; `/health` →
+   `f56ffa5…` (12:55 UTC), `/health/db` 200. Ichida: intro oxiriga nuqta, TZ 1.29 izohi va
+   phase-04 tool imzosi (`intro`). 06:18 dagi ikki xatoning sababi — Gemini **bepul
+   tarifi** 429 (15 RPM, `docs/costs.md`). **Qolgani:** 10 xabarlik o'lchov (oraliq ≥ 5 s)
+   va hisobot uchun 7 xabar — pullik, 2026-11-13 dagi roadmap so'rovida pullik so'rov
+   taqiqlangani uchun to'xtatildi, ruxsat kerak; keyin `docs/phase-4-status.md`; F3 band 5
+   Lighthouse (foydalanuvchi).
+2. **Pul qarorlari** — jadval pastda; birinchisi (Gemini pullik tarifi) testerlardan oldin.
+3. **F5 alfa kodi (18-noyabr):** `docs/prompts/phase-05-alpha.md`. Backlog'dagi "F5 dan
+   oldin" bandlari bo'yicha qaror kerak (ro'yxat pastda).
+4. **F6 Android:** mashinaga o'rnatish ro'yxati pastda — ruxsatsiz o'rnatilmaydi. Google
+   Play akkaunti 28-noyabrdan ancha oldin.
+
+### Pul talab qiladigan qarorlar (TZ 1.30)
+
+Narx va manbalar: `docs/costs.md`. Hech biri agent tomonidan ochilmaydi (CLAUDE.md).
+
+| Nima | Qancha | Qaysi sanadan oldin | Nega o'sha sana |
+|---|---|---|---|
+| Gemini pullik tarifi (billing, Tier 1) | Hisob ochishda Google Cloud **$50 karta hold** (foydalanuvchi ma'lumoti, 2026-09-30). Ishlatish: 12 tester × 20 xabar ≈ $0.47/oy, 20 suhbat ≈ $1.27/oy; eng yomoni (har kuni 30 xabar) ≈ $21/oy + izohlar ≤ $1/oy | **2026-11-19** (testerlar) | ADR 0004: foydalanuvchi ma'lumoti faqat pullik kalitda. Bepul tarifda 15 RPM butun servisga (~7 xabar/daqiqa) |
+| Google Play developer akkaunti | $25 bir marta | Akkaunt — darhol (shaxs va qurilma tasdig'i muddati sahifada yo'q); yopiq test **2026-11-28** | 28-noyabr + 14 kun = 12-dekabr |
+| Apple Developer Program | 99 USD/yil | iOS sanasi bilan — hozir rejalanmagan | 12-dekabrda App Store ham bo'lsa, iOS build, TestFlight va ko'rik shundan oldin |
+| iOS bulutli build | Codemagic: 500 daqiqa/oy bepul (M2), keyin $0.095/daqiqa; GitHub Actions macOS $0.062/daqiqa | Apple bilan birga | Windows'dan iOS faqat bulutli macOS orqali |
+| Yurist | Narx noma'lum (mintaqaga bog'liq) | Foydalanish shartlari va maxfiylik siyosati — **2026-12-05** dan oldin (web launch); Character Match — flag yoqilishidan oldin | `docs/legal.md` §2–3. Play yopiq testi uchun maxfiylik siyosati kerakmi — tekshirilmagan |
+| Render Starter | $7/oy | **2026-12-05** dan oldin qaror (web launch) | Free: 0.1 CPU, feed ~3.1 s, 750 soatdan ~744 ishlatiladi |
+
+Boshqa, shu jadvaldan tashqari: F7 personaj traitlari (LLM run, 2–3 ming personaj) —
+alohida smeta va tasdiq bilan.
+
+### Backlog'dagi "F5 dan oldin" bandlari — qaror foydalanuvchida
+
+Agent taklifi, hal qilingan emas. Asosiy mezon: alfa paytida tavsiya tartibi, onboarding
+va metrika o'zgarmasligi kerak, aks holda ikki haftalik ma'lumot ikkiga bo'linadi. Shuning
+uchun ularga tegadigan band yo 19-noyabrdan oldin, yo alfadan keyin.
+
+| Band (TZ §2 backlog) | Taklif | Sabab |
+|---|---|---|
+| NSFW / ekstremal filmlar (qidiruv, "mashhur", havola) | Oldin | Tester shikoyati bor edi (2026-10-13); filtr yoki ogohlantirish qarori kerak |
+| Recency: sifat chegarasi (`tmdb_vote_count`) | Oldin yoki alfadan keyin, o'rtada emas | Tavsiya tartibini o'zgartiradi — 15% metrikasining o'zi |
+| Onboarding chiplari filmga xos (~5 ta) | Oldin yoki alfadan keyin, o'rtada emas | Onboarding — 70% metrikasi |
+| Izohlar limiti tugaganini aytish (uch tilda matn) | Oldin | Kichik; testerlar kuniga 20 limitga duch keladi |
+| Movie DNA AI xulosasi | Keyin | Yangi LLM chaqiruvi, kesh jadvali va narx qarori; metrikaga ta'sir qilmaydi |
+| DNA ulashish uchun server rasmi (link preview) | Keyin (F9a) | Ommaviy havola dizayni kerak; alfaga kerak emas |
+| Izoh keshi kalitiga sabablar | Keyin | Faqat qoida o'zgarganda kerak; alfa paytida qoida o'zgarmaydi |
+| Film ma'lumotini tarjima (uz, ru) | Keyin | Migratsiya va ingestion; katta ish |
+
+Backlog'dan tashqari, lekin testerlardan oldin shart: Gemini pullik tarifi (yuqorida).
+
+### F6 uchun mashinaga o'rnatish — ruxsatsiz o'rnatilmaydi
+
+Hozir (2026-11-13, faqat o'qib tekshirildi): `flutter`, `dart`, `java`, `adb` yo'q,
+Android SDK yo'q (`%LOCALAPPDATA%\Android\Sdk` mavjud emas). Bor: Git 2.55, C: da 240 GB bo'sh.
+
+1. **Flutter SDK** (stable; CLAUDE.md: Flutter 3.47) va uning `bin` papkasi **PATH** ga.
+2. **Android Studio** (oxirgi stable) — o'zi JDK bilan keladi; Program Files'ga o'rnatiladi.
+3. SDK Manager orqali (SDK `%LOCALAPPDATA%\Android\Sdk` ga tushadi): Android SDK
+   Platform **API 36**, Build-Tools, Command-line Tools, Emulator, Platform-Tools, CMake,
+   NDK (Side by side).
+4. `flutter doctor --android-licenses` — litsenziyalarni qabul qilish.
+5. Emulyator uchun VM tezlashtirish (Windows sozlamasi) yoki haqiqiy telefon: Developer
+   options, USB debugging, ishlab chiqaruvchining USB drayveri.
+6. `flutter doctor` — Windows'da plaginlar uchun Developer Mode (symlink) so'ralishi
+   mumkin; bu Flutter sahifasidan tekshirilmagan, doctor aytadi.
+
+Manba: [docs.flutter.dev/platform-integration/android/setup](https://docs.flutter.dev/platform-integration/android/setup)
+(o'qildi 2026-11-13). Hammasi CLAUDE.md'ning "mashinani o'zgartirish" bandiga kiradi.
+
+### Sanalardagi ziddiyatlar — foydalanuvchi qarori kerak
+
+Jim tuzatilmadi; hujjatlarda sanalar foydalanuvchi aytganidek.
+
+1. **F4 15-noyabr** pullik o'lchovga (10 + 7 xabar) va Lighthouse raqamlariga bog'liq.
+2. **Testerlar 19-noyabr** — Gemini pullik tarifi undan oldin kerak (ADR 0004).
+3. **"12 tester (Android)" va Android ilova 28-noyabr:** 19–28-noyabr testerlar web'ni
+   telefonda ishlatadi. Android ilovadan kelgan ma'lumot alfa metrikasiga kirishi uchun ilova
+   F5 hodisalarini yozishi kerak — phase-06 ga shunday yozildi, tasdiq kerak.
+4. **Play 14 kun:** 28-noyabr + 14 = 12-dekabr, zaxira nol. 12 testerning hammasi
+   28-noyabrda qo'shilishi kerak; bittasi kechiksa, sana suriladi. Production ariza
+   ko'rigi odatda 7 kungacha, ya'ni do'konda chiqish ~19-dekabrdan oldin emas.
+5. **F8 + F7 5–12-dekabr oralig'ida:** eski hisobda ~81 soat (F8 1 hafta, F7 2 hafta), bir
+   haftada, web launch'dan keyingi birinchi hafta bilan bir vaqtda. F7 ga LLM run va yurist
+   ham kerak. Bajarib bo'lmaydi deb hisoblayman: yo ariza F7/F8 siz (phase-09b hozir ularning
+   gate'ini talab qiladi), yo 12-dekabr suriladi.
+6. **iOS rejalanmagan:** "do'konlar" — App Store ham bo'lsa, Apple akkaunti, bulutli build,
+   TestFlight va ko'rik kerak; sanasi yo'q.
+7. **70% yiqilsa-chi?** Qaror faqat 15% uchun aytilgan. phase-05/09a "mahsulot darvozasi
+   o'tgan" deydi, ya'ni 70% ham shart — tasdiq kerak.
+8. **F8 dagi tezlik va qulaylik** (TZ §5: tavsiya < 500 ms, LCP < 2.5 s) endi web
+   launch'dan keyin: ochiq web launch ularsiz bo'ladi.
+9. **15% oynasi:** 3-dekabrgacha 7 kunlik oyna faqat 26-noyabrgacha ko'rsatilgan
+   tavsiyalarda yopiladi.
 
 0. ~~Test bazasini qaytarish, keyin gate va push~~ — **bajarildi 2026-10-23**: test bazasi
    qaytarildi, gate run 99 (branch) va run 100 (`main`) yashil, `441211d` jonli (API `/health`

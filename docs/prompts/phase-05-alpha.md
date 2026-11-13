@@ -3,12 +3,17 @@
 This phase is different: **you write very little code.** The work is measurement and
 listening. Phase 4's gate must be green.
 
-Read `docs/TZ.md` sections 7 and 8, and the roadmap's F5 gate.
+Read `docs/TZ.md` sections 2 (order, TZ 1.30), 7 and 8, and the roadmap's F5 gate.
+
+**Order and dates (TZ 1.30, 2026-11-13):** alpha code by 2026-11-18, testers in on
+2026-11-19, alpha decision on 2026-12-03. While the alpha runs, building goes on: the
+Android app (Phase 6) and web launch readiness (Phase 9a) do not wait for this phase's
+product gate. **Public launch does** — web and stores both.
 
 ## Goal
 
-Find out whether the product's core claim is true before spending three weeks on a mobile
-app: **do people actually watch what Movie Match recommends?**
+Find out whether the product's core claim is true before launching it in public:
+**do people actually watch what Movie Match recommends?**
 
 ## Build
 
@@ -50,17 +55,27 @@ cd apps/web && npm run lint && npm run typecheck && npm test
 
 **The product gate** — this is the one that matters:
 
-- [ ] 30–50 testers recruited and onboarded
-- [ ] At least 2 weeks of data collected
+- [ ] 12 testers with Android phones recruited and onboarded (TZ 1.30; was 30–50). The
+      same 12 join the Google Play closed test (Phase 6), which needs 12 testers opted in
+      for 14 consecutive days
+- [ ] At least 2 weeks of data collected (2026-11-19 — 2026-12-03)
 - [ ] **Recommendation → watched within 7 days is at least 15%**
-- [ ] Onboarding completion is at least 70%
-- [ ] At least 10 user interviews of 20 minutes each, notes written up in
+- [ ] Onboarding completion is at least 70% (with 12 testers: at least 9)
+- [ ] 5 user interviews of 20 minutes each (was 10), notes written up in
       `docs/research/alpha-interviews.md`
 
-If the 15% metric is not met: **stop. Do not start Phase 6.** Go back to Phase 2 and
-rework the engine — the most likely causes are the trait definitions, the weighting, or
-the diversification. Re-run the alpha afterwards. Building a mobile app on a recommender
-that does not work wastes three weeks.
+**Twelve people are not statistical proof.** 9 of 12 is 75%, yet its 95% interval is
+roughly 47–91%; the 15% metric counts recommendations, but they cluster in 12 people.
+Report the numbers with their intervals and read them together with the interviews.
+
+If the 15% metric is not met: **stop the launch.** Phase 9a's public web launch and Phase
+9b's store submission do not happen. Go back to Phase 2 and rework the engine — the most
+likely causes are the trait definitions, the weighting, or the diversification. Re-run the
+alpha afterwards. Building does not stop with it: the Android app and launch readiness
+work go on during the alpha (TZ 1.30).
+
+Do not change ranking, onboarding or the metric definitions while the alpha runs: a change
+in the middle splits two weeks of data into two smaller samples.
 
 ## Report
 

@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.29 · 2026-11-13 · Holat: tasdiqlangan
+Versiya 1.30 · 2026-11-13 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -53,6 +53,29 @@ Taste Twin (1000+ faol foydalanuvchisiz ishlamaydi) · TV/anime/kitob · ijtimoi
 izohlar · reyting agregatori · striming ichida ko'rish
 
 Bu ro'yxatga yangi funksiya **faqat yangi TZ versiyasi bilan** qo'shiladi.
+
+### Tartib va maqsad sanalar (TZ 1.30)
+
+Doira o'zgarmagan, faqat tartib (foydalanuvchi qarori, 2026-11-13). Faza raqamlari
+identifikator bo'lib qoladi: tartib endi raqamlar ketma-ketligiga mos emas. F9 ikkiga
+bo'lindi: F9a — web launch, F9b — do'kon launch'i.
+
+| # | Faza | Maqsad sana | Shart |
+|---|---|---|---|
+| 1 | F4 — AI assistant, yopish | 2026-11-15 | F4 gate va qo'lda ro'yxat; F3 band 5 (Lighthouse) |
+| 2 | F5 — alfa kodi (telemetriya, metrika, "noto'g'ri" tugmasi) | 2026-11-18 | F4 yopilgan |
+| 3 | F5 — testerlar kiradi | 2026-11-19 | F5 texnik gate'i yashil |
+| 4 | F6 — mobil ilova, **Android birinchi**, alfa ketayotgan paytda | Android yopiq testi 2026-11-28 | F5 texnik gate'i; mahsulot darvozasini kutmaydi |
+| 5 | F5 — alfa qarori (mahsulot darvozasi) | 2026-12-03 | 2 hafta ma'lumot (19-noyabrdan) |
+| 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-05 | **F5 mahsulot darvozasi o'tgan** |
+| 7 | F8 — Smart Watchlist + Group Match (va sayqal) | F9a dan keyin | F9a |
+| 8 | F7 — Character Match, yurist ko'rigigacha flag ortida | F8 dan keyin | F8 gate'i |
+| 9 | F9b — do'konlarga ariza | 2026-12-12 | F6, F7, F8 gate'lari; Play yopiq testi 14 kun |
+
+**Qurish alfa paytida ketadi, ochiq launch alfa natijasidan keyin.** F6 va F9a ishlari
+alfa davomida (2026-11-19 — 2026-12-03) quriladi; ochiq launch (web ham, do'kon ham)
+F5 mahsulot darvozasi o'tgandan keyin bo'ladi. 15% metrikasi yiqilsa — dvigatel qayta
+ishlanadi va launch to'xtaydi (§8).
 
 ### Backlog
 
@@ -462,12 +485,28 @@ Shuning uchun har fazada qo'shimcha shartlar bor:
 |---|---|---|
 | F5 (alfa) | Tavsiya qilingan film 7 kun ichida ko'rildi | ≥ 15% |
 | F5 (alfa) | Onboardingni tugatganlar ulushi | ≥ 70% |
+| F5 (alfa) | Testerlar, davomiylik, suhbatlar | 12 tester (Android telefonli), 2 hafta, 5 ta suhbat |
 | Launch | D7 retention | ≥ 25% |
 | Launch | Birinchi haftada baholar soni (o'rtacha) | ≥ 10 |
 | Launch | Assistant so'rovi (foydalanuvchiga) | ≥ 2 |
 
-F5 metrikasi maqsadga yetmasa — mobil ilovaga o'tilmaydi, tavsiya dvigateli qayta
-ko'rib chiqiladi. Bu qaror roadmap'da darvoza sifatida belgilangan.
+**F5 darvozasi (TZ 1.30):** 12 tester, 2 hafta (2026-11-19 — 2026-12-03), 5 ta suhbat.
+15% va 70% mezonlari o'zgarmagan.
+
+**Qurish to'xtamaydi, launch to'xtaydi.** Mobil ilova (F6) va web launch tayyorligi (F9a)
+alfa davomida quriladi va mahsulot darvozasini kutmaydi. Ochiq launch — web (F9a) ham,
+do'kon (F9b) ham — alfa natijasidan keyin. **15% metrikasi yiqilsa, tavsiya dvigateli
+qayta ishlanadi va launch to'xtaydi**; dvigateldan keyin alfa qayta o'tkaziladi. (Oldingi
+qoida — "F5 metrikasi yetmasa mobil ilovaga o'tilmaydi" — TZ 1.30 bilan almashtirildi.)
+
+**12 kishi bilan bu statistik isbot emas.** 70% mezoni 12 testerdan kamida 9 tasi (8.4
+yuqoriga yaxlitlanadi); 9/12 = 75% bo'lsa ham 95% ishonch oralig'i (Wilson) taxminan
+47–91%, ya'ni haqiqiy ulush 70% dan past bo'lishi ham mumkin. 15% metrikasi tavsiyalar
+bo'yicha sanaladi, lekin tavsiyalar 12 kishiga to'plangan: bir faol tester natijani
+siljitadi, samarali hajm 12 ga yaqin. Natija yo'nalishni ko'rsatadi va suhbatlar bilan
+birga o'qiladi; launch'dan keyingi raqamlar (§8, "Launch" qatorlari) uni tasdiqlashi
+kerak. Yana bir cheklov: 7 kunlik oyna to'liq faqat 2026-11-26 gacha ko'rsatilgan
+tavsiyalarda yopiladi.
 
 ---
 
@@ -487,6 +526,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.30 | 2026-11-13 | **Roadmap tezlashtirildi** (foydalanuvchi qarori). Doira o'zgarmadi. Tartib: F4 yopish → F5 alfa kodi → mobil (Android birinchi, alfa paytida) → web launch tayyorligi (F9a) → Smart Watchlist + Group Match (F8) → Character Match (F7, yurist ko'rigigacha flag ortida) → do'konlar (F9b); F9 ikkiga bo'lindi. Maqsad sanalar: F4 15-noyabr, alfa kodi 18-noyabr, testerlar 19-noyabr, Android yopiq testi 28-noyabr, alfa qarori 3-dekabr, web launch 5-dekabr, do'konlarga ariza 12-dekabr (§2). "F5 darvozasi o'tmaguncha F6 boshlanmaydi" qoidasi o'zgardi: qurish alfa paytida ketadi, ochiq launch alfa natijasidan keyin; 15% yiqilsa dvigatel qayta ishlanadi va launch to'xtaydi. F5 darvozasi: 12 tester (Android), 2 hafta, 5 suhbat (30–50 tester va 10 suhbat o'rniga); 15% va 70% o'zgarmadi; 12 kishi statistik isbot emasligi yozildi (§8) |
 | 1.29 | 2026-11-13 | FR-8: **janr filtri** — `search_movies` ga `genres` argumenti (TMDB'ning 19 janr nomi, ko'pi bilan ikkitasi, film hammasiga ega bo'lishi kerak); phase-04 promptidagi tool imzosi shunga o'zgardi. **Kirish gapi** — model nima izlayotganini bitta gapda (foydalanuvchi tilida, film nomisiz) `search_movies` ning majburiy `intro` argumentida yozadi; server uni qidiruvdan oldin ko'rsatadi, shuning uchun birinchi belgi qidiruv va ikkinchi chaqiruvni kutmaydi. `intro` qidiruv argumenti emas; bo'sh yoki 160 belgidan uzun bo'lsa ko'rsatilmaydi, oxirida tinish belgisi bo'lmasa nuqta qo'shiladi. Aniqlashtirildi 2026-11-13 (foydalanuvchi tasdig'i): dastlabki variant — matn chaqiruvdan oldin — ishlamadi, Gemini Flash-Lite (MINIMAL thinking) 6 tashxis chaqiruvining hammasida chaqiruvdan oldin matn yozmadi (ADR 0009 qo'shimchasi). **Joylashtirilmagan kartochkalar ko'rsatilmaydi** — faqat javob o'zi qo'ygan filmlar. Sabab: qo'lda tekshiruvlarda "musical" ga Ratatouille, thriller so'roviga Bambi chiqdi, model esa mavjud bo'lmagan `comedy` traitini yubordi; javobdan keyin qo'shilgan kartochkalar so'rovga mos emasdi (The Lion King "blow my mind" ga) (foydalanuvchi qarori, 2026-11-12) |
 | 1.28 | 2026-11-13 | FR-8: **xabar uchun vaqt chegarasi** — birinchi belgi 25 s, butun javob 45 s; o'tsa "assistant band" matni va "Qayta urinish" tugmasi (uch tilda). Sabab: 2026-11-12 da Gemini sekin edi (birinchi chaqiruv 6–19 s, birinchi belgi 15–39 s), har chaqiruvga 30 s va to'rttagacha chaqiruv bilan foydalanuvchi ~2 daqiqa kutishi mumkin edi; bitta xabar 52 s da xato bilan tugadi. Oqim boshlanib, 10 s jim qolsa — 503 kabi bir marta qayta uriniladi. "2 soniya" mezoni o'zgarmadi va hali bajarilmagan (foydalanuvchi qarori; ADR 0009 qo'shimchasi 2026-11-13) |
 | 1.27 | 2026-10-22 | FR-5: **"sabab" yaqinlikni bildiradi, yo'nalishni emas** — 1.23 ning kesimlari o'rniga: sabab = kattalik ≤ 0.35 σ **va** yo'nalish ≥ 0.40 σ (yo'nalish endi ma'no emas, qo'riqchi), farq = kattalik ≥ 1.0 σ, orasi — jim; sabablar eng kichik kattalik bo'yicha saralanadi. Sabablar ustunligi, `named_traits` + `trait_side` shartnomasi va match formulasi o'zgarmadi. FR-6: **sabab prompti qayta yozildi** — har jumla moslikni aytadi, taqqoslash shakllari ("more than you", "gentler than") taqiqlandi; farq prompti o'zgarmadi; eski sabab izohlari keshdan o'chirildi. Sabab: jonli saytda "WHY IT SUITS YOU" ostida "much gentler than you usually prefer" turdi — ikkisi ham eski qoidaga ko'ra rost edi, ya'ni ziddiyat qoidaning o'zida (foydalanuvchi o'rtachadan 2.3 ball narida, film undan 16.7 ball narida = "mos"). O'lchov: 500 filmdan 495 tasi sabab tomonida edi → endi 44.8 / 50.6 / 66.2% (uch akkaunt), jim 0%. Takrorlanish hal bo'lmadi (eng ko'p nomlangan trait sabab filmlarining 64.3 / 51.8 / 43.5% ida) — backlog'ga. Qaror, raqamlar va rad etilgan uch variant: `docs/decisions/0008-closeness-reasons.md` |

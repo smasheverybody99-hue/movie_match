@@ -1,7 +1,16 @@
 # Phase 6 — Flutter application
 
-Read `CLAUDE.md` first. **Phase 5's product gate must have passed**, not just its tests.
-If the 15% metric was not met, you should not be reading this.
+Read `CLAUDE.md` first. **Phase 5's technical gate must be green and the alpha testers
+in** (target 2026-11-19). This phase runs while the alpha does and does not wait for its
+product gate (TZ 1.30). If the 15% metric fails on 2026-12-03, work here may continue but
+nothing goes to a public store track.
+
+**Android first** (TZ 1.30): the Google Play closed test starts 2026-11-28 with the 12
+alpha testers. A new personal Play developer account needs a closed test of at least 12
+testers opted in for 14 consecutive days before it can apply for production
+([Play Console Help, answer 14151465](https://support.google.com/googleplay/android-developer/answer/14151465),
+checked 2026-11-13). iOS stays in scope and follows; it needs a macOS build (cloud) and an
+Apple Developer membership — dates are the user's decision.
 
 ## Before you start
 
@@ -12,7 +21,8 @@ Read:
 
 ## Goal
 
-An iOS and Android app with feature parity to the web app, on test channels in both stores.
+An Android app with feature parity to the web app on the Google Play closed test track by
+2026-11-28; the iOS build on TestFlight after it.
 
 ## Build
 
@@ -33,8 +43,12 @@ An iOS and Android app with feature parity to the web app, on test channels in b
    - Push via FCM: weekly recommendation, watchlist film became available.
 5. **Release plumbing**
    - App icons, splash, store metadata.
-   - Apple Developer and Google Play accounts; signing set up.
-   - Builds on TestFlight and Play internal testing.
+   - Google Play developer account (identity and Android device verification) and signing;
+     Apple Developer membership for iOS when the user enrols.
+   - Android build on the Play closed test track with the 12 alpha testers (2026-11-28);
+     iOS build on TestFlight after it.
+   - The app records the same Phase 5 events as the web client, so alpha data from the
+     phone is not lost.
 
 ## Out of scope
 
@@ -73,11 +87,13 @@ Manual checklist:
 - [ ] Complete onboarding on a phone, timed.
 - [ ] Airplane mode: open the app, browse cached content, come back online. No crash,
       no stuck spinner.
-- [ ] Both builds installed from TestFlight and Play internal testing by someone else.
+- [ ] The Android build installed from the Play closed test by someone else; the 12
+      testers opted in (the 14 days start from the last one in). iOS from TestFlight
+      when it exists.
 
 ## Report
 
 1. Gate output.
 2. Device list, cold start times, onboarding time.
 3. Where mobile had to diverge from web, and whether the parity table needs updating.
-4. Do not start Phase 7.
+4. Do not start the next phase in TZ 1.30's order (Phase 9a) without the user.

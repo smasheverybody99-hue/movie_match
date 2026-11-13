@@ -216,13 +216,14 @@ footer a{ color:var(--muted); }
 
 <header class="hero">
   <p class="eyebrow">0 → Launch · Web (React) + Mobil (Flutter)</p>
-  <h1>Movie Match'ni <em>17 haftada</em> qurish rejasi</h1>
+  <h1>Movie Match: <em>launch'gacha</em> tezlashtirilgan reja</h1>
   <p class="lede">Deckdagi 24 slayd mahsulot g'oyasi edi. Bu esa uni ishlaydigan, foydalanuvchilar ro'yxatdan o'tadigan ilovaga aylantirish yo'li — haftasiga ~27 soat, Claude bilan kod yozish tezligiga moslangan holda. Har fazada bitta ko'rinadigan natija bor; qadamlarni belgilab boring, progress saqlanadi.</p>
+  <p class="lede"><b>2026-11-13, TZ 1.30:</b> reja tezlashtirildi. Doira o'zgarmadi, tartib o'zgardi: alfa paytida mobil va web launch quriladi, ochiq launch alfa natijasidan keyin. Asl 17 haftalik hisob (haftalar va soatlar) quyida tarix uchun qoldi.</p>
   <div class="tiles">
-    <div class="tile"><span class="n">17</span><span class="k">hafta</span></div>
-    <div class="tile"><span class="n">~460</span><span class="k">soat</span></div>
-    <div class="tile"><span class="n">10</span><span class="k">faza</span></div>
-    <div class="tile"><span class="n">2</span><span class="k">platforma</span></div>
+    <div class="tile"><span class="n">19.11</span><span class="k">testerlar</span></div>
+    <div class="tile"><span class="n">3.12</span><span class="k">alfa qarori</span></div>
+    <div class="tile"><span class="n">5.12</span><span class="k">web launch</span></div>
+    <div class="tile"><span class="n">12.12</span><span class="k">do'konlarga ariza</span></div>
   </div>
 </header>
 
@@ -259,6 +260,26 @@ footer a{ color:var(--muted); }
 </section>
 
 <section id="plan">
+  <h2>Tezlashtirilgan tartib (TZ 1.30)</h2>
+  <p class="sub">Foydalanuvchi qarori, 2026-11-13. Faza raqami identifikator bo'lib qoldi: F8 endi F7 dan oldin, F9 ikkiga bo'lindi (F9a web, F9b do'konlar). Sanalar — maqsad, va'da emas; xavfli joylar pastdagi "Xavflar" jadvalida.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>#</th><th>Faza</th><th>Maqsad sana</th><th>Shart</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td><b>F4</b> — AI assistant, yopish</td><td>15-noyabr</td><td>F4 gate, qo'lda ro'yxat, F3 Lighthouse</td></tr>
+        <tr><td class="num">2</td><td><b>F5</b> — alfa kodi</td><td>18-noyabr</td><td>F4 yopilgan</td></tr>
+        <tr><td class="num">3</td><td><b>F5</b> — 12 tester kiradi</td><td>19-noyabr</td><td>F5 texnik gate'i yashil</td></tr>
+        <tr><td class="num">4</td><td><b>F6</b> — Android ilova, alfa paytida</td><td>Play yopiq testi 28-noyabr</td><td>Mahsulot darvozasini kutmaydi</td></tr>
+        <tr><td class="num">5</td><td><b>F5</b> — alfa qarori</td><td>3-dekabr</td><td>2 hafta ma'lumot; 15% va 70%</td></tr>
+        <tr><td class="num">6</td><td><b>F9a</b> — web launch</td><td>5-dekabr</td><td>F5 mahsulot darvozasi o'tgan</td></tr>
+        <tr><td class="num">7</td><td><b>F8</b> — Smart Watchlist + Group Match</td><td>F9a dan keyin</td><td>F9a</td></tr>
+        <tr><td class="num">8</td><td><b>F7</b> — Character Match (flag ortida)</td><td>F8 dan keyin</td><td>Yurist ko'rigigacha flag o'chiq</td></tr>
+        <tr><td class="num">9</td><td><b>F9b</b> — do'konlarga ariza</td><td>12-dekabr</td><td>Play: 12 tester × 14 kun</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:12px;"><b>Darvoza qoidasi o'zgardi:</b> qurish alfa paytida to'xtamaydi, ochiq launch (web va do'kon) alfa natijasidan keyin. 15% yiqilsa — dvigatel qayta ishlanadi va launch to'xtaydi. 12 tester statistik isbot emas: natija yo'nalishni ko'rsatadi, suhbatlar bilan birga o'qiladi.</p>
+
   <h2>Faza-fazma reja</h2>
   <p class="sub">To'rt blok, o'n faza. Har bir fazaning oxirida ko'rsatish mumkin bo'lgan narsa qoladi — "ichkarida allaqachon ishlayapti" emas.</p>
 
@@ -370,29 +391,29 @@ footer a{ color:var(--muted); }
   <details class="phase" data-phase="f5">
     <summary>
       <span class="pnum">F5</span>
-      <span class="ptitle"><b>Yopiq alfa — to'xtash nuqtasi</b><span>Hafta 9 · ~27 soat</span></span>
+      <span class="ptitle"><b>Yopiq alfa — launch'dan oldingi to'xtash nuqtasi</b><span>Kod 18-noyabr · testerlar 19-noyabr · qaror 3-dekabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
-      <span class="flag gate">Darvoza: bu haftada o'tmasangiz, keyingi bloklar behuda</span>
-      <p class="note">Bu hafta kod yozmaysiz — tinglaysiz. Deckdagi asosiy da'vo bitta: <strong>Movie Match odamning ta'mini shunchalik tushunadiki, u haqiqatan ko'radigan film tavsiya qiladi.</strong> Shu da'voni hozir tekshirasiz, mobil ilovaga 80 soat sarflashdan oldin.</p>
+      <span class="flag gate">Darvoza: o'tmasa ochiq launch bo'lmaydi; qurish to'xtamaydi</span>
+      <p class="note">Bu hafta kod yozmaysiz — tinglaysiz. Deckdagi asosiy da'vo bitta: <strong>Movie Match odamning ta'mini shunchalik tushunadiki, u haqiqatan ko'radigan film tavsiya qiladi.</strong> Shu da'voni ochiq launch'dan oldin tekshirasiz. Alfa ketayotganda Android ilova va web launch tayyorligi quriladi (TZ 1.30).</p>
       <ul class="check">
-        <li><input type="checkbox" id="f5-1"><label for="f5-1">30–50 tester yig'ish: do'stlar, universitet, Telegram kinoguruhlari, r/movies</label></li>
+        <li><input type="checkbox" id="f5-1"><label for="f5-1">12 tester yig'ish (Android telefonli — o'sha 12 kishi Play yopiq testiga ham kiradi): do'stlar, universitet, Telegram kinoguruhlari</label></li>
         <li><input type="checkbox" id="f5-2"><label for="f5-2">Telemetriya: tavsiya ko'rsatildi → bosildi → watchlistga qo'shildi → ko'rildi → baholandi</label></li>
         <li><input type="checkbox" id="f5-3"><label for="f5-3">Asosiy metrika: tavsiya qilingan filmning 7 kun ichida ko'rilishi ≥ 15%</label></li>
-        <li><input type="checkbox" id="f5-4"><label for="f5-4">Har hafta 5 ta foydalanuvchi bilan 20 daqiqalik suhbat, yozib olib</label></li>
-        <li><input type="checkbox" id="f5-5"><label for="f5-5">Qaror: metrika past bo'lsa — F2'ga qaytib dvigatelni qayta quring, F6'ga o'tmang</label></li>
+        <li><input type="checkbox" id="f5-4"><label for="f5-4">2 hafta ichida 5 ta foydalanuvchi bilan 20 daqiqalik suhbat, yozib olib</label></li>
+        <li><input type="checkbox" id="f5-5"><label for="f5-5">Qaror (3-dekabr): 15% past bo'lsa — dvigatel qayta ishlanadi, web va do'kon launch'i to'xtaydi; onboarding ≥ 70% (12 dan kamida 9)</label></li>
       </ul>
       <p class="ship"><b>Natija</b><span>Hujjatlashtirilgan qaror: davom etamiz yoki tavsiya mantiqini qayta quramiz.</span></p>
     </div>
   </details>
 
-  <div class="block-head"><span class="tag">Blok C</span><h3>Mobil va Character Match</h3><span class="wk">Hafta 10–15</span></div>
+  <div class="block-head"><span class="tag">Blok C</span><h3>Alfa paytida: mobil va web launch</h3><span class="wk">19-noyabr — 5-dekabr</span></div>
 
   <details class="phase" data-phase="f6">
     <summary>
       <span class="pnum">F6</span>
-      <span class="ptitle"><b>Flutter ilovasi</b><span>Hafta 10–12 · ~81 soat</span></span>
+      <span class="ptitle"><b>Flutter ilovasi — Android birinchi</b><span>Alfa paytida · Play yopiq testi 28-noyabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
@@ -402,18 +423,58 @@ footer a{ color:var(--muted); }
         <li><input type="checkbox" id="f6-2"><label for="f6-2">Ekran pariteti: onboarding, feed, film, qidiruv, watchlist, DNA, assistant</label></li>
         <li><input type="checkbox" id="f6-3"><label for="f6-3">Nativ his: swipe bilan baholash, share sheet, haptics, offline kesh (Isar/Hive)</label></li>
         <li><input type="checkbox" id="f6-4"><label for="f6-4">Push (FCM): haftalik tavsiya, watchlistdagi film striminga chiqqanda</label></li>
-        <li><input type="checkbox" id="f6-5"><label for="f6-5">Do'kon akkauntlari: Apple Developer ($99/yil), Google Play ($25 bir marta) — ro'yxatdan o'tish 1–3 kun</label></li>
-        <li><input type="checkbox" id="f6-6"><label for="f6-6">TestFlight va Play internal testing kanallarida build turibdi</label></li>
+        <li><input type="checkbox" id="f6-5"><label for="f6-5">Google Play akkaunti ($25 bir marta; shaxsni va Android qurilmani tasdiqlash) — 28-noyabrdan ancha oldin. Apple Developer ($99/yil) — iOS sanasi foydalanuvchi qarori</label></li>
+        <li><input type="checkbox" id="f6-6"><label for="f6-6">Android build Play yopiq testida, 12 tester qo'shilgan (14 kun shu kundan); iOS — keyin, TestFlight</label></li>
         <li><input type="checkbox" id="f6-7"><label for="f6-7">Kamida 4 ta real qurilmada test (eski Android ham)</label></li>
       </ul>
       <p class="ship"><b>Natija</b><span>Testerlar telefoniga o'rnatilgan ilova.</span></p>
     </div>
   </details>
 
+  <details class="phase" data-phase="f9">
+    <summary>
+      <span class="pnum">F9a</span>
+      <span class="ptitle"><b>Web launch: huquqiy, ishonchlilik</b><span>Alfa paytida quriladi · launch 5-dekabr</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <ul class="check">
+        <li><input type="checkbox" id="f9-1"><label for="f9-1">TMDB tijorat litsenziyasi imzolangan (F0'da boshlangan) va atributsiya joyida</label></li>
+        <li><input type="checkbox" id="f9-2"><label for="f9-2">Foydalanish shartlari, Maxfiylik siyosati, ma'lumot eksporti va akkauntni o'chirish oqimi</label></li>
+        <li><input type="checkbox" id="f9-3"><label for="f9-3">Sentry, uptime monitoring, DB zaxirasi — va tiklashni <strong>haqiqatan sinab ko'rish</strong></label></li>
+        <li><input type="checkbox" id="f9-4"><label for="f9-4">Yuklama testi: 500 parallel foydalanuvchi, LLM xarajat cheklovi ishlayotganini tekshirish</label></li>
+        <li><input type="checkbox" id="f9-6"><label for="f9-6">Landing sahifa, analitika, onboarding voronkasi o'lchovi</label></li>
+        <li><input type="checkbox" id="f9-7"><label for="f9-7">Launch kanallari tayyor: Product Hunt, r/movies, Telegram, universitet, kino bloglari</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Ochiq web launch — faqat F5 mahsulot darvozasi o'tgan bo'lsa.</span></p>
+    </div>
+  </details>
+
+  <div class="block-head"><span class="tag">Blok D</span><h3>Web launch'dan keyin: funksiyalar va do'konlar</h3><span class="wk">5 — 12-dekabr</span></div>
+
+  <details class="phase" data-phase="f8">
+    <summary>
+      <span class="pnum">F8</span>
+      <span class="ptitle"><b>Ijtimoiy funksiyalar va sayqal</b><span>Web launch'dan keyin</span></span>
+      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
+    </summary>
+    <div class="pbody">
+      <p class="note">Taste Twin haqida ochiq bo'ling: u kollaborativ filtrlashga tayanadi va <strong>1000+ faol foydalanuvchisiz ishlamaydi</strong>. Launch'da uni ko'rsatmang yoki content-based versiyasini qiling.</p>
+      <ul class="check">
+        <li><input type="checkbox" id="f8-1"><label for="f8-1">Smart Watchlist: mavjud traitlar bilan avto-guruhlash (yangi model kerak emas)</label></li>
+        <li><input type="checkbox" id="f8-2"><label for="f8-2">Group Match: havola bilan qo'shilish, ta'm vektorlari kesishmasi</label></li>
+        <li><input type="checkbox" id="f8-3"><label for="f8-3">Taste Twin — faqat yetarli ma'lumot bo'lsa yoqiladi; aks holda backlogda qoladi</label></li>
+        <li><input type="checkbox" id="f8-4"><label for="f8-4">Tezlik: web LCP &lt; 2.5s, API p95 &lt; 300ms, mobil sovuq start &lt; 2s</label></li>
+        <li><input type="checkbox" id="f8-5"><label for="f8-5">Qulaylik: klaviatura navigatsiyasi, kontrast, ekran o'quvchi yorliqlari</label></li>
+      </ul>
+      <p class="ship"><b>Natija</b><span>Do'kon launch'iga qadar funksiya ishlari tugaydi (F7 bilan birga).</span></p>
+    </div>
+  </details>
+
   <details class="phase" data-phase="f7">
     <summary>
       <span class="pnum">F7</span>
-      <span class="ptitle"><b>Character Match</b><span>Hafta 13–14 · ~54 soat</span></span>
+      <span class="ptitle"><b>Character Match</b><span>F8 dan keyin · yurist ko'rigigacha flag ortida</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
@@ -432,44 +493,21 @@ footer a{ color:var(--muted); }
     </div>
   </details>
 
-  <details class="phase" data-phase="f8">
+  <details class="phase" data-phase="f9b">
     <summary>
-      <span class="pnum">F8</span>
-      <span class="ptitle"><b>Ijtimoiy funksiyalar va sayqal</b><span>Hafta 15 · ~27 soat</span></span>
+      <span class="pnum">F9b</span>
+      <span class="ptitle"><b>Do'konlarga ariza</b><span>12-dekabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
-      <p class="note">Taste Twin haqida ochiq bo'ling: u kollaborativ filtrlashga tayanadi va <strong>1000+ faol foydalanuvchisiz ishlamaydi</strong>. Launch'da uni ko'rsatmang yoki content-based versiyasini qiling.</p>
+      <p class="note">Google Play: 2023-11-13 dan keyin ochilgan shaxsiy akkaunt production'ga ariza berishdan oldin kamida 12 testerli yopiq testni 14 kun ketma-ket o'tkazishi kerak; ariza ko'rigi odatda 7 kungacha. 28-noyabrda boshlangan test 12-dekabrda 14 kunga yetadi — zaxira yo'q.</p>
       <ul class="check">
-        <li><input type="checkbox" id="f8-1"><label for="f8-1">Smart Watchlist: mavjud traitlar bilan avto-guruhlash (yangi model kerak emas)</label></li>
-        <li><input type="checkbox" id="f8-2"><label for="f8-2">Group Match: havola bilan qo'shilish, ta'm vektorlari kesishmasi</label></li>
-        <li><input type="checkbox" id="f8-3"><label for="f8-3">Taste Twin — faqat yetarli ma'lumot bo'lsa yoqiladi; aks holda backlogda qoladi</label></li>
-        <li><input type="checkbox" id="f8-4"><label for="f8-4">Tezlik: web LCP &lt; 2.5s, API p95 &lt; 300ms, mobil sovuq start &lt; 2s</label></li>
-        <li><input type="checkbox" id="f8-5"><label for="f8-5">Qulaylik: klaviatura navigatsiyasi, kontrast, ekran o'quvchi yorliqlari</label></li>
+        <li><input type="checkbox" id="f9b-1"><label for="f9b-1">Play yopiq testi: 12 tester 14 kun ketma-ket qo'shilgan (sanalar yozilgan)</label></li>
+        <li><input type="checkbox" id="f9-5"><label for="f9-5">Play production arizasi; App Store — foydalanuvchi qaror qilsa. Birinchi urinishda rad javobiga tayyor turing — 1–7 kun</label></li>
+        <li><input type="checkbox" id="f9b-2"><label for="f9b-2">Data safety (Play) va privacy labels (App Store) maxfiylik siyosatiga mos</label></li>
+        <li><input type="checkbox" id="f9b-3"><label for="f9b-3">Character Match flag holati yozilgan: yurist ko'rigisiz o'chiq</label></li>
       </ul>
-      <p class="ship"><b>Natija</b><span>Launch'ga qadar funksiya ishlari tugadi. Qolgani — tayyorgarlik.</span></p>
-    </div>
-  </details>
-
-  <div class="block-head"><span class="tag">Blok D</span><h3>Launch</h3><span class="wk">Hafta 16–17</span></div>
-
-  <details class="phase" data-phase="f9">
-    <summary>
-      <span class="pnum">F9</span>
-      <span class="ptitle"><b>Huquqiy, ishonchlilik, do'konlar</b><span>Hafta 16–17 · ~54 soat</span></span>
-      <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
-    </summary>
-    <div class="pbody">
-      <ul class="check">
-        <li><input type="checkbox" id="f9-1"><label for="f9-1">TMDB tijorat litsenziyasi imzolangan (F0'da boshlangan) va atributsiya joyida</label></li>
-        <li><input type="checkbox" id="f9-2"><label for="f9-2">Foydalanish shartlari, Maxfiylik siyosati, ma'lumot eksporti va akkauntni o'chirish oqimi</label></li>
-        <li><input type="checkbox" id="f9-3"><label for="f9-3">Sentry, uptime monitoring, DB zaxirasi — va tiklashni <strong>haqiqatan sinab ko'rish</strong></label></li>
-        <li><input type="checkbox" id="f9-4"><label for="f9-4">Yuklama testi: 500 parallel foydalanuvchi, LLM xarajat cheklovi ishlayotganini tekshirish</label></li>
-        <li><input type="checkbox" id="f9-5"><label for="f9-5">App Store va Play'ga yuborish. Birinchi urinishda rad javobiga tayyor turing — 1–7 kun</label></li>
-        <li><input type="checkbox" id="f9-6"><label for="f9-6">Landing sahifa, analitika, onboarding voronkasi o'lchovi</label></li>
-        <li><input type="checkbox" id="f9-7"><label for="f9-7">Launch kanallari tayyor: Product Hunt, r/movies, Telegram, universitet, kino bloglari</label></li>
-      </ul>
-      <p class="ship"><b>Natija</b><span>Ommaviy launch — web'da va ikkala do'konda.</span></p>
+      <p class="ship"><b>Natija</b><span>Do'kon arizasi yuborilgan, holati yozilgan.</span></p>
     </div>
   </details>
 
@@ -508,13 +546,13 @@ footer a{ color:var(--muted); }
         <tr>
           <td><b>Personaj IP</b> — Batman, Stark va boshqalar himoyalangan</td>
           <td><span class="sev hi">Yuqori</span></td>
-          <td>F7 — 13-hafta</td>
+          <td>F7 — flag yurist ko'rigigacha</td>
           <td>Faqat matn nomi, rasm yo'q. Ko'rinadigan disclaimer. Umumiy mulkdagi personajlarga urg'u. Yurist ko'rigi majburiy.</td>
         </tr>
         <tr>
           <td><b>Tavsiyalar aslida yaxshi emas</b> — lekin buni bilmaysiz</td>
           <td><span class="sev hi">Yuqori</span></td>
-          <td>F5 — 9-hafta</td>
+          <td>F5 — qaror 3-dekabr</td>
           <td>Alfa darvozasini o'tkazib yubormang. Aniq metrika: 7 kunlik ko'rilish ≥ 15%. Past bo'lsa — orqaga qayting.</td>
         </tr>
         <tr>
@@ -522,6 +560,12 @@ footer a{ color:var(--muted); }
           <td><span class="sev hi">Yuqori</span></td>
           <td>Doimiy</td>
           <td>MVP 9 ta funksiyada muzlatilgan. Yangi g'oya backlogga yoziladi, jadvalga emas.</td>
+        </tr>
+        <tr>
+          <td><b>Sanalarda zaxira yo'q</b> — Play 14 kuni, F7 + F8 bir haftada, iOS rejalanmagan</td>
+          <td><span class="sev hi">Yuqori</span></td>
+          <td>TZ 1.30 — 2026-11-13</td>
+          <td>Play akkauntini darhol ochish; 12 tester 28-noyabrda bir kunda qo'shilishi; F7/F8 va iOS sanasi foydalanuvchi qarori. Tafsilot: <code>docs/STATUS.md</code>, "Keyingi qadam".</td>
         </tr>
         <tr>
           <td><b>Sovuq start</b> — yangi foydalanuvchida ma'lumot yo'q</td>
@@ -573,12 +617,12 @@ footer a{ color:var(--muted); }
   <p class="sub">Ko'p metrika kuzatish mumkin. Qaror qabul qilish uchun shu uchtasi kerak.</p>
   <div class="metrics">
     <div class="metric">
-      <span class="when">F5 · 9-hafta</span>
+      <span class="when">F5 · 3-dekabr</span>
       <p class="big">≥ 15%</p>
       <p>Tavsiya qilingan film 7 kun ichida ko'rildi. Mahsulotning asosiy da'vosi shu raqamda sinovdan o'tadi.</p>
     </div>
     <div class="metric">
-      <span class="when">Launch · 17-hafta</span>
+      <span class="when">Launch · 5-dekabrdan</span>
       <p class="big">≥ 25%</p>
       <p>D7 retention. Undan past bo'lsa — odamlar bir marta sinab ko'rib, qaytmayapti.</p>
     </div>
@@ -602,7 +646,7 @@ footer a{ color:var(--muted); }
 </section>
 
 <footer>
-  Reja 2026-yil 24-sentyabr holatiga ko'ra tuzilgan. Hafta hisobi haftasiga ~27 soat ishlash va Claude bilan kod yozishga asoslangan. TMDB litsenziya shartlari va Claude API narxlari vaqt o'tishi bilan o'zgarishi mumkin — F0 va F9'da qayta tekshiring.
+  Reja 2026-yil 24-sentyabr holatiga ko'ra tuzilgan; tartib va sanalar 2026-11-13 da TZ 1.30 bilan yangilandi (Google Play yopiq test talabi: <a href="https://support.google.com/googleplay/android-developer/answer/14151465" target="_blank" rel="noopener">Play Console Help</a>, tekshirildi 2026-11-13). Hafta hisobi haftasiga ~27 soat ishlash va Claude bilan kod yozishga asoslangan. TMDB litsenziya shartlari va Claude API narxlari vaqt o'tishi bilan o'zgarishi mumkin — F0 va F9'da qayta tekshiring.
   <br>Manbalar: <a href="https://developer.themoviedb.org/docs/faq" target="_blank" rel="noopener">TMDB API FAQ</a> · <a href="https://www.themoviedb.org/api-terms-of-use" target="_blank" rel="noopener">TMDB API shartlari</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Claude API narxlari</a> · <a href="https://docs.flutter.dev/release/whats-new" target="_blank" rel="noopener">Flutter relizlari</a>
 </footer>
 

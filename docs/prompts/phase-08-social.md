@@ -1,11 +1,14 @@
 # Phase 8 — Social features and polish
 
-Read `CLAUDE.md` first. Phase 7's gate must be green, including the legal review.
+Read `CLAUDE.md` first. **Phase 9a (web launch) must be done** and Phase 5's product gate
+passed (TZ 1.30 order: F9a → F8 → F7 → F9b). Phase 6's gate must be green: the features
+below go to web and mobile.
 
 ## Goal
 
 Finish the feature set and bring performance and accessibility up to the targets in
-`docs/TZ.md` section 5. After this phase, no new features before launch.
+`docs/TZ.md` section 5. After this phase and Phase 7, no new features before the store
+launch.
 
 ## Build
 
@@ -67,4 +70,4 @@ Manual checklist:
 1. Gate output and coverage.
 2. Before/after performance numbers.
 3. The Group Match trial result.
-4. Do not start Phase 9.
+4. Do not start Phase 7 without the user.

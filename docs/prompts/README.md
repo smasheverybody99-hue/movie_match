@@ -19,18 +19,28 @@ ularning har biri yozilgan bo'lishi kerak, va qamrov chegarasi tekshiriladi.
 
 ## Fazalar
 
-| Fayl | Faza | Hafta | Darvoza |
-|---|---|---|---|
-| `phase-00-foundation.md` | Poydevor | 1 | Lint + build + smoke testlar |
-| `phase-01-data.md` | Ma'lumot va Movie DNA | 2–3 | Pipeline testlari + 50 film qo'lda ko'rik |
-| `phase-02-engine.md` | Tavsiya dvigateli | 4–5 | Formula testlari + endpoint testlari |
-| `phase-03-web.md` | Web ilova | 6–7 | Komponent testlari + a11y + Lighthouse |
-| `phase-04-assistant.md` | AI assistant | 8 | Tool-use testlari + injection testlari |
-| `phase-05-alpha.md` | Yopiq alfa | 9 | **Mahsulot darvozasi** — metrika |
-| `phase-06-mobile.md` | Flutter ilova | 10–12 | Widget testlari + qurilma ko'rigi |
-| `phase-07-character.md` | Character Match | 13–14 | Matching testlari + huquqiy ko'rik |
-| `phase-08-social.md` | Ijtimoiy va sayqal | 15 | Performance byudjeti |
-| `phase-09-launch.md` | Launch tayyorligi | 16–17 | Xavfsizlik + tiklash + do'kon |
+Tartib TZ 1.30 dan (2026-11-13, foydalanuvchi qarori): faza raqami identifikator, bajarilish
+tartibi chapdagi ustunda. Oldingi "Hafta" ustuni (17 haftalik reja) tarix uchun
+`docs/roadmap.html` da qoldi.
+
+| Tartib | Fayl | Faza | Maqsad sana | Darvoza |
+|---|---|---|---|---|
+| 1 | `phase-00-foundation.md` | Poydevor | bajarilgan | Lint + build + smoke testlar |
+| 2 | `phase-01-data.md` | Ma'lumot va Movie DNA | bajarilgan | Pipeline testlari + 50 film qo'lda ko'rik |
+| 3 | `phase-02-engine.md` | Tavsiya dvigateli | bajarilgan | Formula testlari + endpoint testlari |
+| 4 | `phase-03-web.md` | Web ilova | Lighthouse (band 5) qolgan | Komponent testlari + a11y + Lighthouse |
+| 5 | `phase-04-assistant.md` | AI assistant | 2026-11-15 | Tool-use testlari + injection testlari |
+| 6 | `phase-05-alpha.md` | Yopiq alfa | kod 2026-11-18, testerlar 2026-11-19, qaror 2026-12-03 | Texnik gate + **mahsulot darvozasi** (12 tester, 2 hafta, 15% / 70%) |
+| 7 | `phase-06-mobile.md` | Flutter ilova, **Android birinchi**, alfa paytida | Android yopiq testi 2026-11-28 | Widget testlari + qurilma ko'rigi |
+| 8 | `phase-09a-web-launch.md` | Web launch tayyorligi va ochiq web launch | 2026-12-05 | Xavfsizlik + tiklash; F5 mahsulot darvozasi o'tgan |
+| 9 | `phase-08-social.md` | Smart Watchlist, Group Match, sayqal | F9a dan keyin | Performance byudjeti |
+| 10 | `phase-07-character.md` | Character Match (yurist ko'rigigacha flag ortida) | F8 dan keyin | Matching testlari + huquqiy ko'rik |
+| 11 | `phase-09b-store-launch.md` | Do'konlarga ariza | 2026-12-12 | Do'kon talablari + Play yopiq testi 14 kun |
+
+**Darvoza qoidasi o'zgardi (TZ 1.30):** qurish alfa paytida ketadi (F6, F9a), lekin ochiq
+launch (web va do'kon) faqat F5 mahsulot darvozasidan keyin. 15% yiqilsa — dvigatel qayta
+ishlanadi va launch to'xtaydi. Texnik gate qoidasi o'zgarmagan: bitta test yiqilsa ham
+keyingi faza boshlanmaydi.
 
 ## Har promptda o'zgartiriladigan joy
 

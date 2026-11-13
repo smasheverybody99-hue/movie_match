@@ -1,6 +1,13 @@
-# Phase 9 — Launch readiness
+# Phase 9a — Web launch readiness and the public web launch
 
-Read `CLAUDE.md` and `docs/legal.md` first. Phase 8's gate must be green.
+Read `CLAUDE.md` and `docs/legal.md` first. TZ 1.30 split Phase 9 in two: this file is the
+web launch (target **2026-12-05**); the store submission is `phase-09b-store-launch.md`
+(2026-12-12).
+
+Preconditions (TZ 1.30): the readiness work below is built **during the alpha**, from
+2026-11-19. The public launch itself needs **Phase 5's product gate passed** (decision
+2026-12-03: 15% and 70%). If the 15% metric fails, this launch does not happen and the
+engine is reworked. Phases 7 and 8 come after this one and are not required for it.
 
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
@@ -26,15 +33,12 @@ strangers.
      only; `npm audit --omit=dev` is clean, so it does not reach the bundle. Fixed from vitest
      4.1.11. `--audit-level=high` will not flag it, so resolve it here explicitly.
 3. **Reliability**
-   - Sentry on API, web and mobile, with release tagging.
+   - Sentry on API and web, with release tagging (mobile in Phase 9b).
    - Uptime monitoring with alerting to a channel you actually read.
    - Database backups **and a restore you have actually performed**. Restore into a scratch
      database and report how long it took and whether the data was intact.
    - A documented rollback: how to get back to the previous version in under 10 minutes.
-4. **Store submission**
-   - App Store and Play submissions, with privacy nutrition labels filled in honestly.
-   - Expect rejection on the first attempt. Budget 1–7 days per review round.
-5. **Launch surface**
+4. **Launch surface**
    - Landing page, analytics, onboarding funnel instrumented.
    - Status page or a way to tell users when something is broken.
 
@@ -62,14 +66,14 @@ pip-audit && npm audit --audit-level=high
 ```
 
 Pass condition: **all pass; no high or critical vulnerabilities; every test from phases
-0–8 still passes.**
+0–6 still passes** (Phase 6's mobile code exists by now; Phases 7 and 8 come later).
 
 Manual checklist:
 - [ ] TMDB attribution verified in the live app; commercial licence signed IF monetizing
 - [ ] Restore from backup performed; time and integrity reported
 - [ ] Rollback rehearsed once
 - [ ] Load test at 2× expected launch traffic
-- [ ] Both store submissions sent; review status reported
+- [ ] Phase 5's product gate passed (record the 15% and 70% numbers with their intervals)
 - [ ] Privacy policy and terms live and linked
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.
@@ -78,6 +82,6 @@ Manual checklist:
 
 1. Gate output.
 2. The restore test result.
-3. Store review status.
-4. What the unaided sign-up test revealed.
-5. A go / no-go recommendation with the reason.
+3. What the unaided sign-up test revealed.
+4. A go / no-go recommendation for the public web launch with the reason.
+5. Do not start Phase 8 without the user.

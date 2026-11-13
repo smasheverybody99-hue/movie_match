@@ -204,6 +204,20 @@ Render Free'ning sovuq starti (~34 s, DevTools) TZ'dagi "tavsiya < 500 ms" talab
 uchun karta so'rashi mumkin (forum xabarlari; rasmiy sahifada aytilmagan).
 Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz.
 
+### Do'konlar va iOS build (TZ 1.30, tekshirildi 2026-11-13)
+
+| Nima | Narx | Shart | Manba |
+|---|---|---|---|
+| Google Play developer akkaunti | **$25 bir marta** | Shaxsiy akkaunt: hukumat ID va o'z nomidagi karta so'ralishi mumkin; Play Console mobil ilovasi orqali Android qurilmaga kirishni tasdiqlash — ilova chiqarishdan oldin. Tasdiqlash muddati sahifada yo'q | [support.google.com/googleplay/android-developer/answer/6112435](https://support.google.com/googleplay/android-developer/answer/6112435) |
+| Google Play: yangi shaxsiy akkaunt uchun yopiq test | $0 | 2023-11-13 dan keyin ochilgan shaxsiy akkaunt: kamida **12 tester, kamida 14 kun ketma-ket** qo'shilgan bo'lishi; chiqib qayta qo'shilgan tester hisoblanmaydi. Keyin "Apply for production" (yopiq test, ilova va tayyorlik haqida savollar); ko'rik "usually takes seven days or less, but can occasionally take longer" | [support.google.com/googleplay/android-developer/answer/14151465](https://support.google.com/googleplay/android-developer/answer/14151465) |
+| Apple Developer Program | **99 USD yiliga** (mintaqada mahalliy valyutada) | Individual: 2FA yoqilgan Apple Account, voyaga yetgan, Apple Account'da haqiqiy ism-familiya (taxallus kechiktiradi). Tashkilot: yuridik shaxs, D-U-N-S raqami, domenli ish email, ishlaydigan veb-sayt. Muddat sahifada yo'q; xarid tasdig'i 24 soat ichida kelmasa — support | [developer.apple.com/programs/enroll](https://developer.apple.com/programs/enroll/), [developer.apple.com/support/enrollment](https://developer.apple.com/support/enrollment/) |
+| iOS build: macOS majburiy | — | "Xcode is required to build and release your app. You must use a device running macOS" — Windows'dan faqat bulutli macOS orqali | [docs.flutter.dev/deployment/ios](https://docs.flutter.dev/deployment/ios) |
+| iOS bulutli build: Codemagic | Bepul: **oyiga 500 daqiqa** Mac mini M2, 1 parallel build, build 120 daqiqagacha; keyin M2 **$0.095/daqiqa** (M4 $0.114) | App Store Connect API kaliti bilan sertifikat yaratadi va profillarni oladi (Mac'siz imzolash); bepul tarifda imzolash va yuklash mumkinligi narx sahifasida aytilmagan | [codemagic.io/pricing](https://codemagic.io/pricing/), [docs.codemagic.io/yaml-code-signing/signing-ios](https://docs.codemagic.io/yaml-code-signing/signing-ios/) |
+| iOS bulutli build: GitHub Actions macOS | **$0.062/daqiqa** (standart macOS runner) | Bepul daqiqalar (GitHub Free) shu sahifada aytilmagan; imzolashni o'zimiz sozlaymiz | [docs.github.com/en/billing/reference/actions-runner-pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing) |
+
+Bitta Flutter iOS build'i necha daqiqa olishi o'lchanmagan. Shuning uchun "500 daqiqa yetadi"
+degan xulosa yo'q: birinchi build'dan keyin o'lchanadi.
+
 ## 3. TMDB tijorat litsenziyasi
 
 - Bepul API faqat notijorat foydalanish uchun. Daromad olish (obuna, reklama, pullik
@@ -229,7 +243,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 
 ## 4. Umumiy manzara
 
-| | 500 film, alfa (30–50 tester) | Izoh |
+| | 500 film, alfa (hisob 30–50 tester uchun; TZ 1.30 da 12 tester) | Izoh |
 |---|---|---|
 | Bir martalik (trait + embedding) | $0.03 – $0.45 | Provayderga bog'liq, yuqoridagi jadvallar |
 | Oylik: LLM izohlar | ≤ $4 (Gemini) | Eng yomon holat: 50 tester har kuni limitga yetadi, 50 × $0.08. Avval "< $1" yozilgan edi — limit hisobiga noto'g'ri edi (2026-10-02 tuzatildi). Oddiy foydalanishda ancha kam |
@@ -249,6 +263,7 @@ Render'ning bepul Postgres'i 30 kundan keyin o'chadi — biz Supabase ishlatamiz
 | 2026-10-12 | TMDB watch providers: bepul API ichida, JustWatch attributsiyasi shart, buzilsa kalit bekor qilinadi; deep link yo'q (3-bo'lim). UZ uchun ma'lumot yo'q — funksiya hozir qurilmaydi |
 | 2026-10-10 | Hosting: uyqu muammosi uchun Render Starter o'rniga bepul yechim — Render Free + cron-job.org ping har 10 daqiqada (foydalanuvchi qarori): ~744 / 750 soat, zaxira 6 soat, boshqa bepul servis bo'lmasligi shart; Render `free` sahifasi bilan tekshirildi. Starter — haqiqiy foydalanuvchilar yoki soat limiti tig'izlashganda. Zaxira: Google Cloud Run Singapur (raqamlar tekshirilmagan) |
 | 2026-10-08 | Hosting: Render Free aniqlashtirildi (0.1 CPU / 512 MB, Singapur, Hobby trafigi 5 GB 2026-08-01 dan); to'xtamaydigan variantlar qo'shildi: Render Starter $7/oy, Fly.io Singapur ~$4.7/oy (taxmin) |
+| 2026-11-13 | Do'konlar va iOS build qo'shildi (TZ 1.30): Google Play $25 bir marta va yangi shaxsiy akkauntga 12 tester × 14 kun yopiq test; Apple Developer 99 USD/yil; iOS build macOS talab qiladi — Codemagic bepul 500 daqiqa M2/oy, keyin $0.095/daqiqa; GitHub Actions macOS $0.062/daqiqa. Rasmiy sahifalar 2026-11-13 da o'qildi |
 | 2026-11-13 | Assistant: `intro` bilan narx o'lchandi — Render log'i 06:17–06:18 UTC, 8 xabar, o'rtacha 4 847 / 159 token, $0.00185 (taxmin +$0.00007 edi, o'lchovda +$0.00001). Render'dagi Gemini kaliti **bepul tarifda** ekani 429 javobidan aniqlandi (daqiqasiga 15 so'rov, Flash-Lite); dollar raqamlari pullik tarif narxida, hisob-kitob qilinmagan. Tier 1 shartlari rasmiy sahifadan tekshirildi |
 | 2026-11-13 | Assistant: kirish gapi tool'ning `intro` argumentiga ko'chdi (ADR 0009 qo'shimchasi 2) — tool sxemasi 3 091 → 3 331 belgi, taxminan +$0.00007 xabarga (~+140 kirish, ~+12 chiqish token); tashxisga 6 ta to'g'ridan-to'g'ri chaqiruv (~1 980 kirish + ~25 chiqish token har biri, ~$0.004 jami). O'lchov deploy'dan keyin |
 | 2026-11-13 | Assistant: kattalashgan prefiks taxmini o'lchov bilan almashtirildi — Render log'i, 2026-11-12 19:33–19:34 UTC, 10 xabar (hammasi yangi suhbat, kontekstsiz — shu kuni keyinroq aniqlandi va tuzatildi): o'rtacha 4 713 / 169 token, **$0.00184** suhbat boshidagi xabar; suhbat ichidagi o'rtacha ~$0.00193 (taxmin), oyiga 20 xabar ~$0.039, 20 suhbat ~$0.106, limitda ~$1.73; qayta urinish 0, kesilgan chaqiruv 0 |
