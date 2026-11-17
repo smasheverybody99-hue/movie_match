@@ -13,6 +13,8 @@ import { EmptyState, ErrorState, Loading, LoadingMark, SavingLabel, Skeleton } f
 import { AxisLegend, TraitAxis, traitInSentence } from "../components/Traits";
 import { useI18n, useT } from "../i18n";
 import { isNotFound } from "../lib/api";
+import { useEarlyFilm } from "../lib/earlyFilm";
+import { BACKDROP_SIZES, backdropSrcSet, type EarlyFilm } from "../lib/earlyFilmScript";
 import { imageUrl, releaseYear, score } from "../lib/format";
 import { explanationsOff } from "../lib/explanations";
 import { genreLabel } from "../lib/genres";
@@ -59,17 +61,19 @@ function tasteScores(scores: Record<string, number> | undefined): Record<string,
  * The backdrop across the full width; the gradient runs into the page at the bottom and
  * on the left. Without a backdrop, the poster blurred; without either, a plain surface.
  */
-function Hero({ detail }: { detail: MovieDetail }) {
+function Hero({ detail }: { detail: EarlyFilm }) {
   const backdrop = imageUrl(detail.backdrop_path, "w1280");
   const poster = imageUrl(detail.poster_path, "w342");
   return (
     <div className="film-hero" data-testid="film-hero">
-      {backdrop ? (
+      {backdrop && detail.backdrop_path ? (
         <img
           className="film-hero-img"
           src={backdrop}
-          srcSet={`${imageUrl(detail.backdrop_path, "w780")} 780w, ${backdrop} 1280w`}
-          sizes="100vw"
+          // The same srcset and sizes as the early preload (earlyFilmScript.ts), or the
+          // browser fetches the image twice.
+          srcSet={backdropSrcSet(detail.backdrop_path)}
+          sizes={BACKDROP_SIZES}
           alt=""
           fetchPriority="high"
         />
@@ -272,11 +276,14 @@ function Actions({ detail }: { detail: MovieDetail }) {
   );
 }
 
-/** The page's shape while it loads: hero, poster and title, the "Why you" panel. */
-function MovieSkeleton() {
+/**
+ * The page's shape while it loads: hero, poster and title, the "Why you" panel. With the
+ * early answer (earlyFilm.ts) the hero is already the film's own image.
+ */
+function MovieSkeleton({ early }: { early: EarlyFilm | null }) {
   return (
     <Loading>
-      <div className="film-hero" />
+      {early ? <Hero detail={early} /> : <div className="film-hero" />}
       <div className="film-head">
         <Skeleton className="poster" />
         <div className="film-head-text" style={{ flex: 1 }}>
@@ -303,6 +310,7 @@ export default function MoviePage() {
   const params = useParams();
   const id = Number(params.id);
   const query = useMovie(Number.isInteger(id) ? id : 0);
+  const early = useEarlyFilm(id);
   // The taste, the ratings and the list do not depend on the film, so they go out with
   // it instead of after it (one round trip, not two). Why, Compare and Actions read the
   // same cache entries. The page is behind RequireAuth: signed out, none of this runs.
@@ -318,7 +326,7 @@ export default function MoviePage() {
     return <EmptyState message={t("movie.notFound")} action={{ label: t("movie.notFoundCta"), to: "/" }} />;
   }
   if (query.data === undefined) {
-    if (query.isPending && query.fetchStatus !== "paused") return <MovieSkeleton />;
+    if (query.isPending && query.fetchStatus !== "paused") return <MovieSkeleton early={early} />;
     return (
       <ErrorState
         message={query.fetchStatus === "paused" ? t("common.offlineNoCache") : t("movie.error")}
