@@ -954,3 +954,9 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .sensitive-notice { max-width: 520px; margin: 0 auto; text-align: left; }
 .sensitive-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
 .why-capped { margin: var(--space-2) 0 0; }
+
+/* The alpha's data notice (ADR 0004): one screen, read before anything else. */
+.data-notice { max-width: 620px; }
+.data-notice p { line-height: 1.55; }
+.data-notice-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.assistant-reminder { margin: var(--space-2) 0 0; }

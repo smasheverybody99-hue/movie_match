@@ -217,6 +217,7 @@ export const api = {
   me: () => request<Me>("/me"),
   dna: () => request<MovieDna>("/me/dna"),
   deleteAccount: () => request<void>("/me", { method: "DELETE" }),
+  acceptDataNotice: () => request<void>("/me/data-notice", { method: "POST" }),
 
   onboardingFilms: (limit: number, offset: number) =>
     request<Movie[]>(`/onboarding/films?limit=${limit}&offset=${offset}`),

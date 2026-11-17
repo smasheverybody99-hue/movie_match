@@ -127,6 +127,10 @@ export interface Me {
   ratings_needed: number;
   has_taste_profile: boolean;
   taste_updated_at: string | null;
+  /** The client shows the data notice until it is accepted (ADR 0004, the alpha). */
+  data_notice_required: boolean;
+  /** When this user accepted it; null: not yet. */
+  data_notice_accepted_at: string | null;
 }
 
 export interface RatingIn {

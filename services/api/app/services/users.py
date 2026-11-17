@@ -2,8 +2,9 @@
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +33,23 @@ async def get_profile(session: AsyncSession, user_id: uuid.UUID) -> Profile:
         select(func.count()).select_from(Rating).where(Rating.user_id == user_id)
     )
     return Profile(user=user, rating_count=count or 0)
+
+
+async def accept_data_notice(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime | None = None
+) -> None:
+    """Record when the user accepted the data notice; the first time stays."""
+    await session.execute(
+        update(User)
+        .where(User.id == user_id)
+        .values(
+            data_notice_accepted_at=func.coalesce(
+                User.data_notice_accepted_at, now or datetime.now(UTC)
+            )
+        )
+        .execution_options(synchronize_session=False)
+    )
+    await session.commit()
 
 
 async def delete_user(session: AsyncSession, user_id: uuid.UUID) -> None:

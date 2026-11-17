@@ -39,6 +39,7 @@ PROTECTED = [
     ("GET", "/onboarding/films", None),
     ("POST", "/assistant/chat", {"message": "Something funny"}),
     ("POST", "/onboarding/done", None),
+    ("POST", "/me/data-notice", None),
     ("POST", "/feedback", {"movie_id": FILM, "source": "for_you", "reason": "seen"}),
     (
         "POST",

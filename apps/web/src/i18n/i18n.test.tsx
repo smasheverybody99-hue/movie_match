@@ -284,3 +284,17 @@ describe("today's explanations are used up (Phase 5, TZ backlog)", () => {
     expect(translate("ru", "movie.explanationsUsedUp")).toBe("Пояснения на сегодня закончились — завтра будут новые");
   });
 });
+
+describe("the alpha's data notice (ADR 0004, free-tier exception)", () => {
+  // The text the user saw in docs/STATUS.md ("Gemini tarifi", option 2) and chose on
+  // 2026-11-17, split into the notice and its line about the assistant being busy. The
+  // buttons: accept, or decline and be signed out (user decision, 2026-11-17).
+  it("says what goes to Google, and asks", () => {
+    expect(translate("uz", "notice.body")).toBe(
+      "Sinov davrida assistant va film izohlari Google Gemini'ning bepul tarifida ishlaydi. Assistantga yozgan xabarlaringiz va baholaringizdan olingan ta'm ma'lumoti Google'ga yuboriladi; Google ularni o'z mahsulotlarini yaxshilash uchun ishlatishi va xodimlari o'qishi mumkin. Shaxsiy yoki maxfiy ma'lumot yozmang.",
+    );
+    expect(translate("uz", "notice.accept")).toBe("Roziman, davom etish");
+    expect(translate("uz", "notice.decline")).toBe("Rozi emasman — chiqish");
+    expect(translate("en", "notice.decline")).toBe("I don't agree — sign out");
+  });
+});

@@ -16,7 +16,7 @@ import { useI18n } from "../i18n";
 import { explanationsOff, noteExplanation } from "./explanations";
 import { api, type SearchParams } from "./api";
 import { hideCard, restoreCard } from "./hiddenCards";
-import type { EventSource, FeedbackReason, Lang, Movie, Rating, RatingIn, WatchlistItem } from "./types";
+import type { EventSource, FeedbackReason, Lang, Me, Movie, Rating, RatingIn, WatchlistItem } from "./types";
 
 export const keys = {
   me: ["me"] as const,
@@ -217,6 +217,18 @@ export function useMarkWrong() {
  */
 export function useOnboardingDone() {
   return useMutation({ mutationFn: api.onboardingDone, retry: 3 });
+}
+
+/** The data notice accepted: /me says so from now on, without a refetch first. */
+export function useAcceptDataNotice() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.acceptDataNotice,
+    onSuccess: () => {
+      client.setQueryData<Me>(keys.me, (me) => (me ? { ...me, data_notice_accepted_at: new Date().toISOString() } : me));
+      void client.invalidateQueries({ queryKey: keys.me });
+    },
+  });
 }
 
 export function useDeleteAccount() {

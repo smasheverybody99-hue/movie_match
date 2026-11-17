@@ -134,6 +134,12 @@ class MeOut(BaseModel):
     ratings_needed: int = Field(ge=0, description="Ratings still needed before recommendations")
     has_taste_profile: bool
     taste_updated_at: datetime | None = None
+    data_notice_required: bool = Field(
+        default=False, description="The client shows the data notice until it is accepted"
+    )
+    data_notice_accepted_at: datetime | None = Field(
+        default=None, description="When this user accepted it; null: not yet"
+    )
 
 
 class RatingIn(BaseModel):

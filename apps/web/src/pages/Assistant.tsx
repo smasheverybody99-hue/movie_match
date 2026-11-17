@@ -1,6 +1,7 @@
 import { RotateCcw, Send } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
+import { AssistantDataReminder } from "../components/DataNotice";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
 import { WrongNoticeToast } from "../components/NotRight";
@@ -127,6 +128,7 @@ export default function Assistant() {
         <div>
           <h1 className="screen-title">{t("assistant.title")}</h1>
           <p className="meta">{t("assistant.lead")}</p>
+          <AssistantDataReminder />
         </div>
         {exchanges.length > 0 && (
           <button type="button" className="btn btn-ghost btn-sm" onClick={chat.restart}>

@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.deps import current_user
 from app.schemas import MeOut, MovieDnaOut
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/me", tags=["me"])
 async def get_me(
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
+    settings: Settings = Depends(get_settings),
 ) -> MeOut:
     profile = await users.get_profile(session, user_id)
     user = profile.user
@@ -28,7 +30,20 @@ async def get_me(
         ratings_needed=max(MIN_RATINGS - profile.rating_count, 0),
         has_taste_profile=user.taste_vector is not None,
         taste_updated_at=user.taste_updated_at,
+        data_notice_required=settings.data_notice_required,
+        data_notice_accepted_at=user.data_notice_accepted_at,
     )
+
+
+@router.post("/data-notice", status_code=status.HTTP_204_NO_CONTENT)
+async def accept_data_notice(
+    user_id: uuid.UUID = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Response:
+    """The user read the data notice and accepted it. Accepting again keeps the first
+    time (ADR 0004, the alpha's free-tier exception)."""
+    await users.accept_data_notice(session, user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/dna", response_model=MovieDnaOut)
