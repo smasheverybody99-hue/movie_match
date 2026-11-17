@@ -1,14 +1,15 @@
 # Phase 4 — status
 
-Last updated: 2026-11-13 · Phase: **4 (AI assistant), code live, manual checklist run,
+Last updated: 2026-11-17 · Phase: **4 (AI assistant), code live, manual checklist run,
 not closed** · Live commit `f56ffa5` (merge `f4-fixes-4`, 2026-11-13)
 
 Phase prompt: `docs/prompts/phase-04-assistant.md`. **F4 is not marked closed.** Two items
 wait for the user:
 
-- The FR-8 criterion "first character within 2 s" **is not met** on the final measurement
-  (median 2.95 s over 10 messages, 0 errors). Per the user's rule the work stopped here,
-  and a TZ wording for option (a) is proposed below. The TZ is not changed.
+- FR-8, first character: the user accepted option (a) on 2026-11-17 (**TZ 1.32**: at least
+  30 messages on at least two days, median ≤ 3 s, 90th percentile ≤ 15 s, 0 errors; 2 s
+  is the target). **It is not met either:** over 33 messages on 2026-11-13 and 2026-11-17
+  the median is **3.62 s** and **one message ended in `error`** (below). The user decides.
 - F3 item 5: the live Lighthouse run on the film page (LCP, INP), done by the user.
 
 The phase precondition "Phase 3's gate must be green" is not fully met for the same
@@ -81,7 +82,7 @@ tier, 15 requests a minute, two per message.
 | The three example questions (the web's starter prompts), verbatim | Below. Each answered with 2–3 cards inside the answer |
 | Something off-topic | "What's the weather in Tashkent tomorrow?" → `refusal: off_topic`, no tool call |
 | Three prompt-injection phrasings | All three → `refusal: off_topic`; nothing of the prompt echoed. Below |
-| Time to first token over 10 requests, median | **2.95 s** (10/10 `done`, 0 errors). **The 2 s criterion is not met.** Below |
+| Time to first token (TZ 1.32: ≥ 30 messages, ≥ 2 days, median ≤ 3 s, p90 ≤ 15 s, 0 errors) | 33 messages over two days: median **3.62 s**, p90 11.35 s, **1 error**. **Not met.** Below |
 | Token cost of 20 typical conversations, per user per month, < $0.20 | **~$0.106** for 20 conversations a month (estimate from measured parts); a user at the cap every day ~$1.73. Below |
 
 ### The three example questions — verbatim
@@ -148,6 +149,7 @@ Client side: time from sending the request to the first `text` event.
 | 2026-11-13 06:17 | `f930295` | kept alive | 10 | **2** (429, free tier) | 1.78 s over the 8 that answered | 1.26–3.79 s |
 | **2026-11-13 14:11** | **`f56ffa5`** | kept alive | **10** | **0** | **2.95 s** | 1.82–13.67 s |
 | 2026-11-13 14:15 (the starters) | `f56ffa5` | kept alive | 3 | 0 | 1.78 s | 1.72–3.19 s |
+| **2026-11-17 04:17–04:24** | `f56ffa5` (live `da726cb`, docs only since) | kept alive | **20** | **1** | **4.15 s** | 1.89–12.69 s |
 
 The verdict run is 14:11, as the user set it (all ten count). Its values, in order: 11.64,
 2.17, 1.82, 2.15, 2.29, 13.67, 10.72, 5.08, 3.62, 1.86 s. Three messages took 10–14 s. Two
@@ -161,7 +163,40 @@ Across all 21 answers that arrived today: median **2.17 s**, 90th percentile **1
 afternoon, so ten messages decide little; Gemini's speed changes from hour to hour (on
 2026-11-12 the server median went from 17.7 s at 16:27 to 2.55 s at 19:33).
 
-### Proposed TZ wording — option (a), not applied
+### Day two and the TZ 1.32 verdict (2026-11-17)
+
+The user accepted option (a) (now TZ 1.32, wording below) and allowed 20 messages for the
+second day, at least 10 s apart. Run: 04:17–04:24 UTC, live `/health` → `da726cb` (only
+docs changed after `f56ffa5`), the three test accounts, every message a new conversation,
+one kept-alive connection, each message started 10 s after the previous answer ended. The
+ten messages of 2026-11-12 19:33 / 2026-11-13 14:11, then ten new ones (en, uz, ru).
+
+First text, in order (s): 4.11, 2.29, 1.89, 1.97, 12.69, 10.91, 4.20, 3.81, 4.67, 4.85 |
+9.24, 4.34, 11.35, 1.94, 9.33, 2.03, 2.34, 1.93, 7.51, 2.22. Median **4.15 s**, 4/20 within
+2 s, 8/20 within 3 s. Response headers 0.70–1.31 s except two (2.67 s, 3.29 s), so the
+slow messages are slow after the request reached the API: the server stages need the
+Render log for 04:17–04:24 UTC.
+
+**The error.** "Bugun kechqurun oilaviy multfilm" (account 1, uz, 04:21:37): the intro
+arrived at 4.34 s, the answer started, then a `reset` (the one allowed retry), the intro
+again, then `error {reason: failed}` at 15.0 s. No card. The cause is in the Render log
+only (a second 503, or the free tier's 429 on the retry — not known).
+
+| TZ 1.32 | Required | Measured | |
+|---|---|---|---|
+| Messages, days | ≥ 30, ≥ 2 | 33 (13 on 2026-11-13: the 14:11 run and the three starters, all `f56ffa5`; 20 today) | ✓ |
+| Median | ≤ 3 s | **3.62 s** | ✗ |
+| 90th percentile (nearest rank) | ≤ 15 s | 11.35 s | ✓ |
+| Messages ending in `error` | 0 | **1** | ✗ |
+
+Counted the other way (the 14:11 run only, 10 + 20 = 30): median 3.96 s, p90 11.35 s, same
+error. The 2026-11-13 morning run (`f930295`) is not counted: different code. Refusals
+(off-topic, injections) have no first text and are not counted.
+
+Paid messages: the 20 allowed today are used. On the free tier nothing is billed; at the
+paid price ~20 × $0.00185 ≈ $0.04.
+
+### TZ wording — option (a), accepted 2026-11-17 as TZ 1.32
 
 FR-8's second acceptance line today: "Javob oqim bilan keladi, birinchi belgi 2 soniya
 ichida." Proposed:
@@ -207,10 +242,10 @@ The tier decision is the user's (`docs/STATUS.md`, "Gemini tarifi").
 
 ## Needs the user
 
-1. FR-8: accept the option (a) wording above, change it, or decide otherwise. F4 does not
-   close before this.
+1. FR-8 under TZ 1.32 is **not met** (median 3.62 s, 1 error over 33 messages). F4 does not
+   close before the user decides. No code was changed and no further paid message was sent.
 2. F3 item 5: the live Lighthouse numbers for the film page.
-3. Gemini tier: paid, or the free tier with a warning to testers and an exception to
-   ADR 0004 (both written up in `docs/STATUS.md`). Before testers arrive on 2026-11-19.
-4. Optional: the Render log for 2026-11-13 14:11–14:17 UTC, to split the three slow
-   messages into server stages and to read the run's cost lines.
+3. ~~Gemini tier~~ — decided 2026-11-17: the alpha stays on the free tier, exception written
+   into ADR 0004; the warning screen is Phase 5 code.
+4. The Render log for 2026-11-17 04:17–04:24 UTC: the cause of the error and the server
+   stages of the six messages over 7 s. (And, optional, 2026-11-13 14:11–14:17 UTC.)
