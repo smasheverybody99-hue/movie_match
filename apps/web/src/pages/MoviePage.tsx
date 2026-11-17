@@ -142,6 +142,8 @@ function Why({ detail }: { detail: MovieDetail }) {
   const traits = named.map((key) => traitInSentence(key, t, lang)).join(", ");
   const fallback = side === "difference" ? "movie.differsFallback" : "movie.whyYouFallback";
   const sentence = side === null ? null : (explanation.data?.text ?? t(fallback, { traits }));
+  // Today's allowance is used up: the template stands in, and says why (TZ backlog, Phase 5).
+  const capped = side !== null && (explanation.data?.reason ?? explanationsOff()) === "daily_cap";
   const film = detail.traits?.scores ?? {};
   const taste = tasteScores(dna.data?.scores);
   return (
@@ -162,6 +164,11 @@ function Why({ detail }: { detail: MovieDetail }) {
             />
           ) : (
             sentence !== null && <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
+          )}
+          {capped && (
+            <p className="meta why-capped" data-testid="explanations-used-up">
+              {t("movie.explanationsUsedUp")}
+            </p>
           )}
         </div>
       </div>

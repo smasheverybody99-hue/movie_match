@@ -174,6 +174,7 @@ export const en = {
   "movie.whyYouFallback": "Where your taste is clearest, this film sits at your level: {traits}.",
   "movie.differsFallback": "Where it differs from your taste: {traits}.",
   "movie.explaining": "Writing the explanation…",
+  "movie.explanationsUsedUp": "Today's explanations are used up — new ones tomorrow",
   "movie.sensitive.title": "Explicit or extreme film",
   "movie.sensitive.body": "{title} has explicit sex or extreme violence. Movie Match doesn't show it in any list. Open its page only if you want to.",
   "movie.sensitive.back": "Go back",

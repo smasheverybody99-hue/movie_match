@@ -157,6 +157,7 @@ export const uz: Record<MessageKey, Message> = {
   "movie.whyYouFallback": "Ta'mingiz aniq bo'lgan jihatlarda bu film ayni sizning darajangizda: {traits}.",
   "movie.differsFallback": "Bu film ta'mingizdan shu jihatlari bilan farq qiladi: {traits}.",
   "movie.explaining": "Izoh tayyorlanmoqda…",
+  "movie.explanationsUsedUp": "Bugungi izohlar tugadi — ertaga yangilanadi",
   "movie.sensitive.title": "Ochiq yoki o'ta shafqatsiz film",
   "movie.sensitive.body": "{title} filmida ochiq jinsiy sahnalar yoki o'ta shafqatsiz zo'ravonlik bor. Movie Match uni hech qaysi ro'yxatda ko'rsatmaydi. Sahifasini faqat xohlasangiz oching.",
   "movie.sensitive.back": "Orqaga",

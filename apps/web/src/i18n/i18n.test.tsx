@@ -274,3 +274,13 @@ describe("the 'Not right?' reasons (Phase 5)", () => {
     expect(keys.map((k) => translate("ru", `wrong.reason.${k}`))).toEqual(["Уже видел(а)", "Не мой жанр", "Слишком старый", "Другое"]);
   });
 });
+
+describe("today's explanations are used up (Phase 5, TZ backlog)", () => {
+  // The user accepted these three on 2026-11-17. Shown on the film page under the template
+  // sentence once the API says `daily_cap`: the allowance, not an error, and when it comes back.
+  it("says the day's explanations are used up and when new ones come", () => {
+    expect(translate("uz", "movie.explanationsUsedUp")).toBe("Bugungi izohlar tugadi — ertaga yangilanadi");
+    expect(translate("en", "movie.explanationsUsedUp")).toBe("Today's explanations are used up — new ones tomorrow");
+    expect(translate("ru", "movie.explanationsUsedUp")).toBe("Пояснения на сегодня закончились — завтра будут новые");
+  });
+});

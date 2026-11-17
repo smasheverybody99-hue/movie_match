@@ -176,6 +176,7 @@ export const ru: Record<MessageKey, Message> = {
   "movie.whyYouFallback": "В том, что вам точно нравится, фильм стоит на вашем уровне: {traits}.",
   "movie.differsFallback": "Чем он отличается от вашего вкуса: {traits}.",
   "movie.explaining": "Готовим объяснение…",
+  "movie.explanationsUsedUp": "Пояснения на сегодня закончились — завтра будут новые",
   "movie.sensitive.title": "Откровенный или жестокий фильм",
   "movie.sensitive.body": "В фильме «{title}» есть откровенные сцены секса или крайнее насилие. Movie Match не показывает его ни в одном списке. Открывайте страницу, только если хотите.",
   "movie.sensitive.back": "Назад",

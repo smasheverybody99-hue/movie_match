@@ -57,6 +57,32 @@ describe("MoviePage", () => {
     watchlist.mockResolvedValue([]);
   });
 
+  it("says today's explanations are used up when the daily allowance is", async () => {
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "daily_cap" });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByTestId("explanations-used-up")).toHaveTextContent(
+      "Today's explanations are used up — new ones tomorrow",
+    );
+    // The template sentence still stands in for the one that is not coming.
+    expect(screen.getByText(/Where your taste is clearest, this film sits at your level/)).toBeInTheDocument();
+    expect(explanationsOff()).toBe("daily_cap");
+  });
+
+  it("says nothing about the allowance for other reasons a sentence is missing", async () => {
+    explanation.mockResolvedValue({ movie_id: 1000, lang: "en", text: null, reason: "rejected" });
+    renderWithProviders(<MoviePage />, ROUTE);
+    await waitFor(() => expect(explanation).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId("explanation-loading")).not.toBeInTheDocument());
+    expect(screen.queryByTestId("explanations-used-up")).not.toBeInTheDocument();
+  });
+
+  it("keeps saying it on the next film, without asking again", async () => {
+    noteExplanation("daily_cap");
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByTestId("explanations-used-up")).toBeInTheDocument();
+    expect(explanation).not.toHaveBeenCalled();
+  });
+
   it("warns before a sensitive film's page, without its images, and opens it when asked", async () => {
     getMovie.mockResolvedValue({ ...FILM, sensitive: true });
     renderWithProviders(<MoviePage />, ROUTE);
