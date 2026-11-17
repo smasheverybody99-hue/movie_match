@@ -1,6 +1,6 @@
 # ADR 0009 — Assistant ham provayder interfeysi orqali, hozir Gemini Flash-Lite
 
-- **Holat:** qabul qilindi (2026-11-11)
+- **Holat:** qabul qilindi (2026-11-11); qo'shimchalar 2026-11-12, 11-13, 11-17
 - **Qaror:** foydalanuvchi (2026-11-11, 4-faza boshida)
 - **O'rnini bosadi:** CLAUDE.md "Stack decisions" dagi "Claude Sonnet 5 only for the
   conversational assistant" qatori; ADR 0004 dagi assistant bandi; `docs/costs.md` dagi
@@ -173,3 +173,20 @@ chiqish. Jami ~4 400 kirish va ~200 chiqish: 4 400 × $0.30 + 200 × $2.50 per M
 - **Vaqt qatori:** `assistant timing` endi router bosqichlari bilan boshlanadi (`jwt`,
   `user`, `claim`, `forget`) va `first_call_text` (birinchi chaqiruvda model yozgan matn,
   belgi) ni ko'rsatadi — FR-8 ning 2 s i foydalanuvchi yuborgan paytdan hisoblanadi.
+
+## Qo'shimcha, 2026-11-17: FR-8 mezoni o'zgardi (TZ 1.32)
+
+- **Nima bo'ldi:** 2026-11-13 dagi yakuniy o'lchovda (`f56ffa5`, 10 xabar, xato 0) birinchi
+  belgi median 2.95 s edi, "2 soniya ichida" mezoni bajarilmadi. O'sha kodning o'zi o'sha
+  kuni ertalab 1.78 s, tushdan keyin 2.95 s berdi: Gemini Flash-Lite'ning tezligi soatdan
+  soatga o'zgaradi, 10 xabarlik median esa bitta soatni o'lchaydi.
+- **Qaror (foydalanuvchi, 2026-11-17, phase-4-status'dagi (a) varianti):** birinchi belgi
+  mijoz tomonida, sahifa API bilan ulangan holda o'lchanadi, **kamida 30 xabarda, kamida
+  ikki xil kunda**: **median ≤ 3 s**, **90-persentil ≤ 15 s**, `error` bilan tugagan xabar
+  0. 2 s — maqsad, mezon emas. 25 s / 45 s chegarasi o'zgarmaydi.
+- **Kod o'zgarmadi.** Bu mezon qarori, tezlik ishi emas.
+- **Birinchi tekshiruv (2026-11-17, ikkinchi kun):** 20 xabar, `f56ffa5` kodi; 2026-11-13
+  dagi 13 xabar bilan birga 33 xabar, ikki kun: median **3.62 s** (≤ 3 s talab), 90-persentil
+  11.35 s (≤ 15 s), **1 xabar `error`** bilan tugadi (`reset` dan keyin `failed`; sababi Render
+  log'ida). Mezon **bajarilmadi**; F4 yopilmagan, keyingi qadam foydalanuvchida
+  (`docs/phase-4-status.md`, "Day two and the TZ 1.32 verdict").

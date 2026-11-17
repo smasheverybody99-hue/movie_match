@@ -36,7 +36,9 @@ A user can ask in plain language and get real recommendations from the existing 
    - Refuse non-film topics briefly and steer back.
 4. **Web UI** — `/assistant`
    - Three starter prompts on an empty conversation.
-   - Streaming render; first token visible within 2 seconds.
+   - Streaming render. First token (TZ 1.32): measured on the client with the page connected,
+     over at least 30 messages on at least two different days: median ≤ 3 s, 90th
+     percentile ≤ 15 s, no message ending in `error`. 2 s is the target, not the criterion.
    - Recommendations render as tappable cards inside the answer.
    - Two or three follow-up chips after each answer.
    - Limit-reached state shows the reset time, not an error dialog.
@@ -76,7 +78,8 @@ Manual checklist:
 - [ ] Ask the three example questions from the deck. Report the answers verbatim.
 - [ ] Ask something off-topic. Report the response.
 - [ ] Try three different prompt-injection phrasings. Report what happened.
-- [ ] Measure time to first token over 10 requests. Report the median.
+- [ ] Measure time to first token over at least 30 requests on at least two days (TZ 1.32).
+      Report the median, the 90th percentile and the errors.
 - [ ] Measure token cost of 20 typical conversations; extrapolate to cost per user per
       month. It must be under $0.20.
 

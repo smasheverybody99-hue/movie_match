@@ -111,7 +111,7 @@ flutter run
 | `docs/ui.md` | Dizayn tizimi va ekran maketlariga havola |
 | `docs/architecture.md` | Tizim qanday ishlaydi |
 | `docs/legal.md` | TMDB litsenziyasi va personaj IP masalalari |
-| `docs/roadmap.html` | 17 haftalik jadval (brauzerda oching) |
+| `docs/roadmap.html` | Tartib va maqsad sanalar, TZ 1.32 (brauzerda oching) |
 | `CLAUDE.md` | Claude uchun loyiha qoidalari |
 
 ## Ish tartibi
@@ -121,4 +121,9 @@ flutter run
 3. Claude ishlab bo'lgach, **darvoza buyruqlarini o'zingiz ishga tushiring**.
 4. Hammasi 100% o'tsa — keyingi fazaga o'ting. O'tmasa — tuzattiring, qayta tekshiring.
 
-Hozirgi faza: **F2 — tavsiya dvigateli**.
+Hozirgi faza: **F4 — AI assistant, yopilmoqda** (jonli; F3 Lighthouse o'lchovini kutadi).
+
+Maqsad sanalar (TZ 1.32, 2026-11-17): F4 yopish 19-noyabr · F5 alfa kodi 22-noyabr ·
+testerlar 23-noyabr · Play yopiq testi 2-dekabr · alfa qarori 7-dekabr · web launch
+9-dekabr · Google Play'ga ariza 16-dekabr, do'konda 23-dekabrdan oldin emas. Holat:
+`docs/STATUS.md`.

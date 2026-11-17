@@ -1,11 +1,11 @@
 # Phase 6 — Flutter application
 
 Read `CLAUDE.md` first. **Phase 5's technical gate must be green and the alpha testers
-in** (target 2026-11-19). This phase runs while the alpha does and does not wait for its
-product gate (TZ 1.30). If the 15% metric fails on 2026-12-03, work here may continue but
+in** (target 2026-11-23). This phase runs while the alpha does and does not wait for its
+product gate (TZ 1.30). If the 15% metric fails on 2026-12-07, work here may continue but
 nothing goes to a public store track.
 
-**Android first** (TZ 1.30): the Google Play closed test starts 2026-11-28 with the 12
+**Android first** (TZ 1.30): the Google Play closed test starts 2026-12-02 with the 12
 alpha testers. A new personal Play developer account needs a closed test of at least 12
 testers opted in for 14 consecutive days before it can apply for production
 ([Play Console Help, answer 14151465](https://support.google.com/googleplay/android-developer/answer/14151465),
@@ -23,7 +23,7 @@ Read:
 ## Goal
 
 An Android app with feature parity to the web app on the Google Play closed test track by
-2026-11-28. iOS is out of this phase until the January decision.
+2026-12-02. iOS is out of this phase until the January decision.
 
 ## Build
 
@@ -45,7 +45,7 @@ An Android app with feature parity to the web app on the Google Play closed test
 5. **Release plumbing**
    - App icons, splash, store metadata.
    - Google Play developer account (identity and Android device verification) and signing.
-   - Android build on the Play closed test track with the 12 alpha testers (2026-11-28).
+   - Android build on the Play closed test track with the 12 alpha testers (2026-12-02).
    - The app records the same Phase 5 events as the web client, so alpha data from the
      phone is not lost.
 

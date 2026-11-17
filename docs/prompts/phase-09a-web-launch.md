@@ -1,12 +1,12 @@
 # Phase 9a — Web launch readiness and the public web launch
 
 Read `CLAUDE.md` and `docs/legal.md` first. TZ 1.30 split Phase 9 in two: this file is the
-web launch (target **2026-12-05**); the store submission is `phase-09b-store-launch.md`
-(2026-12-12; TZ 1.31: it does not wait for Phases 7 and 8).
+web launch (target **2026-12-09**); the store submission is `phase-09b-store-launch.md`
+(2026-12-16; TZ 1.31: it does not wait for Phases 7 and 8).
 
 Preconditions (TZ 1.30): the readiness work below is built **during the alpha**, from
-2026-11-19. The public launch itself needs **Phase 5's product gate passed** (decision
-2026-12-03): both 15% and 70% (TZ 1.31). If 15% fails, the engine is reworked; if 70%
+2026-11-23. The public launch itself needs **Phase 5's product gate passed** (decision
+2026-12-07): both 15% and 70% (TZ 1.31). If 15% fails, the engine is reworked; if 70%
 fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
 and 8 come after the store launch and are not required for it.
 

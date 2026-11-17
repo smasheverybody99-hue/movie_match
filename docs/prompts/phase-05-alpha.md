@@ -5,8 +5,8 @@ listening. Phase 4's gate must be green.
 
 Read `docs/TZ.md` sections 2 (order, TZ 1.30), 7 and 8, and the roadmap's F5 gate.
 
-**Order and dates (TZ 1.30, 2026-11-13):** alpha code by 2026-11-18, testers in on
-2026-11-19, alpha decision on 2026-12-03. While the alpha runs, building goes on: the
+**Order and dates (TZ 1.30, 2026-11-13):** alpha code by 2026-11-22, testers in on
+2026-11-23, alpha decision on 2026-12-07. While the alpha runs, building goes on: the
 Android app (Phase 6) and web launch readiness (Phase 9a) do not wait for this phase's
 product gate. **Public launch does** — web and stores both.
 
@@ -58,10 +58,10 @@ cd apps/web && npm run lint && npm run typecheck && npm test
 - [ ] 12 testers with Android phones recruited and onboarded (TZ 1.30; was 30–50). The
       same 12 join the Google Play closed test (Phase 6), which needs 12 testers opted in
       for 14 consecutive days
-- [ ] At least 2 weeks of data collected (2026-11-19 — 2026-12-03)
+- [ ] At least 2 weeks of data collected (2026-11-23 — 2026-12-07)
 - [ ] **Recommendation → watched within 7 days is at least 15%**, counted only over
-      recommendations whose 7-day window has closed (TZ 1.31; on 2026-12-03 those shown
-      up to 2026-11-26). Report how many recommendations that is
+      recommendations whose 7-day window has closed (TZ 1.31; on 2026-12-07 those shown
+      up to 2026-11-30). Report how many recommendations that is
 - [ ] Onboarding completion is at least 70% (with 12 testers: at least 9)
 - [ ] 5 user interviews of 20 minutes each (was 10), notes written up in
       `docs/research/alpha-interviews.md`
