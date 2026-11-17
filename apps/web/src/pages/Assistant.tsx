@@ -74,7 +74,7 @@ function Answer({ exchange, onRetry }: { exchange: Exchange; onRetry?: () => voi
           <ul key={i} className="row-scroll assistant-cards">
             {part.cards.map((card) => (
               <li key={card.movie.id}>
-                <MovieCard movie={card.movie} band={card.band} />
+                <MovieCard movie={card.movie} band={card.band} source="assistant" />
               </li>
             ))}
           </ul>

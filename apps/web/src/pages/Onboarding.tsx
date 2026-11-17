@@ -21,10 +21,12 @@ import {
 import {
   ONBOARDING_PAGE,
   useForgetRecommendations,
+  useOnboardingDone,
   useOnboardingFilms,
   useRatings,
   useSearch,
 } from "../lib/queries";
+import { track } from "../lib/telemetry";
 import type { UnsavedRating } from "../lib/ratingQueue";
 import type { TraitKey } from "../lib/traits";
 import { useRatingQueue } from "../lib/useRatingQueue";
@@ -306,6 +308,7 @@ function Flow({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const ratings = useRatings();
   const forgetRecommendations = useForgetRecommendations();
+  const onboardingDone = useOnboardingDone();
   const ratedCount = ratings.data?.length ?? 0;
   const queue = useRatingQueue(userId);
   const [progress, setProgress] = useState<OnboardingProgress>(() => loadProgress(userId));
@@ -317,6 +320,8 @@ function Flow({ userId }: { userId: string }) {
     setSlide(STEP_ORDER[progress.step] > STEP_ORDER[shown] ? "forward" : "back");
     setShown(progress.step);
   }
+  // Each step reached, once per page load, for the alpha's completion funnel.
+  useEffect(() => track({ type: "onboarding_step", step: progress.step }), [progress.step]);
 
   const patch = useCallback(
     (change: (current: OnboardingProgress) => OnboardingProgress) => {
@@ -354,6 +359,7 @@ function Flow({ userId }: { userId: string }) {
 
   function finish() {
     if (!canFinish) return;
+    onboardingDone.mutate();
     clearProgress(userId);
     // The feed loads afresh: a cached one from before these ratings would send us back here.
     forgetRecommendations();

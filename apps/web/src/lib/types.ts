@@ -156,6 +156,27 @@ export interface WatchlistItem {
   band: MatchBand | null;
 }
 
+// --- closed alpha (Phase 5) -------------------------------------------------------------
+
+/** Where a recommendation was shown. Mirrors app.services.events.Source. */
+export type EventSource = SectionKey | "assistant";
+export type OnboardingStep = "pick" | "rate" | "done";
+
+/** One event the client sends (POST /events). Mirrors app.schemas.EventIn. */
+export type ClientEvent =
+  | { type: "recommendation_shown" | "recommendation_clicked"; at: string; movie_id: number; source: EventSource }
+  | { type: "onboarding_step"; at: string; step: OnboardingStep };
+
+/** The four chips under "Not right?". Mirrors app.services.feedback.Reason. */
+export type FeedbackReason = "seen" | "not_my_genre" | "too_old" | "other";
+
+/** POST /feedback. Mirrors app.schemas.FeedbackIn. */
+export interface FeedbackIn {
+  movie_id: number;
+  source: EventSource;
+  reason?: FeedbackReason | null;
+}
+
 // --- assistant (FR-8): POST /assistant/chat, a Server-Sent Events stream ----------------
 
 /** Mirrors app.schemas.AssistantChatIn. */

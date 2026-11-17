@@ -8,6 +8,7 @@ import { I18nProvider } from "./i18n";
 import { AuthProvider } from "./lib/auth";
 import { queryClient } from "./lib/queryClient";
 import { createSupabaseAuth, type AuthClient } from "./lib/supabase";
+import { startTelemetry } from "./lib/telemetry";
 import "./styles/fonts.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
@@ -20,6 +21,9 @@ async function authClient(): Promise<AuthClient | null> {
   }
   return createSupabaseAuth();
 }
+
+// The alpha's telemetry: what is queued goes out when the page is hidden or closed.
+startTelemetry();
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root not found");

@@ -202,6 +202,11 @@ export function install(): AuthClient {
       return json(null, 204);
     }
     if (path === "/me" && method === "DELETE") return json(null, 204);
+    // The alpha's telemetry and "Not right?": accepted and forgotten.
+    if (path === "/events" && method === "POST") {
+      return json({ recorded: (body as { events: unknown[] }).events.length });
+    }
+    if ((path === "/onboarding/done" || path === "/feedback") && method === "POST") return json(null, 204);
     if (path === "/assistant/chat" && method === "POST") return assistantStream(MOVIES.slice(30, 33));
     return json({ detail: "Not found" }, 404);
   }

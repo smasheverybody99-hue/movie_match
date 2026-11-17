@@ -197,6 +197,14 @@ export function useWatchlistChange() {
   });
 }
 
+/**
+ * Onboarding finished: the server sets the date and records it for the alpha's metrics.
+ * The viewer does not wait for it; it is tried again while the page stays open.
+ */
+export function useOnboardingDone() {
+  return useMutation({ mutationFn: api.onboardingDone, retry: 3 });
+}
+
 export function useDeleteAccount() {
   const client = useQueryClient();
   return useMutation({

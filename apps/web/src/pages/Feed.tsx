@@ -163,7 +163,7 @@ export default function Feed() {
               <Row>
                 {section.items.map((item) => (
                   <li key={item.movie.id}>
-                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} />
+                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} source={section.key} />
                   </li>
                 ))}
               </Row>

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useT } from "../i18n";
 import { imageUrl, releaseYear } from "../lib/format";
 import { usePrefersReducedMotion } from "../lib/motion";
+import { track, useShownRef } from "../lib/telemetry";
 import type { Movie, Recommendation } from "../lib/types";
 import { isTraitKey } from "../lib/traits";
 import { Icon } from "./Icon";
@@ -96,8 +97,11 @@ export function Hero({
   }, [playing, index, count]);
 
   const item = items[index];
+  // The slide on screen is a For you recommendation shown (lib/telemetry.ts).
+  const shownRef = useShownRef<HTMLDivElement>(item?.movie.id ?? 0, "for_you");
   if (!item) return null;
   const movie = item.movie;
+  const clicked = () => track({ type: "recommendation_clicked", movie_id: movie.id, source: "for_you" });
   const isSaved = saved.has(movie.id);
   const year = releaseYear(movie);
   const named = item.named_traits.filter(isTraitKey).slice(0, 3);
@@ -152,6 +156,7 @@ export function Hero({
         {/* Keyed by film: each slide is new content, not the last one's text moving (CLS). */}
         <div
           key={movie.id}
+          ref={shownRef}
           className="home-hero-slide"
           role="group"
           aria-roledescription="slide"
@@ -159,7 +164,9 @@ export function Hero({
         >
           <Kicker band={item.band} side={side} as="p" />
           <h2 className="home-hero-title">
-            <Link to={`/movie/${movie.id}`}>{movie.title}</Link>
+            <Link to={`/movie/${movie.id}`} onClick={clicked}>
+              {movie.title}
+            </Link>
           </h2>
           {tags.length > 0 && (
             <ul className="tags">
@@ -170,7 +177,7 @@ export function Hero({
           )}
           {sentence !== null && <p className="home-hero-why">{sentence}</p>}
           <div className="home-hero-actions">
-            <Link className="btn btn-secondary" to={`/movie/${movie.id}`}>
+            <Link className="btn btn-secondary" to={`/movie/${movie.id}`} onClick={clicked}>
               <Icon as={Sparkles} /> {t("hero.why")}
             </Link>
             <button
