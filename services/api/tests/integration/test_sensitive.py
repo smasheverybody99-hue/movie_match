@@ -18,6 +18,9 @@ from tests.integration.api import api_client, auth, seed_catalogue
 
 LIKED = list(range(9_830_101, 9_830_111))  # ten: recommendations need ten ratings (FR-3)
 PLAIN, EXPLICIT = 9_830_001, 9_830_002
+# Weaker films, so the floor cut (the lowest match_floor_share of the catalogue) falls on
+# them and not on PLAIN: with only these twelve films PLAIN would be the lowest and dropped.
+FILLER = list(range(9_830_011, 9_830_017))
 
 
 @pytest.fixture
@@ -28,7 +31,8 @@ async def seeded(db_session: AsyncSession) -> AsyncSession:
         + [
             {"id": PLAIN, "vector": [69.0] * 14, "popularity": 50.0},
             {"id": EXPLICIT, "vector": [70.0] * 14, "popularity": 99.0},
-        ],
+        ]
+        + [{"id": m, "vector": [30.0] * 14} for m in FILLER],
     )
     await db_session.execute(update(Movie).where(Movie.id == EXPLICIT).values(sensitive=True))
     await db_session.commit()
