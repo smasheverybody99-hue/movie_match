@@ -10,6 +10,17 @@ Preconditions (TZ 1.30): the readiness work below is built **during the alpha**,
 fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
 and 8 come after the store launch and are not required for it.
 
+Two more preconditions, both required:
+
+- **Gemini paid tier** (ADR 0004, exception of 2026-11-17). The closed alpha runs on the free tier.
+  This launch does not, so switch to the paid tier before it. Without it, the launch does not happen.
+- **FR-8 first character, measured again** (TZ 1.33). Phase 4 closed without meeting it
+  (33 messages, median 3.62 s, 1 error, free tier). After the switch to the paid tier,
+  measure on the client with the page connected: at least 30 messages on at least two
+  different days, median ≤ 3 s, 90th percentile ≤ 15 s, no message ending in `error`.
+  Ask before the run: it is paid. If it fails, the launch does not happen. The criterion
+  is not softened again.
+
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
 
@@ -75,6 +86,8 @@ Manual checklist:
 - [ ] Rollback rehearsed once
 - [ ] Load test at 2× expected launch traffic
 - [ ] Phase 5's product gate passed (record the 15% and 70% numbers with their intervals)
+- [ ] Gemini paid tier on; FR-8 first character passed on it (TZ 1.33): message count,
+      days, median, 90th percentile, errors
 - [ ] Privacy policy and terms live and linked
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.

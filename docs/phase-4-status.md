@@ -3,14 +3,21 @@
 Last updated: 2026-11-17 · Phase: **4 (AI assistant), code live, manual checklist run,
 not closed** · Live commit `f56ffa5` (merge `f4-fixes-4`, 2026-11-13)
 
-Phase prompt: `docs/prompts/phase-04-assistant.md`. **F4 is not marked closed.** Two items
-wait for the user:
+Phase prompt: `docs/prompts/phase-04-assistant.md`. **F4 is not marked closed yet.** One item
+waits for the user:
 
-- FR-8, first character: the user accepted option (a) on 2026-11-17 (**TZ 1.32**: at least
-  30 messages on at least two days, median ≤ 3 s, 90th percentile ≤ 15 s, 0 errors; 2 s
-  is the target). **It is not met either:** over 33 messages on 2026-11-13 and 2026-11-17
-  the median is **3.62 s** and **one message ended in `error`** (below). The user decides.
-- F3 item 5: the live Lighthouse run on the film page (LCP, INP), done by the user.
+- F3 item 5: the live Lighthouse run on the film page (LCP, INP), done by the user. The verdict is
+  the median of three mobile runs (user, 2026-11-17). F4 closes when the numbers are in.
+
+Decided, and open at closing:
+
+- **Open item — FR-8 first character not met** (33 messages, median 3.62 s, 1 error). The
+  user accepted option (a) on 2026-11-17 as **TZ 1.32**: at least 30 messages on at least
+  two days, median ≤ 3 s, 90th percentile ≤ 15 s, 0 errors. Under **TZ 1.33** (user, the
+  same day) the criterion is not softened again. F4 closes with this open item, and the criterion
+  moves to Phase 9a's precondition: after the switch to Gemini's paid tier, at least 30
+  messages on two days, the same criterion. If it fails, the web launch does not happen. The
+  Render log shows the error was Gemini's, not a defect in our code (below).
 
 The phase precondition "Phase 3's gate must be green" is not fully met for the same
 Lighthouse item. The user decided on 2026-11-11 to measure it in parallel with F4.
@@ -82,7 +89,7 @@ tier, 15 requests a minute, two per message.
 | The three example questions (the web's starter prompts), verbatim | Below. Each answered with 2–3 cards inside the answer |
 | Something off-topic | "What's the weather in Tashkent tomorrow?" → `refusal: off_topic`, no tool call |
 | Three prompt-injection phrasings | All three → `refusal: off_topic`; nothing of the prompt echoed. Below |
-| Time to first token (TZ 1.32: ≥ 30 messages, ≥ 2 days, median ≤ 3 s, p90 ≤ 15 s, 0 errors) | 33 messages over two days: median **3.62 s**, p90 11.35 s, **1 error**. **Not met.** Below |
+| Time to first token (TZ 1.32: ≥ 30 messages, ≥ 2 days, median ≤ 3 s, p90 ≤ 15 s, 0 errors) | 33 messages over two days: median **3.62 s**, p90 11.35 s, **1 error**. **Not met: open item, moved to Phase 9a (TZ 1.33).** Below |
 | Token cost of 20 typical conversations, per user per month, < $0.20 | **~$0.106** for 20 conversations a month (estimate from measured parts); a user at the cap every day ~$1.73. Below |
 
 ### The three example questions — verbatim
@@ -174,13 +181,12 @@ ten messages of 2026-11-12 19:33 / 2026-11-13 14:11, then ten new ones (en, uz, 
 First text, in order (s): 4.11, 2.29, 1.89, 1.97, 12.69, 10.91, 4.20, 3.81, 4.67, 4.85 |
 9.24, 4.34, 11.35, 1.94, 9.33, 2.03, 2.34, 1.93, 7.51, 2.22. Median **4.15 s**, 4/20 within
 2 s, 8/20 within 3 s. Response headers 0.70–1.31 s except two (2.67 s, 3.29 s), so the
-slow messages are slow after the request reached the API: the server stages need the
-Render log for 04:17–04:24 UTC.
+slow messages are slow after the request reached the API (the server stages are below).
 
 **The error.** "Bugun kechqurun oilaviy multfilm" (account 1, uz, 04:21:37): the intro
 arrived at 4.34 s, the answer started, then a `reset` (the one allowed retry), the intro
-again, then `error {reason: failed}` at 15.0 s. No card. The cause is in the Render log
-only (a second 503, or the free tier's 429 on the retry — not known).
+again, then `error {reason: failed}` at 15.0 s. No card. The cause is in the Render log:
+two 503s from Gemini in a row (below).
 
 | TZ 1.32 | Required | Measured | |
 |---|---|---|---|
@@ -195,6 +201,57 @@ error. The 2026-11-13 morning run (`f930295`) is not counted: different code. Re
 
 Paid messages: the 20 allowed today are used. On the free tier nothing is billed; at the
 paid price ~20 × $0.00185 ≈ $0.04.
+
+### The Render log, 2026-11-17 04:17–04:24 UTC
+
+The user exported it to their own Documents folder. It is not copied into the repo because
+it holds IP addresses. It has 20 `assistant timing` lines, one per message, in the same order
+as the client's 20. Server stages (s): `before` is the router's JWT + user + claim + forget;
+`first call` is Gemini's tool call. The first text is the tool call's `intro`, so it cannot come
+before that call ends (`first_call_text=0` on every line). `net` is the client's first text
+minus the server's.
+
+| # | Client first text | before | first call | Server first text | net | second call | retries | end |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 4.11 | **2.32** | 1.32 | 1.44 | 0.35 | 1.47 | 0 | done |
+| 2–4, 14, 16, 18, 20 | 1.89–2.29 | 0.05–0.08 | 1.02–1.49 | 1.04–1.54 | 0.63–0.78 | 1.35–5.43 | 0 | done |
+| 7, 8, 9 | 3.81–4.67 | 0.05–0.06 | 2.71–3.74 | 2.73–3.76 | 0.65–1.42 | 1.46–3.77 | 0 | done |
+| 10 | 4.85 | 0.06 | 4.03 | 4.07 | 0.72 | 10.39 | **1** (503) | done |
+| 17 | 2.34 | 0.06 | 1.39 | 1.42 | 0.86 | 10.65 | **1** (503) | done |
+| **12** | 4.34 | 0.06 | 1.10 | 1.12 | **3.16** | 11.33 | **1** (503, then 503) | **failed** |
+| 5 | **12.69** | 0.06 | **11.57** | 11.59 | 1.04 | 14.71 | 0 | done |
+| 6 | **10.91** | 0.06 | **10.07** | 10.09 | 0.76 | 1.90 | 0 | done |
+| 11 | **9.24** | 0.06 | **8.31** | 8.33 | 0.85 | 6.05 | 0 | done |
+| 13 | **11.35** | 0.06 | **10.14** | 10.17 | 1.12 | 1.35 | 0 | done |
+| 15 | **9.33** | 0.06 | **8.56** | 8.58 | 0.69 | 1.41 | 0 | done |
+| 19 | **7.51** | 0.06 | **6.61** | 6.62 | 0.83 | 2.24 | 0 | done |
+
+- **The error is Gemini's, not a defect in our code.** Message 12's second call got `503
+  UNAVAILABLE: This model is currently experiencing high demand` at 04:21:27. The answer
+  had already started, so `reset` went out, then 1 s later the one retry. The retry's
+  stream broke on the same 503 at 04:21:36, after 12.5 s of the 45 s limit. With one retry
+  used, the code ended with `failed`, as ADR 0009 sets it. The cost line says
+  `status=interrupted`, 3 requests. The free tier's 429 does not appear anywhere in the log.
+  Three of the 20 messages got a 503 (10, 12, 17), all on the second call, all between 04:20:42
+  and 04:23:14. The other two recovered on the retry.
+- **In the six slow messages the time goes into Gemini's first call:** 6.61–11.57 s, against
+  1.02–1.49 s in the fast half. In those six, our own stages before the call take 0.06 s,
+  prepare 0.02–0.03 s, the network 0.69–1.12 s. They ended between 04:19:07 and 04:23:52,
+  the same window as the 503s. Across all 20 the first call's median is 2.10 s, and its spread is the spread
+  of the client's first text.
+- Two smaller delays, not the model's. Message 1 spent **2.32 s** before the model (JWT
+  1.07, user row 0.99, claim 0.23), as the first request after an idle period. Message 12
+  lost **3.16 s** between the client and the API, before the API logged anything (response
+  headers at 3.29 s).
+
+### TZ 1.33 — the user's decision (2026-11-17)
+
+"Mezonni boshqa yumshatmaymiz." F4 closes with the open item "FR-8 birinchi belgi mezoni
+bajarilmagan (33 xabar, median 3.62 s, 1 xato)". The criterion becomes a precondition of
+Phase 9a (`docs/prompts/phase-09a-web-launch.md`): after the switch to Gemini's paid tier,
+at least 30 messages on two different days, the same criterion (median ≤ 3 s, 90th
+percentile ≤ 15 s, 0 errors). If it fails, the web launch does not happen. No code was
+changed.
 
 ### TZ wording — option (a), accepted 2026-11-17 as TZ 1.32
 
@@ -242,10 +299,10 @@ The tier decision is the user's (`docs/STATUS.md`, "Gemini tarifi").
 
 ## Needs the user
 
-1. FR-8 under TZ 1.32 is **not met** (median 3.62 s, 1 error over 33 messages). F4 does not
-   close before the user decides. No code was changed and no further paid message was sent.
-2. F3 item 5: the live Lighthouse numbers for the film page.
+1. F3 item 5: the live Lighthouse numbers for the film page (verdict: the median of three
+   mobile runs). When they are in, F4 closes, with the FR-8 open item.
+2. ~~FR-8~~ — decided 2026-11-17 (TZ 1.33): it is not softened again. It is an open item at closing,
+   and it is measured again in Phase 9a on the paid tier.
 3. ~~Gemini tier~~ — decided 2026-11-17: the alpha stays on the free tier, exception written
    into ADR 0004; the warning screen is Phase 5 code.
-4. The Render log for 2026-11-17 04:17–04:24 UTC: the cause of the error and the server
-   stages of the six messages over 7 s. (And, optional, 2026-11-13 14:11–14:17 UTC.)
+4. ~~Render log~~ — read 2026-11-17 (above).

@@ -39,6 +39,8 @@ A user can ask in plain language and get real recommendations from the existing 
    - Streaming render. First token (TZ 1.32): measured on the client with the page connected,
      over at least 30 messages on at least two different days: median ≤ 3 s, 90th
      percentile ≤ 15 s, no message ending in `error`. 2 s is the target, not the criterion.
+     TZ 1.33: this phase closes without it, as an open item (33 messages, median 3.62 s,
+     1 error); the criterion moved to Phase 9a and is measured again on the paid tier.
    - Recommendations render as tappable cards inside the answer.
    - Two or three follow-up chips after each answer.
    - Limit-reached state shows the reset time, not an error dialog.
@@ -79,7 +81,8 @@ Manual checklist:
 - [ ] Ask something off-topic. Report the response.
 - [ ] Try three different prompt-injection phrasings. Report what happened.
 - [ ] Measure time to first token over at least 30 requests on at least two days (TZ 1.32).
-      Report the median, the 90th percentile and the errors.
+      Report the median, the 90th percentile and the errors. Not met on the free tier
+      (TZ 1.33): recorded as open, the phase closes with it; Phase 9a measures it again.
 - [ ] Measure token cost of 20 typical conversations; extrapolate to cost per user per
       month. It must be under $0.20.
 
