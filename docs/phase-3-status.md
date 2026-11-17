@@ -437,6 +437,42 @@ So the page reached its largest paint in three steps, one after the other: the b
 the film's request (preflight, then GET, to Singapore), then the image. The desktop's
 1.4 s is the same chain without the throttling.
 
+**The fix (branch `f3-perf`, 2026-11-18): the film's request and the backdrop no longer wait
+for the bundle.** A small inline script at the top of `index.html` (build only;
+`src/lib/earlyFilmScript.ts`) does three things on `/movie/{id}`:
+- It sends a plain GET to the public `/movies/{id}`, with no `Authorization` and so no
+  preflight, while the bundle downloads.
+- When the answer comes, it preloads the backdrop with the hero's own `srcset` and `sizes`.
+  Both come from one function, or the browser would fetch the image twice.
+- The page's skeleton then draws the hero from that answer (`useEarlyFilm`) while the
+  signed-in request, with the match and the reasons, is still out.
+
+A film marked sensitive (Phase 5) gets no preload and no early hero. The extra request is
+one cheap read with no LLM. Nothing else on the page changes.
+
+A/B with the same harness, five rounds, each round running the three builds one after
+another. As the evening went on, TMDB and this machine slowed, so compare within a round:
+
+| Round | `main` | early request | early request, no font preload |
+|---|---|---|---|
+| 1 | 5.22 s | **3.35 s** | 3.59 s |
+| 2 | 5.34 s | **3.81 s** | 6.04 s |
+| 3 | 8.50 s | 7.20 s | **6.07 s** |
+| 4 | 9.84 s | **7.18 s** | 7.97 s |
+| 5 | 15.50 s | **8.59 s** | 12.07 s |
+
+- The early request was faster in **5 of 5** rounds, by 1.3–6.9 s (median 1.9 s).
+- Dropping the two font preloads was slower in 3 of 5 rounds against the early request
+  alone. No gain was shown, so the preloads stay.
+- With the fix, the image starts at ~1.0 s instead of ~3.6 s. It is now the image's own
+  download (105 KB) that sets LCP. From this network TMDB gives 80–88 KB/s, and the
+  image shares the throttled link with the bundle.
+
+So **< 2.5 s is not shown yet**: the quiet rounds give 3.35 and 3.81 s. The one lever left
+in the code is the image's weight on phones. The w300 backdrop is 19 KB against 105 KB
+for w780, but on a phone (412 px at DPR 1.75 = 721 px) it is drawn 2.4× larger than its
+pixels. That is a visual decision, the user's. Not done.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is

@@ -88,6 +88,29 @@ describe("MoviePage", () => {
     expect(screen.getByTestId("loading")).toBeInTheDocument();
   });
 
+  it("draws the hero from the early answer while its own request is out (LCP, F3 item 5)", async () => {
+    getMovie.mockReturnValue(pending());
+    window.__mmEarlyFilm = { id: 1000, film: Promise.resolve({ backdrop_path: "/b.jpg", poster_path: "/p.jpg" }) };
+    try {
+      const { unmount } = renderWithProviders(<MoviePage />, ROUTE);
+      expect(screen.getByTestId("loading")).toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.getByTestId("film-hero").querySelector("img")).toHaveAttribute(
+          "srcset",
+          "https://image.tmdb.org/t/p/w780/b.jpg 780w, https://image.tmdb.org/t/p/w1280/b.jpg 1280w",
+        ),
+      );
+      unmount();
+      // Another film's early answer is not used.
+      window.__mmEarlyFilm = { id: 2000, film: Promise.resolve({ backdrop_path: "/x.jpg", poster_path: null }) };
+      renderWithProviders(<MoviePage />, ROUTE);
+      await window.__mmEarlyFilm.film;
+      expect(screen.getByTestId("loading").querySelector("img")).toBeNull();
+    } finally {
+      delete window.__mmEarlyFilm;
+    }
+  });
+
   it("renders the film from the API: match band, why, comparison, facts", async () => {
     renderWithProviders(<MoviePage />, ROUTE);
     expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
