@@ -9,6 +9,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.services.events import MAX_BATCH, ClientEventType, OnboardingStep, Source
+from app.services.feedback import Reason as FeedbackReason
 from app.traits import TRAIT_KEYS
 
 
@@ -217,6 +218,16 @@ class EventsIn(BaseModel):
 
 class EventsOut(BaseModel):
     recorded: int
+
+
+class FeedbackIn(BaseModel):
+    """ "This recommendation was wrong", with an optional reason from the chips."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    movie_id: int = Field(gt=0)
+    source: Source = Field(description="Where the card was")
+    reason: FeedbackReason | None = None
 
 
 # --- assistant (FR-8) -------------------------------------------------------------------

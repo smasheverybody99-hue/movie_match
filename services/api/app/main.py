@@ -11,6 +11,7 @@ from app.providers import usage as cost_log
 from app.routers import (
     assistant,
     events,
+    feedback,
     health,
     me,
     movies,
@@ -86,3 +87,4 @@ app.include_router(recommendations.router)
 app.include_router(onboarding.router)
 app.include_router(assistant.router)
 app.include_router(events.router)
+app.include_router(feedback.router)
