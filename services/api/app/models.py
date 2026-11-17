@@ -53,6 +53,9 @@ class Movie(Base):
     tmdb_vote_count: Mapped[int | None] = mapped_column(Integer)
     popularity: Mapped[float | None] = mapped_column(Float)
     adult: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Explicit or extreme, beyond what TMDB's `adult` marks: kept out of every list, the
+    # film page warns before it shows (migration 0006, app/pipelines/sensitive.py).
+    sensitive: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     traits: Mapped[MovieTraits | None] = relationship(back_populates="movie", uselist=False)
@@ -220,6 +223,10 @@ class User(Base):
     taste_weights: Mapped[dict | None] = mapped_column(JSONB)
     taste_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # One of the closed alpha's testers: the alpha metrics count only these (Phase 5).
+    alpha_tester: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    # When the user accepted the data notice (ADR 0004, free-tier exception); null: not yet.
+    data_notice_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Rating(Base):
@@ -302,6 +309,53 @@ class AssistantUsage(Base):
     )
     day: Mapped[date] = mapped_column(Date, primary_key=True)
     calls: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class Event(Base):
+    """Something a user did, for the closed alpha's metrics (Phase 5).
+
+    `type` is one of app.services.events.EVENT_TYPES. `props` holds enumerated values only,
+    never text the user typed. `occurred_at` is when it happened (the client's clock for
+    the events it sends, checked against the server's); `received_at` is when it arrived.
+    """
+
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    type: Mapped[str] = mapped_column(String(40))
+    movie_id: Mapped[int | None] = mapped_column(ForeignKey("movies.id", ondelete="CASCADE"))
+    source: Mapped[str | None] = mapped_column(String(30))
+    props: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}")
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_events_user_occurred", "user_id", "occurred_at"),
+        Index("ix_events_type_occurred", "type", "occurred_at"),
+    )
+
+
+class RecommendationFeedback(Base):
+    """ "This recommendation was wrong": the latest press per user and film, with an
+    optional reason. Data for the alpha, not a support channel, and not a ranking input."""
+
+    __tablename__ = "recommendation_feedback"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True
+    )
+    source: Mapped[str] = mapped_column(String(30))
+    reason: Mapped[str | None] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class Dismissal(Base):
