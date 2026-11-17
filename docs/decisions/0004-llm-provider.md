@@ -1,6 +1,7 @@
 # ADR 0004 — LLM provider for trait extraction and embeddings: Gemini
 
-Date: 2026-09-26 · Status: accepted, amended 2026-09-27 (explanations, below) ·
+Date: 2026-09-26 · Status: accepted, amended 2026-09-27 (explanations, below), exception
+2026-11-17 (closed alpha on the free tier, below) ·
 Supersedes: the AI bullet of CLAUDE.md "Stack decisions" (bulk trait extraction and,
 from the amendment, explanations) · Resolves: ADR 0003
 
@@ -13,6 +14,34 @@ original text below kept them on Haiku; where it says so, this amendment wins. C
 Sonnet 5 stays for the Phase 4 assistant, so an Anthropic account is still needed then,
 and only then. CLAUDE.md, `docs/architecture.md` and the phase prompts were updated in
 the same change.
+
+## Exception, 2026-11-17: the closed alpha runs on the free tier
+
+User decision, 2026-11-17. It is an exception to one rule below ("Why paid tier only":
+**anything containing user data must run on a paid-tier key**) for a fixed group and a
+fixed period. Nothing else in this ADR changes.
+
+- **What:** the assistant (ADR 0009) and the film explanations run on the Render key as it
+  is today, on Gemini's free tier (found 2026-11-13: `429 generate_content_free_tier_requests`,
+  limit 15 requests a minute per project). Viewer messages and taste data drawn from
+  ratings go to Google under the unpaid terms quoted below: Google may use them to improve
+  its products, and people may read them.
+- **Period:** the closed alpha, **2026-11-23 — 2026-12-07** (TZ 1.32 dates).
+- **Conditions:**
+  1. Only the 12 invited testers. Each one has read the warning (assistant screen, before
+     the first message, and the invitation; text in `docs/STATUS.md`, "Gemini tarifi") and
+     agreed to it. Showing it in the app is Phase 5 code.
+  2. Before the public web launch (F9a, target **2026-12-09**) the key's project moves to
+     the paid tier. Without it the launch does not happen.
+  3. In the EEA, Switzerland and the UK Google applies the paid-service terms on every
+     tier (the terms quoted below).
+  4. 15 requests a minute is accepted as enough for 12 testers: about 7 assistant messages
+     a minute for the whole service, two requests per message.
+- **Known gap:** a free-tier 429 that asks to wait longer than 2 s is not retried and ends
+  as the general "could not answer" text, not the "busy" text. Moving it to "busy" is a
+  separate small fix.
+- **Why:** the paid tier needs a Cloud Billing account (the $50 card hold, the user's
+  report of 2026-09-30); the user chose not to open it for the alpha.
 
 ## Context
 
