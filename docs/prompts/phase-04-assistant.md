@@ -1,6 +1,7 @@
 # Phase 4 — AI assistant
 
-Read `CLAUDE.md` first. Phase 3's gate must be green.
+Read `CLAUDE.md` first. Phase 3's gate must be green. (TZ 1.34: Phase 4 closed with Phase 3's
+item 5 open — the film page's mobile LCP 4.6 s, INP not measured; both moved to Phase 9a.)
 
 ## Before you start
 

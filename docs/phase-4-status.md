@@ -1,15 +1,17 @@
 # Phase 4 — status
 
-Last updated: 2026-11-17 · Phase: **4 (AI assistant), code live, manual checklist run,
-not closed** · Live commit `f56ffa5` (merge `f4-fixes-4`, 2026-11-13)
+Last updated: 2026-11-18 · Phase: **4 (AI assistant), closed 2026-11-18 with two open items
+(TZ 1.33, TZ 1.34)** · Live commit `f56ffa5` (merge `f4-fixes-4`, 2026-11-13)
 
-Phase prompt: `docs/prompts/phase-04-assistant.md`. **F4 is not marked closed yet.** One item
-waits for the user:
+Phase prompt: `docs/prompts/phase-04-assistant.md`. **F4 is closed** (user, 2026-11-18, TZ 1.34),
+with two open items, both moved to Phase 9a's precondition:
 
-- F3 item 5: the live Lighthouse run on the film page (LCP, INP), done by the user. The verdict is
-  the median of three mobile runs (user, 2026-11-17). F4 closes when the numbers are in.
-
-Decided, and open at closing:
+- **Open item — F3 item 5: film page mobile LCP 4.6 s, INP not measured.** The user's
+  Lighthouse runs on the live site, 2026-11-17: mobile LCP 14.5 / 4.2 / 4.6 s, median 4.6 s
+  (< 2.5 s required); desktop 1.4 s; INP not measured (Rate and Save were not found in the
+  Timespan run — they are there, see `docs/phase-3-status.md`, "Item 5 on the live site").
+  Phase 9a: mobile LCP < 2.5 s (median of three runs) and INP < 200 ms on the live site, or
+  no web launch. The fix is on branch `f3-perf`.
 
 - **Open item — FR-8 first character not met** (33 messages, median 3.62 s, 1 error). The
   user accepted option (a) on 2026-11-17 as **TZ 1.32**: at least 30 messages on at least
@@ -19,8 +21,9 @@ Decided, and open at closing:
   messages on two days, the same criterion. If it fails, the web launch does not happen. The
   Render log shows the error was Gemini's, not a defect in our code (below).
 
-The phase precondition "Phase 3's gate must be green" is not fully met for the same
-Lighthouse item. The user decided on 2026-11-11 to measure it in parallel with F4.
+The phase precondition "Phase 3's gate must be green" was not fully met for the same
+Lighthouse item. The user decided on 2026-11-11 to measure it in parallel with F4; on
+2026-11-18 (TZ 1.34) to close F4 with it open.
 
 ## Decisions made in this phase
 
@@ -299,8 +302,8 @@ The tier decision is the user's (`docs/STATUS.md`, "Gemini tarifi").
 
 ## Needs the user
 
-1. F3 item 5: the live Lighthouse numbers for the film page (verdict: the median of three
-   mobile runs). When they are in, F4 closes, with the FR-8 open item.
+1. ~~F3 item 5~~ — measured by the user 2026-11-17 (mobile median 4.6 s, not met; INP not
+   measured). TZ 1.34: F4 closed 2026-11-18 with it open; it moved to Phase 9a.
 2. ~~FR-8~~ — decided 2026-11-17 (TZ 1.33): it is not softened again. It is an open item at closing,
    and it is measured again in Phase 9a on the paid tier.
 3. ~~Gemini tier~~ — decided 2026-11-17: the alpha stays on the free tier, exception written

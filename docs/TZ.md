@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.33 · 2026-11-17 · Holat: tasdiqlangan
+Versiya 1.34 · 2026-11-18 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -65,12 +65,12 @@ bo'lindi: F9a — web launch, F9b — do'kon launch'i.
 
 | # | Faza | Maqsad sana | Shart |
 |---|---|---|---|
-| 1 | F4 — AI assistant, yopish | 2026-11-19 | F4 gate va qo'lda ro'yxat; F3 band 5 (Lighthouse). FR-8 birinchi belgi — ochiq yozuv, F9a ga ko'chdi (TZ 1.33) |
+| 1 | F4 — AI assistant, yopish | 2026-11-19 | **Yopildi 2026-11-18** (TZ 1.34), ikki ochiq yozuv bilan: FR-8 birinchi belgi (TZ 1.33) va F3 band 5 — film sahifasi mobil LCP 4.6 s, INP o'lchanmagan. Ikkalasi F9a shartiga ko'chdi |
 | 2 | F5 — alfa kodi (telemetriya, metrika, "noto'g'ri" tugmasi) | 2026-11-22 | F4 yopilgan |
 | 3 | F5 — testerlar kiradi | 2026-11-23 | F5 texnik gate'i yashil |
 | 4 | F6 — mobil ilova, **Android birinchi**, alfa ketayotgan paytda | Android yopiq testi 2026-12-02 | F5 texnik gate'i; mahsulot darvozasini kutmaydi |
 | 5 | F5 — alfa qarori (mahsulot darvozasi) | 2026-12-07 | 2 hafta ma'lumot (23-noyabrdan) |
-| 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-09 | **F5 mahsulot darvozasi o'tgan** (15% va 70%); Gemini pullik tarifi va unda FR-8 birinchi belgi mezoni o'tgan (TZ 1.33) |
+| 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-09 | **F5 mahsulot darvozasi o'tgan** (15% va 70%); Gemini pullik tarifi va unda FR-8 birinchi belgi mezoni o'tgan (TZ 1.33); film sahifasi jonli saytda mobil LCP < 2.5 s (3 o'lchov mediani) va INP < 200 ms (TZ 1.34) |
 | 7 | F9b — do'konga ariza (Google Play) | ariza 2026-12-16; do'konda ko'rinish **2026-12-23 dan oldin emas** | F6 gate'i, F9a, Play yopiq testi 14 kun (TZ 1.31: F7 va F8 ni kutmaydi) |
 | 8 | F8 — Smart Watchlist + Group Match (va sayqal) | do'kondan keyin, yangilanish sifatida | F9a |
 | 9 | F7 — Character Match, yurist ko'rigigacha flag ortida | F8 dan keyin, yangilanish sifatida | F8 gate'i |
@@ -406,7 +406,7 @@ Foydalanuvchi ta'mi va ixtiyoriy quiz asosida personaj moslik natijasi.
 
 | Kategoriya | Talab | Qanday o'lchanadi |
 |---|---|---|
-| Tezlik (web) | LCP < 2.5s, INP < 200ms | Lighthouse CI |
+| Tezlik (web) | LCP < 2.5s, INP < 200ms | Lighthouse, mobil, 3 o'lchov mediani; film sahifasi uchun F9a sharti (TZ 1.34) |
 | Tezlik (API) | p95 < 300ms, tavsiya < 500ms | Load test |
 | Tezlik (mobil) | Sovuq start < 2s | Profil rejimi |
 | Ishonchlilik | 99.5% uptime | Uptime monitor |
@@ -548,6 +548,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.7 | 2026-10-02 | Backlog: embedding tokenlarini guruhlab sanash (5 000 film bosqichi uchun), nega namuna emas |
 | 1.8 | 2026-10-02 | §5 Tillar: ingliz standart va kalitlar manbasi, o'zbek ikkilamchi, rus qo'shimcha (foydalanuvchi qarori); backlog — film ma'lumotini tarjima qilish |
 | 1.9 | 2026-10-02 | Backlog: izohlar limiti tugaganini interfeys aytishi kerak (F2 qo'lda tekshiruvidan) |
+| 1.34 | 2026-11-18 | F3 band 5 o'lchandi (foydalanuvchi, 2026-11-17, jonli sayt, film sahifasi The Dark Knight Rises, incognito): mobil LCP 14.5 / 4.2 / 4.6 s, median **4.6 s** (talab < 2.5 s); desktop LCP 1.4 s; INP o'lchanmagan (Timespan rejimida Rate / Watchlist tugmalari topilmadi). **F4 yopildi** ikki ochiq yozuv bilan: FR-8 birinchi belgi (TZ 1.33) va "film sahifasi mobil LCP 4.6 s, INP o'lchanmagan". Mobil LCP < 2.5 s va INP < 200 ms **F9a (web launch) shartiga ko'chdi**: jonli saytda, mobil 3 o'lchov mediani; o'tmasa web launch bo'lmaydi (foydalanuvchi qarori) |
 | 1.33 | 2026-11-17 | FR-8 birinchi belgi mezoni (TZ 1.32) **boshqa yumshatilmaydi** (foydalanuvchi qarori). F4 shu mezon bajarilmagan holda, ochiq yozuv bilan yopiladi: "FR-8 birinchi belgi mezoni bajarilmagan (33 xabar, median 3.62 s, 1 xato)". Mezon **F9a (web launch) shartiga ko'chdi**: Gemini pullik tarifiga o'tgandan keyin kamida 30 xabar, kamida ikki xil kun, o'sha mezon (median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0); o'tmasa web launch bo'lmaydi. Render log'i (2026-11-17): yagona xato — Gemini'ning ikki marta ketma-ket 503 "high demand" javobi, kod mo'ljallanganidek bitta qayta urinishdan keyin to'xtadi; sekin xabarlarda vaqt birinchi model chaqiruvida ketgan (6.6–11.6 s), bizning bosqichlarda emas |
 | 1.32 | 2026-11-17 | FR-8: "birinchi belgi 2 soniya ichida" mezoni o'zgardi (foydalanuvchi qarori, phase-4-status'dagi (a) varianti): mijoz tomonida, ulangan sahifada, **kamida 30 xabar, kamida ikki xil kun; median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0**; 2 s — maqsad. Sabab: Gemini Flash-Lite'ning tezligi soatdan soatga o'zgaradi (bir kod bilan bir kunda 1.78 s va 2.95 s), 10 xabarlik median qaror bera olmaydi; 2026-11-13 dagi yakuniy o'lchovda median 2.95 s edi. **Sanalar 4 kunga surildi** (13–17-noyabr ish bo'lmadi): F4 yopish 2026-11-19, F5 alfa kodi 11-22, testerlar 11-23, Play yopiq testi 12-02, alfa qarori 12-07 (15% oynasi: 11-30 gacha ko'rsatilganlar), web launch 12-09, Play'ga ariza 12-16, do'konda 12-23 dan oldin emas; oraliqlar o'zgarmagan; iOS — yanvar, o'zgarmagan (§2, §8) |
 | 1.31 | 2026-11-13 | TZ 1.30 dagi ziddiyatlar bo'yicha qarorlar (foydalanuvchi): **do'konga ariza (F9b) F7 va F8 ni kutmaydi** — sharti F6 gate'i, F9a va Play yopiq testi; F8 va F7 do'kondan keyin yangilanish. Do'konda ko'rinish **2026-12-19 dan oldin emas**. **iOS hozir rejalanmaydi** — avval Android, iOS alohida qaror, yanvar. **Launch uchun 15% ham, 70% ham shart**; 70% yiqilsa onboarding tuzatiladi va qayta o'lchanadi, dvigatel qayta ishlanmaydi. **15% faqat 7 kunlik oynasi yopilgan tavsiyalar bo'yicha**, hisobotda tavsiyalar soni. Backlog: testerlardan oldin faqat NSFW va izohlar limiti xabari; recency sifat chegarasi va onboarding chiplari alfadan keyin; qolganlari F5 dan keyin (§2) |

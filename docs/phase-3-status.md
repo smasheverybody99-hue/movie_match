@@ -1,6 +1,6 @@
 # Phase 3 — status
 
-Last updated: 2026-10-02 · Phase: **3 (web application), code built, not finished** ·
+Last updated: 2026-11-18 (item 5 measured on the live site; TZ 1.34) · Phase: **3 (web application), code built, not finished** ·
 On `main` since `66bc7a0` (2026-09-30)
 
 Phase prompt: `docs/prompts/phase-03-web.md`. Its precondition — Phase 2's gate green
@@ -79,7 +79,7 @@ defect (a) below was fixed on 2026-10-08.
 | 2. Every screen at 320px: nothing clipped, no horizontal scroll | Claude | **Pass.** 9 screens (Home, Search, Search "harry" — the longest real titles, e.g. "Harry Potter and the Deathly Hallows: Part 2" —, film page, Watchlist, DNA, Profile, About, 404) at 320 and 1440, English; 7 of them in Russian at 320 and 1440 (not the film page: its Russian explanation is not cached and would call the LLM). `scrollWidth` ≤ viewport everywhere, 0 overflowing elements, 0 clipped labels |
 | 3. Keyboard only | user (by hand), 2026-10-08 | **Pass.** Feed, film page, rating dialog, search, watchlist, DNA, profile, with Tab / Shift+Tab / Enter / Space / Escape only: focus visible everywhere, logical order, dialogs close on Escape and keep focus inside while open. No defects |
 | 4. axe 4.10.2, contrast and label violations zero | Claude | **Pass: 0 violations** on all of the above. One note: while Movie DNA loads (~3.5 s on this connection) its skeleton has no `h1` — axe `page-has-heading-one` (best practice) fires if run during loading; 0 once loaded |
-| 5. Lighthouse, film page, production build | — | **Moved to after deploy** (decision 3 below): measured on the live URL, not localhost |
+| 5. Lighthouse, film page, production build | user, 2026-11-17 (live site) | **Not met.** Mobile LCP median **4.6 s** (14.5, 4.2, 4.6 s; < 2.5 s required), desktop 1.4 s; INP not measured. **TZ 1.34**: Phase 4 closes with this as an open item; mobile LCP < 2.5 s and INP < 200 ms move to Phase 9a's precondition. Section "Item 5 on the live site" below |
 | 6. API off, every screen | user (by hand), 2026-10-08 | **Pass.** API stopped by Claude (port 8000 closed, no process left), production build still served. Feed, film page, search, watchlist, DNA, profile, each hard-reloaded (Ctrl+Shift+R): a plain message with "Try again" (e.g. "Couldn't load this film. Check your connection and try again."), no white screen, no raw error text, no endless spinner; the navigation keeps working. API restarted afterwards |
 
 **Summary (2026-10-08): all six items run.** Passed: 2, 3, 4, 6. Item 1 was run (3:10) and its
@@ -376,6 +376,66 @@ the web font, and nothing moves (CLS 0.000 in every run).
   LCP, FCP and Speed Index come from the font timing above.
 - **What is not measured here:** the film page and the preflight cache need a signed-in
   session. The user checks them by hand.
+
+## Item 5 on the live site (user 2026-11-17, analysis 2026-11-18)
+
+**The user's Lighthouse runs.** The Dark Knight Rises (TMDB 49026), live site, incognito, signed in,
+the evening of 2026-11-17.
+
+| | Run 1 | Run 2 | Run 3 | Median | Required |
+|---|---|---|---|---|---|
+| Mobile LCP | 14.5 s | 4.2 s | 4.6 s | **4.6 s** | < 2.5 s |
+| Desktop LCP | 1.4 s (one run; FCP 0.6 s, TBT 0 ms, CLS 0, Speed Index 1.3 s) | | | | |
+| INP | not measured: in the Timespan run (mobile) Rate and Watchlist were not found | | | | < 200 ms |
+
+The verdict is the median of the three mobile runs (user, 2026-11-17): **not met**. **TZ 1.34**
+(user, 2026-11-18): Phase 4 closes with the open item "film page mobile LCP 4.6 s, INP not
+measured"; mobile LCP < 2.5 s and INP < 200 ms move to Phase 9a's precondition. The work
+to bring LCP down is on branch `f3-perf`, apart from Phase 5.
+
+**Rate and Save on a phone are there: not a defect.** Measured on `main`'s code (headless
+Chrome under Lighthouse's mobile emulation, 412 × 823 at DPR 1.75, the dev mock API): below
+640 px the two buttons are a bar fixed above the bottom navigation, at y = 694–759; the
+navigation is at 758–823. `elementFromPoint` at the bar's centre returns the Rate button, so
+nothing covers it. The live CSS (`index-Xk84bijn.css`) carries the same rules. The second
+button's label is **"Save"**, not "Watchlist". Why the Timespan run did not show them is
+not proven. The likely reason is that DevTools emulates an 823 px tall viewport, while the
+Chrome window on this laptop showed 607 px of page (Claude in Chrome's tab, 2026-11-18). The
+bottom 216 px — the bar and the navigation — were then below the window. Scrolling does not
+bring a fixed bar into view. The user saw no bottom navigation either (Home, Search,
+Assistant, Movie DNA, Watchlist), which fits this.
+
+**What the mobile LCP waits for, measured.** The LCP element is the hero backdrop,
+`IMG.film-hero-img`, w780 (412 × 370 CSS px; with `sizes="100vw"` at DPR 1.75 the browser
+takes the 780 w file). The earlier LCP candidates are a `span`, then the overview text, then
+the image. Measurement was by headless Chrome with Lighthouse's mobile settings (150 ms RTT,
+1.6 Mbps down, CPU 4×, cold cache) on a local production build of `main`. The API was a
+stand-in that answers after 500 ms, the live API's measured time after TLS, and the images
+came from TMDB's real CDN. Baseline LCP **4.41 / 4.59 / 4.82 s, median 4.59 s**, the
+user's 4.6 s. One run, step by step:
+
+| Step | Starts | Ends | Measured how |
+|---|---|---|---|
+| HTML, then the one JS bundle (159 KB gzip, 536 KB raw), the CSS, and two preloaded fonts (87 KB) sharing the 1.6 Mbps link | 0.37 s | 1.90 s (JS) | resource timing |
+| The app starts, reads the session, sends four API requests at once (film, DNA, ratings, list). Each carries `Authorization`, so each needs a **CORS preflight** first: on a cold load there is no cached preflight | 2.10 s | 3.62 s | resource timing |
+| Only now is the backdrop's URL known: the image (105 KB) | 3.64 s | 6.79 s (this run; TMDB from this network: 80–88 KB/s, connect 0.33–0.55 s) | resource timing, curl |
+
+Live numbers behind the stand-in:
+- `/movies/49026` answers in 0.42–0.71 s after TLS, and the database is not the reason:
+  `/health`, which does not touch it, takes the same 0.37–0.84 s. The path from
+  here is Cloudflare's Warsaw edge (`CF-RAY …-WAW`) to Render in Singapore.
+- A preflight to the live API takes 0.53 s after TLS. `Access-Control-Max-Age: 7200` saves
+  it on a warm browser, not on Lighthouse's cold one.
+- Bundle by source package, from the sourcemap: `react-dom` 205 KB (40%),
+  `@supabase/auth-js` 104 KB (20%), `react-router` 39 KB, `@tanstack/query-core` 37 KB, our
+  i18n tables 33 KB, our pages 32 KB. Route splitting would save at most ~15–20 KB gzip and
+  add a request after the bundle on the film page. Not the lever.
+- Run 1 (14.5 s) is not in the verdict. Its extra ~10 s looks like Render's free instance
+  waking up, which is not proven: there is no Render log for that minute.
+
+So the page reached its largest paint in three steps, one after the other: the bundle,
+the film's request (preflight, then GET, to Singapore), then the image. The desktop's
+1.4 s is the same chain without the throttling.
 
 ## Where the implementation differs from the design, and why
 

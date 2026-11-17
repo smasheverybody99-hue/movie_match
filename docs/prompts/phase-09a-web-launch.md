@@ -10,7 +10,7 @@ Preconditions (TZ 1.30): the readiness work below is built **during the alpha**,
 fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
 and 8 come after the store launch and are not required for it.
 
-Two more preconditions, both required:
+Three more preconditions, all required:
 
 - **Gemini paid tier** (ADR 0004, exception of 2026-11-17). The closed alpha runs on the free tier.
   This launch does not, so switch to the paid tier before it. Without it, the launch does not happen.
@@ -20,6 +20,11 @@ Two more preconditions, both required:
   different days, median ≤ 3 s, 90th percentile ≤ 15 s, no message ending in `error`.
   Ask before the run: it is paid. If it fails, the launch does not happen. The criterion
   is not softened again.
+- **The film page's speed, measured again** (TZ 1.34). Phase 4 closed with F3 item 5 open:
+  on the live site the film page's mobile LCP was 4.6 s (median of 14.5, 4.2 and 4.6 s;
+  desktop 1.4 s), and INP was not measured. On the live site, Lighthouse mobile, the median of
+  three runs: **LCP < 2.5 s**, and **INP < 200 ms** in a timespan that presses Rate and Save.
+  If either fails, the launch does not happen. Cause and fixes: `docs/phase-3-status.md`, item 5.
 
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
@@ -88,6 +93,8 @@ Manual checklist:
 - [ ] Phase 5's product gate passed (record the 15% and 70% numbers with their intervals)
 - [ ] Gemini paid tier on; FR-8 first character passed on it (TZ 1.33): message count,
       days, median, 90th percentile, errors
+- [ ] Film page on the live site (TZ 1.34): mobile LCP median of three runs < 2.5 s, INP
+      < 200 ms; record each run, the LCP element and the build's commit
 - [ ] Privacy policy and terms live and linked
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.
