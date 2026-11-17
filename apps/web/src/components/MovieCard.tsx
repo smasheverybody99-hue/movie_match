@@ -7,6 +7,7 @@ import { movieMeta } from "../lib/format";
 import { track, useShownRef } from "../lib/telemetry";
 import type { EventSource, MatchBand, Movie } from "../lib/types";
 import { Icon } from "./Icon";
+import { NotRight } from "./NotRight";
 import { Poster } from "./Poster";
 
 /** Quick actions over the poster (Home rows): Rate opens the rating dialog, Save toggles. */
@@ -70,6 +71,7 @@ export function MovieCard({
           </button>
         </div>
       )}
+      {source && <NotRight movie={movie} source={source} />}
     </TrackedCard>
   );
 }

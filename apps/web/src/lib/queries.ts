@@ -15,7 +15,8 @@ import {
 import { useI18n } from "../i18n";
 import { explanationsOff, noteExplanation } from "./explanations";
 import { api, type SearchParams } from "./api";
-import type { Lang, Movie, Rating, RatingIn, WatchlistItem } from "./types";
+import { hideCard, restoreCard } from "./hiddenCards";
+import type { EventSource, FeedbackReason, Lang, Movie, Rating, RatingIn, WatchlistItem } from "./types";
 
 export const keys = {
   me: ["me"] as const,
@@ -194,6 +195,19 @@ export function useWatchlistChange() {
     onSettled: () => {
       void client.invalidateQueries({ queryKey: keys.watchlist });
     },
+  });
+}
+
+/**
+ * "Not right?": the card leaves the view first, the request follows; a failure brings
+ * the card back (lib/hiddenCards.ts). Nothing cached changes: the feed stays the engine's.
+ */
+export function useMarkWrong() {
+  return useMutation({
+    mutationFn: ({ movie, source, reason }: { movie: Movie; source: EventSource; reason: FeedbackReason | null }) =>
+      api.markWrong({ movie_id: movie.id, source, reason }),
+    onMutate: ({ movie }) => hideCard(movie.id, movie.title),
+    onError: (_error, { movie }) => restoreCard(movie.id, movie.title),
   });
 }
 

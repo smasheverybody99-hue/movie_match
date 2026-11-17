@@ -10,6 +10,7 @@ import type { Movie, Recommendation } from "../lib/types";
 import { isTraitKey } from "../lib/traits";
 import { Icon } from "./Icon";
 import { Kicker } from "./Kicker";
+import { NotRight } from "./NotRight";
 import { traitLabelKey } from "./Traits";
 
 /** How long one film stays before the next (docs/ui.md, 4a). */
@@ -96,7 +97,9 @@ export function Hero({
     return () => clearTimeout(timer);
   }, [playing, index, count]);
 
-  const item = items[index];
+  // A slide taken out ("Not right?") can leave the index past the end: hold the last one.
+  if (count > 0 && index >= count) setIndex(count - 1);
+  const item = items[Math.min(index, count - 1)];
   // The slide on screen is a For you recommendation shown (lib/telemetry.ts).
   const shownRef = useShownRef<HTMLDivElement>(item?.movie.id ?? 0, "for_you");
   if (!item) return null;
@@ -189,6 +192,7 @@ export function Hero({
               <Icon as={isSaved ? BookmarkCheck : Bookmark} /> {isSaved ? t("movie.onList") : t("movie.saveToList")}
             </button>
           </div>
+          <NotRight movie={movie} source="for_you" />
         </div>
         {count > 1 && (
           <div className="home-hero-controls">

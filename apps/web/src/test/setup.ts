@@ -4,6 +4,7 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
 import { resetExplanations } from "../lib/explanations";
+import { resetHiddenCards } from "../lib/hiddenCards";
 import { resetRatingQueues } from "../lib/ratingQueue";
 import { resetTelemetry } from "../lib/telemetry";
 
@@ -22,4 +23,5 @@ afterEach(() => {
   // Session state, so one test's "no sentence is coming" must not reach the next.
   resetExplanations();
   resetTelemetry();
+  resetHiddenCards();
 });

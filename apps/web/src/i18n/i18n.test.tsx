@@ -262,3 +262,15 @@ describe("the assistant's busy message (FR-8 time limit)", () => {
     expect(translate("ru", "assistant.busy")).toBe("Ассистент сейчас занят. Попробуйте ещё раз через минуту.");
   });
 });
+
+describe("the 'Not right?' reasons (Phase 5)", () => {
+  // The user accepted the four chips on 2026-11-17, in this order and in these Uzbek
+  // words; English and Russian are translations of them. A free-text reason was declined:
+  // the alpha's events and feedback carry no text the viewer typed.
+  it("are the four approved chips", () => {
+    const keys = ["seen", "not_my_genre", "too_old", "other"] as const;
+    expect(keys.map((k) => translate("uz", `wrong.reason.${k}`))).toEqual(["Ko'rganman", "Janrim emas", "Juda eski", "Boshqa"]);
+    expect(keys.map((k) => translate("en", `wrong.reason.${k}`))).toEqual(["I've seen it", "Not my genre", "Too old", "Other"]);
+    expect(keys.map((k) => translate("ru", `wrong.reason.${k}`))).toEqual(["Уже видел(а)", "Не мой жанр", "Слишком старый", "Другое"]);
+  });
+});
