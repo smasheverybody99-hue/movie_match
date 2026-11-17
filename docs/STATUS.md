@@ -126,7 +126,20 @@ ko'rsatilganlar). F5 darvozasi: 12 tester, 2 hafta, 5 suhbat.
 2. ~~**Gemini tarifi**~~ — **qaror (2026-11-17): alfa bepul tarifda**, istisno ADR 0004 da;
    ogohlantirish ekrani F5 kodida. Web launch'dan (9-dekabr) oldin pullik tarif shart.
 3. **F5 alfa kodi (22-noyabr):** `docs/prompts/phase-05-alpha.md`. Testerlardan oldin
-   backlog'dan faqat NSFW va izohlar limiti xabari (TZ 1.31). F4 yopilguncha boshlanmaydi.
+   backlog'dan faqat NSFW va izohlar limiti xabari (TZ 1.31). **Qaror (foydalanuvchi,
+   2026-11-17): F5 kodi hozir boshlanadi, Lighthouse kutilmaydi** — ikkalasi bir-biriga
+   bog'liq emas. Ish `f5-alpha` branch'ida; **F4 yopilmaguncha `main` ga merge qilinmaydi**.
+   Migratsiya `0006` ni asosiy bazaga qo'llash va merge — har biri uchun alohida ruxsat.
+   Pullik so'rov yo'q. F5 savollari bo'yicha yettala tavsiya qabul qilindi (2026-11-17):
+   NSFW hamma ro'yxatdan yashiriladi, to'g'ridan-to'g'ri havolada ogohlantirish bilan;
+   belgi — `PROHIBITED_CONTENT` + qo'lda ro'yxat (TMDB reytingi alfadan keyin);
+   ogohlantirish kirishdan keyin bir marta, rozilik serverda, assistantda eslatma; rad
+   etsa — chiqib ketadi; metrika faqat `users.alpha_tester` belgili 12 kishi bo'yicha;
+   "noto'g'ri" — Home va assistant kartochkalarida, sababi chiplar bilan, film faqat
+   joriy ko'rinishdan olinadi; "ko'rildi" = "ko'rdim" belgisi va baho, alohida; "ko'rsatildi"
+   = kartochka 1 s davomida yarmidan ko'pi ko'rinsa, juftlik bir marta; D1/D7 istalgan
+   hodisa bo'yicha; izohlar limiti matni uch tilda; `0006` asosiy bazaga `alembic --sql`
+   bilan.
 4. **F6 Android:** hech narsa o'rnatilmaydi; F5 kodi tugagach agent Android Studio'siz eng
    yengil o'rnatish yo'lini taklif qiladi (pastda). Google Play akkaunti 2-dekabrdan ancha
    oldin.
