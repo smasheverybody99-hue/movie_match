@@ -57,6 +57,25 @@ describe("MoviePage", () => {
     watchlist.mockResolvedValue([]);
   });
 
+  it("warns before a sensitive film's page, without its images, and opens it when asked", async () => {
+    getMovie.mockResolvedValue({ ...FILM, sensitive: true });
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByRole("heading", { name: "Explicit or extreme film" })).toBeInTheDocument();
+    expect(screen.getByText(/The Prestige has explicit sex or extreme violence/)).toBeInTheDocument();
+    expect(screen.queryByTestId("film-hero")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Show the page" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
+    expect(screen.getByTestId("film-hero")).toBeInTheDocument();
+  });
+
+  it("shows an ordinary film's page with no warning", async () => {
+    renderWithProviders(<MoviePage />, ROUTE);
+    expect(await screen.findByRole("heading", { level: 1, name: "The Prestige" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Explicit or extreme film" })).not.toBeInTheDocument();
+  });
+
   it("asks for the taste, the ratings and the list together with the film, not after it", async () => {
     const film = deferred<typeof FILM>();
     getMovie.mockReturnValue(film.promise);

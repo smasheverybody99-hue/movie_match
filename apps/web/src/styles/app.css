@@ -949,3 +949,7 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .assistant-send { flex: none; width: var(--touch); padding: 0; }
 @media (min-width: 640px) { .assistant-form { bottom: var(--space-2); } }
 @media (prefers-reduced-motion: reduce) { .assistant-dots i { animation: none; opacity: .7; } }
+
+/* Before a sensitive film's page (Phase 5): the warning and two choices, no images. */
+.sensitive-notice { max-width: 520px; margin: 0 auto; text-align: left; }
+.sensitive-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }

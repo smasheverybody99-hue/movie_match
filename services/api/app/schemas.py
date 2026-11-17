@@ -70,6 +70,10 @@ class MovieDetailOut(MovieOut):
     band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
     named_traits: list[str] = Field(default_factory=list, description=NAMED_TRAITS_DESCRIPTION)
     trait_side: TraitSide | None = Field(default=None, description=TRAIT_SIDE_DESCRIPTION)
+    sensitive: bool = Field(
+        default=False,
+        description="Explicit or extreme: in no list, and the client warns before the page",
+    )
 
 
 class RecommendationOut(BaseModel):

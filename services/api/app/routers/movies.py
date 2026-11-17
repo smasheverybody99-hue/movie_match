@@ -84,4 +84,5 @@ async def get_movie(
         band=personal.band if personal else None,
         named_traits=list(personal.notes.keys) if personal else [],
         trait_side=personal.notes.side if personal else None,
+        sensitive=detail.movie.sensitive,
     )

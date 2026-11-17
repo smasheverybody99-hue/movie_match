@@ -48,6 +48,8 @@ export interface MovieDetail extends Movie {
   named_traits: string[];
   /** Which side `named_traits` falls on; null exactly when `named_traits` is empty. */
   trait_side: TraitSide | null;
+  /** Explicit or extreme: in no list, and the page warns before it shows (Phase 5). */
+  sensitive: boolean;
 }
 
 export interface Recommendation {

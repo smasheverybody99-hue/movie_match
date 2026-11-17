@@ -55,7 +55,7 @@ async def onboarding_films(
         select(MovieGenre.genre_id, Movie.id.label("movie_id"), Movie.popularity, rank)
         .join(Movie, Movie.id == MovieGenre.movie_id)
         .join(MovieTraits, MovieTraits.movie_id == Movie.id)
-        .where(Movie.adult.is_(False), Movie.id.not_in(rated))
+        .where(Movie.adult.is_(False), Movie.sensitive.is_(False), Movie.id.not_in(rated))
         .subquery()
     )
     rows = await session.execute(
