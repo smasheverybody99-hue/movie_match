@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -10,7 +10,7 @@ from app.deps import current_user
 from app.routers.common import movie_out
 from app.schemas import MovieOut
 from app.services.movies import genre_names
-from app.services.onboarding import onboarding_films
+from app.services.onboarding import finish, onboarding_films
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
@@ -26,3 +26,13 @@ async def get_onboarding_films(
     films = await onboarding_films(session, user_id, limit, offset)
     genres = await genre_names(session, [m.id for m in films])
     return [movie_out(m, genres) for m in films]
+
+
+@router.post("/done", status_code=status.HTTP_204_NO_CONTENT)
+async def onboarding_done(
+    user_id: uuid.UUID = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Response:
+    """The client finished onboarding. Repeating it changes nothing (Phase 5 metrics)."""
+    await finish(session, user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

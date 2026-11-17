@@ -2,6 +2,7 @@
 
 import uuid
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
@@ -37,6 +38,16 @@ PROTECTED = [
     ("DELETE", f"/dismissals/{FILM}", None),
     ("GET", "/onboarding/films", None),
     ("POST", "/assistant/chat", {"message": "Something funny"}),
+    ("POST", "/onboarding/done", None),
+    (
+        "POST",
+        "/events",
+        {
+            "events": [
+                {"type": "onboarding_step", "at": datetime.now(UTC).isoformat(), "step": "pick"}
+            ]
+        },
+    ),
 ]
 IDS = [f"{m} {p}" for m, p, _ in PROTECTED]
 

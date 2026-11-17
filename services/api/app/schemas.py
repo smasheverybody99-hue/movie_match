@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.services.events import MAX_BATCH, ClientEventType, OnboardingStep, Source
 from app.traits import TRAIT_KEYS
 
 
@@ -190,6 +191,32 @@ class UserOut(BaseModel):
     id: uuid.UUID
     display_name: str | None = None
     onboarded: bool = False
+
+
+# --- closed alpha (Phase 5) -------------------------------------------------------------
+
+
+class EventIn(BaseModel):
+    """One event the client saw (app/services/events.py). Unknown fields are refused: no
+    event may carry anything else, least of all text the user typed."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: ClientEventType
+    at: datetime = Field(description="When it happened, with a time zone")
+    movie_id: int | None = Field(default=None, gt=0)
+    source: Source | None = Field(default=None, description="Where the film was shown")
+    step: OnboardingStep | None = Field(default=None, description="onboarding_step only")
+
+
+class EventsIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    events: list[EventIn] = Field(min_length=1, max_length=MAX_BATCH)
+
+
+class EventsOut(BaseModel):
+    recorded: int
 
 
 # --- assistant (FR-8) -------------------------------------------------------------------

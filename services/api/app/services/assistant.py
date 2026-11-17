@@ -70,7 +70,7 @@ from app.providers.base import (
     TransientError,
     Usage,
 )
-from app.services import movies, recommend
+from app.services import events, movies, recommend
 from app.services.explain import LANGUAGE_NAMES, Lang
 from app.services.recommend import Hit, SearchRequest, SearchResult
 from app.traits import TRAIT_KEYS, to_dict, trait_descriptions
@@ -669,6 +669,9 @@ async def claim(
         .returning(AssistantUsage.calls)
     )
     counted = (await session.execute(stmt)).scalar_one_or_none()
+    if counted is not None:
+        # The alpha's count of messages, with the claim. Not the question: no free text.
+        events.add(session, user_id, "assistant_query", at=now)
     await session.commit()
     return None if counted is not None else resets_at(now)
 
