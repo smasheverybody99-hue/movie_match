@@ -2,6 +2,7 @@
 
     python -m app.pipelines.sensitive            # lists what it would mark, writes nothing
     python -m app.pipelines.sensitive --apply    # marks them
+    python -m app.pipelines.sensitive --apply --skip 670,1232449   # all but these
 
 TMDB's `adult` is for pornography and is false for these films, so they reached search,
 onboarding and the film page (tester, 2026-10-13: Baise-moi, Caligula, Irreversible).
@@ -13,6 +14,10 @@ after the alpha - it needs an ingestion step):
 
 A marked film is in no list - search, onboarding, recommendations, the assistant - and
 its page warns before it shows. Marking only adds: a film is unmarked by hand.
+
+Google's refusal is a blunt signal: in the 500-film selection it also refused films that
+are not explicit (docs/catalogue-500.md). Read the list before --apply; --skip leaves
+films out.
 """
 
 import argparse
@@ -23,7 +28,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Movie, TraitFailure
-from app.pipelines.cli import utf8_console
+from app.pipelines.cli import read_ids, utf8_console
 from app.pipelines.db import job_session
 
 REFUSED = "PROHIBITED_CONTENT"
@@ -69,16 +74,19 @@ async def mark(session: AsyncSession, ids: Sequence[int]) -> int:
 async def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Mark explicit or extreme films sensitive.")
     parser.add_argument("--apply", action="store_true", help="write; without it, only list")
+    parser.add_argument("--skip", default="", help="TMDB ids not to mark, e.g. 670,1232449")
     args = parser.parse_args(argv)
+    skip = set(read_ids(args.skip)) if args.skip else set()
     utf8_console()
     async with job_session() as session:
         found = await candidates(session)
         for movie_id, title, marked in found:
-            print(f"{movie_id:>8}  {title}{'  (already marked)' if marked else ''}")
+            note = "  (already marked)" if marked else "  (skipped)" if movie_id in skip else ""
+            print(f"{movie_id:>8}  {title}{note}")
         missing = sorted(set(HAND_LIST) - {movie_id for movie_id, _, _ in found})
         if missing:
             print("hand list, not in the catalogue: " + ", ".join(map(str, missing)))
-        todo = [movie_id for movie_id, _, marked in found if not marked]
+        todo = [movie_id for movie_id, _, marked in found if not marked and movie_id not in skip]
         if not args.apply:
             print(f"{len(todo)} to mark; nothing written (add --apply)")
             return
