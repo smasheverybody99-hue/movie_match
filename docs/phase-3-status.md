@@ -509,6 +509,37 @@ mobile **5.2 / 3.5 / 3.5 s, median 3.5 s**. It was 4.6 s before. Still **not met
 So the Phase 9a condition (TZ 1.34) stands at: **INP met, mobile LCP 3.5 s not met**.
 The remaining lever is the phone image size, which is the user's choice.
 
+### Phone image option C (branch `f3-perf-2`, 2026-11-22): not faster, not merged
+
+The user chose option C: phones paint the w300 backdrop first (19 KB), and the w780
+covers it when it arrives. Above 640 px the soft layer is the sharp image itself. The
+early script preloads the w300 with `media="(max-width: 639px)"`. Commit `ec173cc`;
+web gate 384/384.
+
+Same LCP harness as above, five rounds, A (`main`) and C one after the other in each round:
+
+| Round | A (`main`) | C | C: w300 painted |
+|---|---|---|---|
+| 1 | 3.33 s | **3.23 s** | 3.00 s |
+| 2 | **3.31 s** | 3.39 s | 3.29 s |
+| 3 | 3.45 s | **3.28 s** | 3.18 s |
+| 4 | **3.73 s** | 5.64 s | — |
+| 5 | **3.78 s** | 4.27 s | 3.62 s |
+| Median | 3.45 s | 3.39 s | |
+
+- C was faster in only 2 of 5 rounds. The user's condition for a merge was "faster in
+  the harness", so **C is not merged**.
+- **Why C cannot work in Chrome:** an image drawn larger than its own pixels counts at
+  its natural size. In run 1, the w300 counted as 50 700 px and the w780 as 152 440 px
+  (the full hero). The sharp image therefore stays the LCP element, and the soft paint
+  only adds 19 KB to the throttled link.
+- For the same reason, option B (w300 only) would make the w300 the LCP element. That
+  would save at most the gap between the w300 paint and the w780 paint, ~0.1–0.6 s here,
+  and keep the soft image.
+- **What gates LCP now:** text first paints at 2.6–3.2 s. That is the bundle (159 KB gzip:
+  react-dom 40%, auth-js 20%) and its run at CPU 4×. The w780 adds only ~0.1–0.3 s after
+  it. **Next lever: the bundle, not the image.** Not started.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is

@@ -1,8 +1,8 @@
 # Phase 6 — Flutter application
 
 Read `CLAUDE.md` first. **Phase 5's technical gate must be green and the alpha testers
-in** (target 2026-11-23). This phase runs while the alpha does and does not wait for its
-product gate (TZ 1.30). If the 15% metric fails on 2026-12-07, work here may continue but
+in** (target 2026-11-29). This phase runs while the alpha does and does not wait for its
+product gate (TZ 1.30). If the 15% metric fails on 2026-12-13, work here may continue but
 nothing goes to a public store track.
 
 **Android first** (TZ 1.30): the Google Play closed test starts 2026-12-02 with the 12

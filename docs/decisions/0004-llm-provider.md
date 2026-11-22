@@ -26,12 +26,12 @@ fixed period. Nothing else in this ADR changes.
   limit 15 requests a minute per project). Viewer messages and taste data drawn from
   ratings go to Google under the unpaid terms quoted below: Google may use them to improve
   its products, and people may read them.
-- **Period:** the closed alpha, **2026-11-23 — 2026-12-07** (TZ 1.32 dates).
+- **Period:** the closed alpha, **2026-11-29 — 2026-12-13** (TZ 1.35 dates).
 - **Conditions:**
   1. Only the 12 invited testers. Each one has read the warning (assistant screen, before
      the first message, and the invitation; text in `docs/STATUS.md`, "Gemini tarifi") and
      agreed to it. Showing it in the app is Phase 5 code.
-  2. Before the public web launch (F9a, target **2026-12-09**) the key's project moves to
+  2. Before the public web launch (F9a, target **2026-12-15**) the key's project moves to
      the paid tier. Without it the launch does not happen.
   3. In the EEA, Switzerland and the UK Google applies the paid-service terms on every
      tier (the terms quoted below).

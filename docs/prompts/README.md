@@ -30,9 +30,9 @@ tartibi chapdagi ustunda. Oldingi "Hafta" ustuni (17 haftalik reja) tarix uchun
 | 3 | `phase-02-engine.md` | Tavsiya dvigateli | bajarilgan | Formula testlari + endpoint testlari |
 | 4 | `phase-03-web.md` | Web ilova | Lighthouse (band 5) qolgan | Komponent testlari + a11y + Lighthouse |
 | 5 | `phase-04-assistant.md` | AI assistant | 2026-11-19 | Tool-use testlari + injection testlari |
-| 6 | `phase-05-alpha.md` | Yopiq alfa | kod 2026-11-22, testerlar 2026-11-23, qaror 2026-12-07 | Texnik gate + **mahsulot darvozasi** (12 tester, 2 hafta, 15% / 70%) |
+| 6 | `phase-05-alpha.md` | Yopiq alfa | kod 2026-11-22, testerlar 2026-11-29, qaror 2026-12-13 | Texnik gate + **mahsulot darvozasi** (12 tester, 2 hafta, 15% / 70%) |
 | 7 | `phase-06-mobile.md` | Flutter ilova, **Android birinchi**, alfa paytida | Android yopiq testi 2026-12-02 | Widget testlari + qurilma ko'rigi |
-| 8 | `phase-09a-web-launch.md` | Web launch tayyorligi va ochiq web launch | 2026-12-09 | Xavfsizlik + tiklash; F5 mahsulot darvozasi o'tgan (15% va 70%) |
+| 8 | `phase-09a-web-launch.md` | Web launch tayyorligi va ochiq web launch | 2026-12-15 | Xavfsizlik + tiklash; F5 mahsulot darvozasi o'tgan (15% va 70%) |
 | 9 | `phase-09b-store-launch.md` | Do'konga ariza (Google Play) | ariza 2026-12-16; ko'rinish 2026-12-23 dan oldin emas | F6 gate'i, F9a, Play yopiq testi 14 kun; F7/F8 ni kutmaydi (TZ 1.31) |
 | 10 | `phase-08-social.md` | Smart Watchlist, Group Match, sayqal | do'kondan keyin, yangilanish | Performance byudjeti |
 | 11 | `phase-07-character.md` | Character Match (yurist ko'rigigacha flag ortida) | F8 dan keyin, yangilanish | Matching testlari + huquqiy ko'rik |

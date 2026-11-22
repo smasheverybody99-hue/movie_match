@@ -121,9 +121,9 @@ flutter run
 3. Claude ishlab bo'lgach, **darvoza buyruqlarini o'zingiz ishga tushiring**.
 4. Hammasi 100% o'tsa — keyingi fazaga o'ting. O'tmasa — tuzattiring, qayta tekshiring.
 
-Hozirgi faza: **F4 — AI assistant, yopilmoqda** (jonli; F3 Lighthouse o'lchovini kutadi).
+Hozirgi faza: **F5 — yopiq alfa** (kod jonli; testerlar 2026-11-29 gacha yig'iladi). F4 yopilgan (TZ 1.34).
 
-Maqsad sanalar (TZ 1.32, 2026-11-17): F4 yopish 19-noyabr · F5 alfa kodi 22-noyabr ·
-testerlar 23-noyabr · Play yopiq testi 2-dekabr · alfa qarori 7-dekabr · web launch
-9-dekabr · Google Play'ga ariza 16-dekabr, do'konda 23-dekabrdan oldin emas. Holat:
+Maqsad sanalar (TZ 1.35, 2026-11-22): testerlar 29-noyabrgacha (12 Android + Gmail, maqsad 15) ·
+alfa 29-noyabr — 13-dekabr · Play yopiq testi 8-dekabr (o'sha testerlar) · alfa qarori 13-dekabr ·
+web launch 15-dekabr · Google Play'ga ariza 22-dekabr, do'konda 29-dekabrdan oldin emas. Holat:
 `docs/STATUS.md`.

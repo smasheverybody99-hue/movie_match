@@ -220,6 +220,7 @@ footer a{ color:var(--muted); }
   <p class="lede">Deckdagi 24 slayd mahsulot g'oyasi edi. Bu esa uni ishlaydigan, foydalanuvchilar ro'yxatdan o'tadigan ilovaga aylantirish yo'li — haftasiga ~27 soat, Claude bilan kod yozish tezligiga moslangan holda. Har fazada bitta ko'rinadigan natija bor; qadamlarni belgilab boring, progress saqlanadi.</p>
   <p class="lede"><b>2026-11-13, TZ 1.30:</b> reja tezlashtirildi. Doira o'zgarmadi, tartib o'zgardi: alfa paytida mobil va web launch quriladi, ochiq launch alfa natijasidan keyin. Asl 17 haftalik hisob (haftalar va soatlar) quyida tarix uchun qoldi.</p>
   <p class="lede"><b>2026-11-17, TZ 1.32:</b> hamma maqsad sana 4 kunga surildi (13–17-noyabr ish bo'lmadi); oraliqlar o'zgarmadi — alfa 14 kun, Play yopiq testi 14 kun.</p>
+  <p class="lede"><b>2026-11-22, TZ 1.35:</b> testerlar hali yo'q — 29-noyabrgacha yig'iladi (12 ta Android telefon + Gmail, maqsad 15); alfa shu kundan 14 kun. Qolgan sanalar +6 kun, oraliqlar o'zgarmadi; Play yopiq testi o'sha testerlar bilan.</p>
   <div class="tiles">
     <div class="tile"><span class="n">19.11</span><span class="k">testerlar</span></div>
     <div class="tile"><span class="n">3.12</span><span class="k">alfa qarori</span></div>
@@ -261,7 +262,7 @@ footer a{ color:var(--muted); }
 </section>
 
 <section id="plan">
-  <h2>Tezlashtirilgan tartib (TZ 1.30)</h2>
+  <h2>Tezlashtirilgan tartib (TZ 1.30, sanalar TZ 1.35)</h2>
   <p class="sub">Foydalanuvchi qarori, 2026-11-13. Faza raqami identifikator bo'lib qoldi: F8 endi F7 dan oldin, F9 ikkiga bo'lindi (F9a web, F9b Google Play); F8 va F7 do'kondan keyin yangilanish (TZ 1.31). Sanalar — maqsad, va'da emas; xavfli joylar pastdagi "Xavflar" jadvalida.</p>
   <div class="scroll">
     <table>
@@ -269,11 +270,11 @@ footer a{ color:var(--muted); }
       <tbody>
         <tr><td class="num">1</td><td><b>F4</b> — AI assistant, yopish</td><td>19-noyabr</td><td>F4 gate, qo'lda ro'yxat, F3 Lighthouse</td></tr>
         <tr><td class="num">2</td><td><b>F5</b> — alfa kodi</td><td>22-noyabr</td><td>F4 yopilgan</td></tr>
-        <tr><td class="num">3</td><td><b>F5</b> — 12 tester kiradi</td><td>23-noyabr</td><td>F5 texnik gate'i yashil</td></tr>
-        <tr><td class="num">4</td><td><b>F6</b> — Android ilova, alfa paytida</td><td>Play yopiq testi 2-dekabr</td><td>Mahsulot darvozasini kutmaydi</td></tr>
-        <tr><td class="num">5</td><td><b>F5</b> — alfa qarori</td><td>7-dekabr</td><td>2 hafta ma'lumot; 15% va 70%</td></tr>
-        <tr><td class="num">6</td><td><b>F9a</b> — web launch</td><td>9-dekabr</td><td>F5 mahsulot darvozasi o'tgan (15% va 70%)</td></tr>
-        <tr><td class="num">7</td><td><b>F9b</b> — Google Play'ga ariza</td><td>16-dekabr; do'konda 23-dekabrdan oldin emas</td><td>F6, F9a, Play: 12 tester × 14 kun; F7/F8 ni kutmaydi</td></tr>
+        <tr><td class="num">3</td><td><b>F5</b> — testerlar yig'iladi, alfa boshlanadi</td><td>29-noyabrgacha</td><td>F5 texnik gate'i yashil; 12 Android + Gmail, maqsad 15 (TZ 1.35)</td></tr>
+        <tr><td class="num">4</td><td><b>F6</b> — Android ilova, alfa paytida</td><td>Play yopiq testi 8-dekabr</td><td>Mahsulot darvozasini kutmaydi; o'sha alfa testerlari</td></tr>
+        <tr><td class="num">5</td><td><b>F5</b> — alfa qarori</td><td>13-dekabr</td><td>2 hafta ma'lumot; 15% va 70%</td></tr>
+        <tr><td class="num">6</td><td><b>F9a</b> — web launch</td><td>15-dekabr</td><td>F5 mahsulot darvozasi o'tgan (15% va 70%)</td></tr>
+        <tr><td class="num">7</td><td><b>F9b</b> — Google Play'ga ariza</td><td>22-dekabr; do'konda 29-dekabrdan oldin emas</td><td>F6, F9a, Play: 12 tester × 14 kun; F7/F8 ni kutmaydi</td></tr>
         <tr><td class="num">8</td><td><b>F8</b> — Smart Watchlist + Group Match</td><td>do'kondan keyin, yangilanish</td><td>F9a</td></tr>
         <tr><td class="num">9</td><td><b>F7</b> — Character Match (flag ortida)</td><td>F8 dan keyin, yangilanish</td><td>Yurist ko'rigigacha flag o'chiq</td></tr>
         <tr><td class="num">—</td><td><b>iOS</b></td><td>hozir rejalanmaydi</td><td>Alohida qaror, yanvar</td></tr>
@@ -393,7 +394,7 @@ footer a{ color:var(--muted); }
   <details class="phase" data-phase="f5">
     <summary>
       <span class="pnum">F5</span>
-      <span class="ptitle"><b>Yopiq alfa — launch'dan oldingi to'xtash nuqtasi</b><span>Kod 22-noyabr · testerlar 23-noyabr · qaror 7-dekabr</span></span>
+      <span class="ptitle"><b>Yopiq alfa — launch'dan oldingi to'xtash nuqtasi</b><span>Kod 22-noyabr · testerlar 29-noyabrgacha · qaror 13-dekabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
@@ -404,18 +405,18 @@ footer a{ color:var(--muted); }
         <li><input type="checkbox" id="f5-2"><label for="f5-2">Telemetriya: tavsiya ko'rsatildi → bosildi → watchlistga qo'shildi → ko'rildi → baholandi</label></li>
         <li><input type="checkbox" id="f5-3"><label for="f5-3">Asosiy metrika: tavsiya qilingan filmning 7 kun ichida ko'rilishi ≥ 15%</label></li>
         <li><input type="checkbox" id="f5-4"><label for="f5-4">2 hafta ichida 5 ta foydalanuvchi bilan 20 daqiqalik suhbat, yozib olib</label></li>
-        <li><input type="checkbox" id="f5-5"><label for="f5-5">Qaror (7-dekabr): 15% past bo'lsa — dvigatel qayta ishlanadi, web va do'kon launch'i to'xtaydi; onboarding ≥ 70% (12 dan kamida 9)</label></li>
+        <li><input type="checkbox" id="f5-5"><label for="f5-5">Qaror (13-dekabr): 15% past bo'lsa — dvigatel qayta ishlanadi, web va do'kon launch'i to'xtaydi; onboarding ≥ 70% (12 dan kamida 9)</label></li>
       </ul>
       <p class="ship"><b>Natija</b><span>Hujjatlashtirilgan qaror: davom etamiz yoki tavsiya mantiqini qayta quramiz.</span></p>
     </div>
   </details>
 
-  <div class="block-head"><span class="tag">Blok C</span><h3>Alfa paytida: mobil va web launch</h3><span class="wk">23-noyabr — 9-dekabr</span></div>
+  <div class="block-head"><span class="tag">Blok C</span><h3>Alfa paytida: mobil va web launch</h3><span class="wk">29-noyabr — 15-dekabr</span></div>
 
   <details class="phase" data-phase="f6">
     <summary>
       <span class="pnum">F6</span>
-      <span class="ptitle"><b>Flutter ilovasi — Android birinchi</b><span>Alfa paytida · Play yopiq testi 2-dekabr</span></span>
+      <span class="ptitle"><b>Flutter ilovasi — Android birinchi</b><span>Alfa paytida · Play yopiq testi 8-dekabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
@@ -425,7 +426,7 @@ footer a{ color:var(--muted); }
         <li><input type="checkbox" id="f6-2"><label for="f6-2">Ekran pariteti: onboarding, feed, film, qidiruv, watchlist, DNA, assistant</label></li>
         <li><input type="checkbox" id="f6-3"><label for="f6-3">Nativ his: swipe bilan baholash, share sheet, haptics, offline kesh (Isar/Hive)</label></li>
         <li><input type="checkbox" id="f6-4"><label for="f6-4">Push (FCM): haftalik tavsiya, watchlistdagi film striminga chiqqanda</label></li>
-        <li><input type="checkbox" id="f6-5"><label for="f6-5">Google Play akkaunti ($25 bir marta; shaxsni va Android qurilmani tasdiqlash) — 2-dekabrdan ancha oldin. iOS hozir rejalanmaydi (TZ 1.31: alohida qaror, yanvar)</label></li>
+        <li><input type="checkbox" id="f6-5"><label for="f6-5">Google Play akkaunti ($25 bir marta; shaxsni va Android qurilmani tasdiqlash) — 8-dekabrdan ancha oldin. iOS hozir rejalanmaydi (TZ 1.31: alohida qaror, yanvar)</label></li>
         <li><input type="checkbox" id="f6-6"><label for="f6-6">Android build Play yopiq testida, 12 tester qo'shilgan (14 kun shu kundan)</label></li>
         <li><input type="checkbox" id="f6-7"><label for="f6-7">Kamida 4 ta real qurilmada test (eski Android ham)</label></li>
       </ul>
@@ -436,7 +437,7 @@ footer a{ color:var(--muted); }
   <details class="phase" data-phase="f9">
     <summary>
       <span class="pnum">F9a</span>
-      <span class="ptitle"><b>Web launch: huquqiy, ishonchlilik</b><span>Alfa paytida quriladi · launch 9-dekabr</span></span>
+      <span class="ptitle"><b>Web launch: huquqiy, ishonchlilik</b><span>Alfa paytida quriladi · launch 15-dekabr</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
@@ -452,16 +453,16 @@ footer a{ color:var(--muted); }
     </div>
   </details>
 
-  <div class="block-head"><span class="tag">Blok D</span><h3>Web launch'dan keyin: Play, keyin yangilanishlar</h3><span class="wk">16-dekabrdan</span></div>
+  <div class="block-head"><span class="tag">Blok D</span><h3>Web launch'dan keyin: Play, keyin yangilanishlar</h3><span class="wk">22-dekabrdan</span></div>
 
   <details class="phase" data-phase="f9b">
     <summary>
       <span class="pnum">F9b</span>
-      <span class="ptitle"><b>Google Play'ga ariza</b><span>16-dekabr · do'konda 23-dekabrdan oldin emas</span></span>
+      <span class="ptitle"><b>Google Play'ga ariza</b><span>22-dekabr · do'konda 29-dekabrdan oldin emas</span></span>
       <span class="pmeta"><span class="mini"><i></i></span><span class="pcount"></span><span class="chev">›</span></span>
     </summary>
     <div class="pbody">
-      <p class="note">Google Play: 2023-11-13 dan keyin ochilgan shaxsiy akkaunt production'ga ariza berishdan oldin kamida 12 testerli yopiq testni 14 kun ketma-ket o'tkazishi kerak; ariza ko'rigi odatda 7 kungacha. 2-dekabrda boshlangan test 16-dekabrda 14 kunga yetadi — zaxira yo'q.</p>
+      <p class="note">Google Play: 2023-11-13 dan keyin ochilgan shaxsiy akkaunt production'ga ariza berishdan oldin kamida 12 testerli yopiq testni 14 kun ketma-ket o'tkazishi kerak; ariza ko'rigi odatda 7 kungacha. 8-dekabrda boshlangan test 22-dekabrda 14 kunga yetadi — zaxira yo'q.</p>
       <ul class="check">
         <li><input type="checkbox" id="f9b-1"><label for="f9b-1">Play yopiq testi: 12 tester 14 kun ketma-ket qo'shilgan (sanalar yozilgan)</label></li>
         <li><input type="checkbox" id="f9-5"><label for="f9-5">Play production arizasi (iOS — yanvar, alohida qaror). Birinchi urinishda rad javobiga tayyor turing — 1–7 kun</label></li>
@@ -554,7 +555,7 @@ footer a{ color:var(--muted); }
         <tr>
           <td><b>Tavsiyalar aslida yaxshi emas</b> — lekin buni bilmaysiz</td>
           <td><span class="sev hi">Yuqori</span></td>
-          <td>F5 — qaror 7-dekabr</td>
+          <td>F5 — qaror 13-dekabr</td>
           <td>Alfa darvozasini o'tkazib yubormang. Aniq metrika: 7 kunlik ko'rilish ≥ 15%. Past bo'lsa — orqaga qayting.</td>
         </tr>
         <tr>
@@ -567,7 +568,7 @@ footer a{ color:var(--muted); }
           <td><b>Sanalarda zaxira yo'q</b> — Play 14 kuni nol zaxira bilan</td>
           <td><span class="sev hi">Yuqori</span></td>
           <td>TZ 1.30 — 2026-11-13</td>
-          <td>Play akkauntini darhol ochish; 12 tester 2-dekabrda bir kunda qo'shilishi. F7/F8 do'kondan keyin, iOS yanvarda (TZ 1.31). Tafsilot: <code>docs/STATUS.md</code>, "Keyingi qadam".</td>
+          <td>Play akkauntini darhol ochish; 12 tester 8-dekabrda bir kunda qo'shilishi. F7/F8 do'kondan keyin, iOS yanvarda (TZ 1.31). Tafsilot: <code>docs/STATUS.md</code>, "Keyingi qadam".</td>
         </tr>
         <tr>
           <td><b>Sovuq start</b> — yangi foydalanuvchida ma'lumot yo'q</td>
@@ -619,12 +620,12 @@ footer a{ color:var(--muted); }
   <p class="sub">Ko'p metrika kuzatish mumkin. Qaror qabul qilish uchun shu uchtasi kerak.</p>
   <div class="metrics">
     <div class="metric">
-      <span class="when">F5 · 7-dekabr</span>
+      <span class="when">F5 · 13-dekabr</span>
       <p class="big">≥ 15%</p>
       <p>Tavsiya qilingan film 7 kun ichida ko'rildi. Mahsulotning asosiy da'vosi shu raqamda sinovdan o'tadi.</p>
     </div>
     <div class="metric">
-      <span class="when">Launch · 9-dekabrdan</span>
+      <span class="when">Launch · 15-dekabrdan</span>
       <p class="big">≥ 25%</p>
       <p>D7 retention. Undan past bo'lsa — odamlar bir marta sinab ko'rib, qaytmayapti.</p>
     </div>
