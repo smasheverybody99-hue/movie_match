@@ -262,3 +262,39 @@ describe("the assistant's busy message (FR-8 time limit)", () => {
     expect(translate("ru", "assistant.busy")).toBe("Ассистент сейчас занят. Попробуйте ещё раз через минуту.");
   });
 });
+
+describe("the 'Not right?' reasons (Phase 5)", () => {
+  // The user accepted the four chips on 2026-11-17, in this order and in these Uzbek
+  // words; English and Russian are translations of them. A free-text reason was declined:
+  // the alpha's events and feedback carry no text the viewer typed.
+  it("are the four approved chips", () => {
+    const keys = ["seen", "not_my_genre", "too_old", "other"] as const;
+    expect(keys.map((k) => translate("uz", `wrong.reason.${k}`))).toEqual(["Ko'rganman", "Janrim emas", "Juda eski", "Boshqa"]);
+    expect(keys.map((k) => translate("en", `wrong.reason.${k}`))).toEqual(["I've seen it", "Not my genre", "Too old", "Other"]);
+    expect(keys.map((k) => translate("ru", `wrong.reason.${k}`))).toEqual(["Уже видел(а)", "Не мой жанр", "Слишком старый", "Другое"]);
+  });
+});
+
+describe("today's explanations are used up (Phase 5, TZ backlog)", () => {
+  // The user accepted these three on 2026-11-17. Shown on the film page under the template
+  // sentence once the API says `daily_cap`: the allowance, not an error, and when it comes back.
+  it("says the day's explanations are used up and when new ones come", () => {
+    expect(translate("uz", "movie.explanationsUsedUp")).toBe("Bugungi izohlar tugadi — ertaga yangilanadi");
+    expect(translate("en", "movie.explanationsUsedUp")).toBe("Today's explanations are used up — new ones tomorrow");
+    expect(translate("ru", "movie.explanationsUsedUp")).toBe("Пояснения на сегодня закончились — завтра будут новые");
+  });
+});
+
+describe("the alpha's data notice (ADR 0004, free-tier exception)", () => {
+  // The text the user saw in docs/STATUS.md ("Gemini tarifi", option 2) and chose on
+  // 2026-11-17, split into the notice and its line about the assistant being busy. The
+  // buttons: accept, or decline and be signed out (user decision, 2026-11-17).
+  it("says what goes to Google, and asks", () => {
+    expect(translate("uz", "notice.body")).toBe(
+      "Sinov davrida assistant va film izohlari Google Gemini'ning bepul tarifida ishlaydi. Assistantga yozgan xabarlaringiz va baholaringizdan olingan ta'm ma'lumoti Google'ga yuboriladi; Google ularni o'z mahsulotlarini yaxshilash uchun ishlatishi va xodimlari o'qishi mumkin. Shaxsiy yoki maxfiy ma'lumot yozmang.",
+    );
+    expect(translate("uz", "notice.accept")).toBe("Roziman, davom etish");
+    expect(translate("uz", "notice.decline")).toBe("Rozi emasman — chiqish");
+    expect(translate("en", "notice.decline")).toBe("I don't agree — sign out");
+  });
+});

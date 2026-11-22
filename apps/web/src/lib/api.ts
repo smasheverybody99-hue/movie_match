@@ -3,7 +3,9 @@ import type {
   AssistantChatIn,
   AssistantEvent,
   AssistantLimit,
+  ClientEvent,
   Explanation,
+  FeedbackIn,
   Lang,
   Me,
   Movie,
@@ -22,6 +24,11 @@ let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null): void {
   accessToken = token;
+}
+
+/** Whether a request would go out signed in (telemetry waits until it would). */
+export function hasAccessToken(): boolean {
+  return accessToken !== null;
 }
 
 /**
@@ -210,6 +217,7 @@ export const api = {
   me: () => request<Me>("/me"),
   dna: () => request<MovieDna>("/me/dna"),
   deleteAccount: () => request<void>("/me", { method: "DELETE" }),
+  acceptDataNotice: () => request<void>("/me/data-notice", { method: "POST" }),
 
   onboardingFilms: (limit: number, offset: number) =>
     request<Movie[]>(`/onboarding/films?limit=${limit}&offset=${offset}`),
@@ -230,6 +238,12 @@ export const api = {
   explanation: (movieId: number, lang: Lang) =>
     request<Explanation>(`/recommendations/${movieId}/explanation?lang=${lang}`),
   dismiss: (movieId: number) => request<void>("/dismissals", json("POST", { movie_id: movieId })),
+
+  /** A batch of what the viewer saw. `keepalive` lets it finish while the page closes. */
+  sendEvents: (events: ClientEvent[], keepalive = false) =>
+    request<{ recorded: number }>("/events", { ...json("POST", { events }), keepalive }),
+  onboardingDone: () => request<void>("/onboarding/done", { method: "POST" }),
+  markWrong: (body: FeedbackIn) => request<void>("/feedback", json("POST", body)),
 
   assistantChat,
 };

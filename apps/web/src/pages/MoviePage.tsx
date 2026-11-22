@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { Bookmark, BookmarkCheck, Gauge } from "lucide-react";
 
@@ -146,6 +146,8 @@ function Why({ detail }: { detail: MovieDetail }) {
   const traits = named.map((key) => traitInSentence(key, t, lang)).join(", ");
   const fallback = side === "difference" ? "movie.differsFallback" : "movie.whyYouFallback";
   const sentence = side === null ? null : (explanation.data?.text ?? t(fallback, { traits }));
+  // Today's allowance is used up: the template stands in, and says why (TZ backlog, Phase 5).
+  const capped = side !== null && (explanation.data?.reason ?? explanationsOff()) === "daily_cap";
   const film = detail.traits?.scores ?? {};
   const taste = tasteScores(dna.data?.scores);
   return (
@@ -166,6 +168,11 @@ function Why({ detail }: { detail: MovieDetail }) {
             />
           ) : (
             sentence !== null && <p className={reduce ? "why-text" : "why-text why-in"}>{sentence}</p>
+          )}
+          {capped && (
+            <p className="meta why-capped" data-testid="explanations-used-up">
+              {t("movie.explanationsUsedUp")}
+            </p>
           )}
         </div>
       </div>
@@ -304,6 +311,32 @@ function MovieSkeleton({ early }: { early: EarlyFilm | null }) {
   );
 }
 
+/**
+ * Before a sensitive film's page (Phase 5, NSFW): what it is, and a choice. No poster, no
+ * backdrop: the images are what the warning is about. Lists never show such a film, so
+ * the viewer came by a link.
+ */
+function SensitiveNotice({ title, onShow }: { title: string; onShow: () => void }) {
+  const t = useT();
+  const navigate = useNavigate();
+  return (
+    <section className="state sensitive-notice" aria-labelledby="sensitive-title">
+      <h1 className="screen-title" id="sensitive-title">
+        {t("movie.sensitive.title")}
+      </h1>
+      <p>{t("movie.sensitive.body", { title })}</p>
+      <div className="sensitive-actions">
+        <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>
+          {t("movie.sensitive.back")}
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={onShow}>
+          {t("movie.sensitive.show")}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /** /movie/:id — backdrop hero, then the match and "why you" above the overview (docs/ui.md, 5). */
 export default function MoviePage() {
   const t = useT();
@@ -321,6 +354,8 @@ export default function MoviePage() {
   // After the skeleton the page fades in (160 ms); from the cache it is simply there.
   const [waited, setWaited] = useState(false);
   if (query.data === undefined && query.isPending && !waited) setWaited(true);
+  // A sensitive film's page opens only after the viewer says so, once per film.
+  const [confirmed, setConfirmed] = useState<number | null>(null);
 
   if (!Number.isInteger(id) || id <= 0 || isNotFound(query.error)) {
     return <EmptyState message={t("movie.notFound")} action={{ label: t("movie.notFoundCta"), to: "/" }} />;
@@ -336,6 +371,9 @@ export default function MoviePage() {
   }
 
   const detail = query.data;
+  if (detail.sensitive && confirmed !== detail.id) {
+    return <SensitiveNotice title={detail.title} onShow={() => setConfirmed(detail.id)} />;
+  }
   return (
     <article className={waited ? "film-page arrive" : "film-page"}>
       <Hero detail={detail} />

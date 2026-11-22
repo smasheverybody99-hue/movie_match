@@ -282,6 +282,15 @@ select.field { appearance: auto; }
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .movie-card .meta { margin-top: 2px; }
+/* "Not right?" (Phase 5): a quiet text button under the card; its chips open in place. */
+.not-right { padding: 0; font-size: 12px; min-height: 32px; }
+.movie-card .not-right-panel, .home-hero .not-right-panel { margin-top: var(--space-2); }
+.not-right-question { margin: 0 0 var(--space-2); font-size: 13px; font-weight: 600; }
+.not-right-panel .chip-row { gap: 6px; }
+.not-right-panel .chip { min-height: 36px; padding: 0 10px; font-size: 12px; white-space: normal; }
+.not-right-foot { display: flex; gap: var(--space-2); margin-top: 4px; }
+.not-right-foot .link-btn { padding: 0; min-height: 32px; font-size: 12px; }
+.has-quick .not-right, .has-quick .not-right-panel { position: relative; z-index: 3; }
 /* Titles stay above any lifted poster's shadow, their own card's and a neighbour's (a lifted
    card is drawn above the row, z-index 2). Below every sticky bar (>= 10). */
 .has-quick .movie-card-title, .has-quick .meta { position: relative; z-index: 3; }
@@ -940,3 +949,14 @@ details.filters-toggle > summary { min-height: var(--touch); display: flex; alig
 .assistant-send { flex: none; width: var(--touch); padding: 0; }
 @media (min-width: 640px) { .assistant-form { bottom: var(--space-2); } }
 @media (prefers-reduced-motion: reduce) { .assistant-dots i { animation: none; opacity: .7; } }
+
+/* Before a sensitive film's page (Phase 5): the warning and two choices, no images. */
+.sensitive-notice { max-width: 520px; margin: 0 auto; text-align: left; }
+.sensitive-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.why-capped { margin: var(--space-2) 0 0; }
+
+/* The alpha's data notice (ADR 0004): one screen, read before anything else. */
+.data-notice { max-width: 620px; }
+.data-notice p { line-height: 1.55; }
+.data-notice-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.assistant-reminder { margin: var(--space-2) 0 0; }

@@ -48,6 +48,8 @@ export interface MovieDetail extends Movie {
   named_traits: string[];
   /** Which side `named_traits` falls on; null exactly when `named_traits` is empty. */
   trait_side: TraitSide | null;
+  /** Explicit or extreme: in no list, and the page warns before it shows (Phase 5). */
+  sensitive: boolean;
 }
 
 export interface Recommendation {
@@ -125,6 +127,10 @@ export interface Me {
   ratings_needed: number;
   has_taste_profile: boolean;
   taste_updated_at: string | null;
+  /** The client shows the data notice until it is accepted (ADR 0004, the alpha). */
+  data_notice_required: boolean;
+  /** When this user accepted it; null: not yet. */
+  data_notice_accepted_at: string | null;
 }
 
 export interface RatingIn {
@@ -154,6 +160,27 @@ export interface WatchlistItem {
   /** The caller's match; null without traits or taste. Not shown. */
   match: number | null;
   band: MatchBand | null;
+}
+
+// --- closed alpha (Phase 5) -------------------------------------------------------------
+
+/** Where a recommendation was shown. Mirrors app.services.events.Source. */
+export type EventSource = SectionKey | "assistant";
+export type OnboardingStep = "pick" | "rate" | "done";
+
+/** One event the client sends (POST /events). Mirrors app.schemas.EventIn. */
+export type ClientEvent =
+  | { type: "recommendation_shown" | "recommendation_clicked"; at: string; movie_id: number; source: EventSource }
+  | { type: "onboarding_step"; at: string; step: OnboardingStep };
+
+/** The four chips under "Not right?". Mirrors app.services.feedback.Reason. */
+export type FeedbackReason = "seen" | "not_my_genre" | "too_old" | "other";
+
+/** POST /feedback. Mirrors app.schemas.FeedbackIn. */
+export interface FeedbackIn {
+  movie_id: number;
+  source: EventSource;
+  reason?: FeedbackReason | null;
 }
 
 // --- assistant (FR-8): POST /assistant/chat, a Server-Sent Events stream ----------------

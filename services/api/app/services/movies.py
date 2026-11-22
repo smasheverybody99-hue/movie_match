@@ -83,7 +83,7 @@ class Dna:
 
 async def search(session: AsyncSession, filters: SearchFilters, limit: int) -> list[Movie]:
     """Best known first. Trait filters leave out films that have no trait vector yet."""
-    stmt = select(Movie).where(Movie.adult.is_(False))
+    stmt = select(Movie).where(Movie.adult.is_(False), Movie.sensitive.is_(False))
     if filters.q:
         stmt = stmt.where(Movie.title.ilike(f"%{filters.q}%"))
     if filters.year_from is not None:

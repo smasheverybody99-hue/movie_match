@@ -15,7 +15,8 @@ import {
 import { useI18n } from "../i18n";
 import { explanationsOff, noteExplanation } from "./explanations";
 import { api, type SearchParams } from "./api";
-import type { Lang, Movie, Rating, RatingIn, WatchlistItem } from "./types";
+import { hideCard, restoreCard } from "./hiddenCards";
+import type { EventSource, FeedbackReason, Lang, Me, Movie, Rating, RatingIn, WatchlistItem } from "./types";
 
 export const keys = {
   me: ["me"] as const,
@@ -193,6 +194,39 @@ export function useWatchlistChange() {
     onError: (_error, _change, context) => rollback(client, keys.watchlist, context?.previous),
     onSettled: () => {
       void client.invalidateQueries({ queryKey: keys.watchlist });
+    },
+  });
+}
+
+/**
+ * "Not right?": the card leaves the view first, the request follows; a failure brings
+ * the card back (lib/hiddenCards.ts). Nothing cached changes: the feed stays the engine's.
+ */
+export function useMarkWrong() {
+  return useMutation({
+    mutationFn: ({ movie, source, reason }: { movie: Movie; source: EventSource; reason: FeedbackReason | null }) =>
+      api.markWrong({ movie_id: movie.id, source, reason }),
+    onMutate: ({ movie }) => hideCard(movie.id, movie.title),
+    onError: (_error, { movie }) => restoreCard(movie.id, movie.title),
+  });
+}
+
+/**
+ * Onboarding finished: the server sets the date and records it for the alpha's metrics.
+ * The viewer does not wait for it; it is tried again while the page stays open.
+ */
+export function useOnboardingDone() {
+  return useMutation({ mutationFn: api.onboardingDone, retry: 3 });
+}
+
+/** The data notice accepted: /me says so from now on, without a refetch first. */
+export function useAcceptDataNotice() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: api.acceptDataNotice,
+    onSuccess: () => {
+      client.setQueryData<Me>(keys.me, (me) => (me ? { ...me, data_notice_accepted_at: new Date().toISOString() } : me));
+      void client.invalidateQueries({ queryKey: keys.me });
     },
   });
 }

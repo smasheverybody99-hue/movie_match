@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { setAccessToken } from "./api";
 import { resetExplanations } from "./explanations";
+import { resetTelemetry } from "./telemetry";
 import type { AuthClient, OAuthProvider, Session } from "./supabase";
 
 export type AuthStatus = "loading" | "signedOut" | "signedIn" | "unconfigured";
@@ -45,7 +46,10 @@ export function AuthProvider({
       // daily allowance, no taste profile), so a different user starts over. A token
       // refresh keeps the same id and changes nothing.
       setSession((prev) => {
-        if (prev !== null && prev.userId !== next?.userId) resetExplanations();
+        if (prev !== null && prev.userId !== next?.userId) {
+          resetExplanations();
+          resetTelemetry(); // queued events were the previous account's
+        }
         return next;
       });
       setStatus(next ? "signedIn" : "signedOut");

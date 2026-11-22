@@ -4,7 +4,9 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
 import { resetExplanations } from "../lib/explanations";
+import { resetHiddenCards } from "../lib/hiddenCards";
 import { resetRatingQueues } from "../lib/ratingQueue";
+import { resetTelemetry } from "../lib/telemetry";
 
 // findBy* / waitFor give up after this long (the library's default is 1000 ms). A wait here
 // is for an exact role, name or text, and on an idle machine it is met at the first check.
@@ -20,4 +22,6 @@ afterEach(() => {
   resetRatingQueues();
   // Session state, so one test's "no sentence is coming" must not reach the next.
   resetExplanations();
+  resetTelemetry();
+  resetHiddenCards();
 });

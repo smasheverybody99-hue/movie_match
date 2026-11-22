@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Movie, WatchlistItem
+from app.services import events
 from app.services.ratings import MovieNotFound
 
 
@@ -34,6 +35,8 @@ async def add(session: AsyncSession, user_id: uuid.UUID, movie_id: int) -> Watch
         .execution_options(populate_existing=True)
     )
     assert item is not None  # an upsert with RETURNING always yields its row
+    # Also on a repeat add: the metrics take the first per user and film.
+    events.add(session, user_id, "added_to_watchlist", movie_id=movie_id)
     await session.commit()
     return item
 
@@ -83,5 +86,6 @@ async def mark_watched(
     )
     if item is None:
         raise NotOnWatchlist(movie_id)
+    events.add(session, user_id, "marked_watched", movie_id=movie_id, at=now)
     await session.commit()
     return item

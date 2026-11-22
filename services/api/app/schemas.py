@@ -8,6 +8,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.services.events import MAX_BATCH, ClientEventType, OnboardingStep, Source
+from app.services.feedback import Reason as FeedbackReason
 from app.traits import TRAIT_KEYS
 
 
@@ -68,6 +70,10 @@ class MovieDetailOut(MovieOut):
     band: MatchBand | None = Field(default=None, description=BAND_DESCRIPTION)
     named_traits: list[str] = Field(default_factory=list, description=NAMED_TRAITS_DESCRIPTION)
     trait_side: TraitSide | None = Field(default=None, description=TRAIT_SIDE_DESCRIPTION)
+    sensitive: bool = Field(
+        default=False,
+        description="Explicit or extreme: in no list, and the client warns before the page",
+    )
 
 
 class RecommendationOut(BaseModel):
@@ -128,6 +134,12 @@ class MeOut(BaseModel):
     ratings_needed: int = Field(ge=0, description="Ratings still needed before recommendations")
     has_taste_profile: bool
     taste_updated_at: datetime | None = None
+    data_notice_required: bool = Field(
+        default=False, description="The client shows the data notice until it is accepted"
+    )
+    data_notice_accepted_at: datetime | None = Field(
+        default=None, description="When this user accepted it; null: not yet"
+    )
 
 
 class RatingIn(BaseModel):
@@ -190,6 +202,42 @@ class UserOut(BaseModel):
     id: uuid.UUID
     display_name: str | None = None
     onboarded: bool = False
+
+
+# --- closed alpha (Phase 5) -------------------------------------------------------------
+
+
+class EventIn(BaseModel):
+    """One event the client saw (app/services/events.py). Unknown fields are refused: no
+    event may carry anything else, least of all text the user typed."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: ClientEventType
+    at: datetime = Field(description="When it happened, with a time zone")
+    movie_id: int | None = Field(default=None, gt=0)
+    source: Source | None = Field(default=None, description="Where the film was shown")
+    step: OnboardingStep | None = Field(default=None, description="onboarding_step only")
+
+
+class EventsIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    events: list[EventIn] = Field(min_length=1, max_length=MAX_BATCH)
+
+
+class EventsOut(BaseModel):
+    recorded: int
+
+
+class FeedbackIn(BaseModel):
+    """ "This recommendation was wrong", with an optional reason from the chips."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    movie_id: int = Field(gt=0)
+    source: Source = Field(description="Where the card was")
+    reason: FeedbackReason | None = None
 
 
 # --- assistant (FR-8) -------------------------------------------------------------------

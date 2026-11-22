@@ -73,6 +73,10 @@ class Settings(BaseSettings):
     # stalled stream, so four at worst; off-topic ones count too, and so does one that ran
     # out of time (its tokens were spent).
     assistant_daily_calls_per_user: int = 30
+    # The closed alpha runs the assistant and the explanations on Gemini's free tier (ADR
+    # 0004, exception of 2026-11-17): every user accepts the data notice before using the
+    # app. Set DATA_NOTICE_REQUIRED=false once the key is on the paid tier.
+    data_notice_required: bool = True
     # "Why you'll like this" generations per user per day. Cached ones are free and
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
     # ~$0.08 a month for the heaviest user, inside TZ's $0.20 (docs/costs.md).

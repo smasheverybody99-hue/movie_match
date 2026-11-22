@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Movie, Rating
+from app.services import events
 from app.services.taste import recompute_taste
 
 
@@ -46,6 +47,7 @@ async def rate(
     ).returning(Rating)
     rating = (await session.scalars(upsert, execution_options={"populate_existing": True})).one()
     await recompute_taste(session, user_id)
+    events.add(session, user_id, "rated", movie_id=movie_id)  # committed with the rating
     await session.commit()
     return rating
 

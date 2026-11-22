@@ -9,12 +9,14 @@ already rated are left out, so a user who comes back resumes where they stopped 
 """
 
 import uuid
+from datetime import UTC, datetime
 from itertools import zip_longest
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Genre, Movie, MovieGenre, MovieTraits, Rating
+from app.models import Genre, Movie, MovieGenre, MovieTraits, Rating, User
+from app.services import events
 
 PER_GENRE = 8
 
@@ -53,7 +55,7 @@ async def onboarding_films(
         select(MovieGenre.genre_id, Movie.id.label("movie_id"), Movie.popularity, rank)
         .join(Movie, Movie.id == MovieGenre.movie_id)
         .join(MovieTraits, MovieTraits.movie_id == Movie.id)
-        .where(Movie.adult.is_(False), Movie.id.not_in(rated))
+        .where(Movie.adult.is_(False), Movie.sensitive.is_(False), Movie.id.not_in(rated))
         .subquery()
     )
     rows = await session.execute(
@@ -74,3 +76,20 @@ async def onboarding_films(
         return []
     movies = {m.id: m for m in await session.scalars(select(Movie).where(Movie.id.in_(ids)))}
     return [movies[i] for i in ids]
+
+
+async def finish(session: AsyncSession, user_id: uuid.UUID, now: datetime | None = None) -> bool:
+    """Onboarding is done: set `users.onboarded_at` and record `onboarding_done`, in one
+    transaction. Only the first time counts; True when this call was it."""
+    now = now or datetime.now(UTC)
+    first = await session.scalar(
+        update(User)
+        .where(User.id == user_id, User.onboarded_at.is_(None))
+        .values(onboarded_at=now)
+        .returning(User.id)
+        .execution_options(synchronize_session=False)
+    )
+    if first is not None:
+        events.add(session, user_id, "onboarding_done", at=now)
+    await session.commit()
+    return first is not None

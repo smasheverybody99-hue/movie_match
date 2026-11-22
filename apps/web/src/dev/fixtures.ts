@@ -81,6 +81,7 @@ export function detail(m: Movie, patch: Partial<MovieDetail> = {}): MovieDetail 
     band: "strong",
     named_traits: ["psychological_complexity", "plot_twist", "mystery"],
     trait_side: "reason",
+    sensitive: false,
     ...patch,
   };
 }

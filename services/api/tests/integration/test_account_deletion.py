@@ -5,11 +5,18 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Dismissal, Explanation, Rating, User, WatchlistItem
+from app.models import (
+    Dismissal,
+    Explanation,
+    Rating,
+    RecommendationFeedback,
+    User,
+    WatchlistItem,
+)
 from tests.integration.api import api_client, auth, seed_films
 
 FILMS = [9_700_001, 9_700_002, 9_700_003]
-USER_TABLES = [Rating, WatchlistItem, Dismissal, Explanation]
+USER_TABLES = [Rating, WatchlistItem, Dismissal, Explanation, RecommendationFeedback]
 
 
 async def _count(session: AsyncSession, model: type, user_id: uuid.UUID) -> int:
@@ -27,6 +34,9 @@ async def test_no_rows_remain_after_delete(db_session: AsyncSession) -> None:
             )
             await client.post("/watchlist", json={"movie_id": FILMS[1]}, headers=auth(user))
             await client.post("/dismissals", json={"movie_id": FILMS[2]}, headers=auth(user))
+            await client.post(
+                "/feedback", json={"movie_id": FILMS[2], "source": "for_you"}, headers=auth(user)
+            )
         db_session.add(Explanation(user_id=me, movie_id=FILMS[0], lang="uz", text="x", model="m"))
         await db_session.commit()
         for model in USER_TABLES:

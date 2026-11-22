@@ -5,9 +5,11 @@ import { Navigate } from "react-router-dom";
 import { Hero, HERO_COUNT } from "../components/Hero";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
+import { WrongNoticeToast } from "../components/NotRight";
 import { useQuickActions } from "../components/QuickActions";
 import { EmptyState, LoadingMark, QueryView } from "../components/States";
 import { useT } from "../i18n";
+import { useHiddenCards } from "../lib/hiddenCards";
 import { usePrefersReducedMotion } from "../lib/motion";
 import { useRecommendations } from "../lib/queries";
 import { useElapsedStage } from "../lib/useElapsedStage";
@@ -118,6 +120,8 @@ export default function Feed() {
   const t = useT();
   const query = useRecommendations();
   const { saved, toggleSave, quickFor, overlay } = useQuickActions();
+  // "Not right?" takes a card out of this view only (lib/hiddenCards.ts).
+  const { hidden } = useHiddenCards();
 
   return (
     <>
@@ -137,7 +141,9 @@ export default function Feed() {
               />
             );
           }
-          const sections = data.sections.filter((s) => s.items.length > 0);
+          const sections = data.sections
+            .map((s) => ({ ...s, items: s.items.filter((item) => !hidden.has(item.movie.id)) }))
+            .filter((s) => s.items.length > 0);
           const forYou = sections.find((s) => s.key === "for_you");
           const heroItems = forYou ? forYou.items.slice(0, HERO_COUNT) : [];
           // The hero's films are not repeated in the For you row: it starts at the 6th.
@@ -163,7 +169,7 @@ export default function Feed() {
               <Row>
                 {section.items.map((item) => (
                   <li key={item.movie.id}>
-                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} />
+                    <MovieCard movie={item.movie} band={item.band} quick={quickFor(item.movie)} source={section.key} />
                   </li>
                 ))}
               </Row>
@@ -174,6 +180,7 @@ export default function Feed() {
         }}
       </QueryView>
       {overlay}
+      <WrongNoticeToast />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 
+import { DataNoticeGate } from "./components/DataNotice";
 import { AppShell } from "./components/Layout";
 import { Loading, Skeleton } from "./components/States";
 import { useT } from "./i18n";
@@ -32,7 +33,8 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
   if (status === "loading") return <PageSkeleton />;
   if (status !== "signedIn") return <Navigate to="/welcome" replace />;
-  return <>{children}</>;
+  // The alpha's data notice comes before anything that could send data (ADR 0004).
+  return <DataNoticeGate loading={<PageSkeleton />}>{children}</DataNoticeGate>;
 }
 
 function PublicOnly({ children }: { children: ReactNode }) {

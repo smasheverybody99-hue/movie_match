@@ -5,7 +5,7 @@ Embeddings for retrieval, traits for ranking (docs/architecture.md):
 1. Retrieve ~300 candidates by pgvector ANN over movie embeddings. The query vector is
    the user's taste in embedding space: the mean of the embeddings of the films they
    liked, weighted exactly as the taste vector weighs them (taste.rating_weight).
-2. Hard filters in SQL: not adult, has traits, not rated, not watched, not dismissed,
+2. Hard filters in SQL: not adult or sensitive, has traits, not rated, not watched, not dismissed,
    plus the section's own filter (runtime for "Under 90 minutes").
 3. Score every candidate with matching.match_percentage (docs/TZ.md FR-5), give it its
    band (services/bands.py), and drop the user's furthest share of the catalogue
@@ -289,7 +289,7 @@ def _candidates_query(query_vector: Sequence[float], exclude: set[int]) -> Selec
         select(Movie, MovieTraits.vector, directors)
         .join(MovieEmbedding, MovieEmbedding.movie_id == Movie.id)
         .join(MovieTraits, MovieTraits.movie_id == Movie.id)
-        .where(Movie.adult.is_(False))
+        .where(Movie.adult.is_(False), Movie.sensitive.is_(False))
         .order_by(distance, Movie.id)
     )
     if exclude:
@@ -489,7 +489,7 @@ def _search_rows(user_exclude: set[int], request: SearchRequest) -> Select:
     stmt = (
         select(Movie.id, MovieTraits.vector)
         .join(MovieTraits, MovieTraits.movie_id == Movie.id)
-        .where(Movie.adult.is_(False))
+        .where(Movie.adult.is_(False), Movie.sensitive.is_(False))
     )
     exclude = user_exclude | set(request.exclude)
     if exclude:
@@ -543,7 +543,8 @@ async def search(
 
     The same engine as the sections, with the request in place of a section's filter:
 
-    1. Hard filters in SQL: not adult, has traits, not rated / watched / dismissed, not in
+    1. Hard filters in SQL: not adult or sensitive, has traits, not rated / watched /
+       dismissed, not in
        `request.exclude` (films the conversation already showed), the year and runtime
        limits, and every genre asked for.
     2. Rank every film that passes by match_raw against `search_query` - the taste with

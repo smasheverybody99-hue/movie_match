@@ -1,10 +1,13 @@
 import { RotateCcw, Send } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
+import { AssistantDataReminder } from "../components/DataNotice";
 import { Icon } from "../components/Icon";
 import { MovieCard } from "../components/MovieCard";
+import { WrongNoticeToast } from "../components/NotRight";
 import { useI18n, useT, type MessageKey } from "../i18n";
 import { useAssistantChat, type Exchange } from "../lib/assistant";
+import { useHiddenCards } from "../lib/hiddenCards";
 
 /**
  * /assistant (FR-8). Three starter prompts on an empty conversation; the answer streams
@@ -38,6 +41,7 @@ export function resetTime(iso: string, lang: string): string {
 function Answer({ exchange, onRetry }: { exchange: Exchange; onRetry?: () => void }) {
   const t = useT();
   const { lang } = useI18n();
+  const { hidden } = useHiddenCards(); // "Not right?" takes a card out of this view
   const { status } = exchange;
 
   if (status === "waiting") {
@@ -72,9 +76,11 @@ function Answer({ exchange, onRetry }: { exchange: Exchange; onRetry?: () => voi
           </p>
         ) : (
           <ul key={i} className="row-scroll assistant-cards">
-            {part.cards.map((card) => (
+            {part.cards
+              .filter((card) => !hidden.has(card.movie.id))
+              .map((card) => (
               <li key={card.movie.id}>
-                <MovieCard movie={card.movie} band={card.band} />
+                <MovieCard movie={card.movie} band={card.band} source="assistant" />
               </li>
             ))}
           </ul>
@@ -122,6 +128,7 @@ export default function Assistant() {
         <div>
           <h1 className="screen-title">{t("assistant.title")}</h1>
           <p className="meta">{t("assistant.lead")}</p>
+          <AssistantDataReminder />
         </div>
         {exchanges.length > 0 && (
           <button type="button" className="btn btn-ghost btn-sm" onClick={chat.restart}>
@@ -207,6 +214,7 @@ export default function Assistant() {
           <Icon as={Send} size={18} />
         </button>
       </form>
+      <WrongNoticeToast />
     </div>
   );
 }
