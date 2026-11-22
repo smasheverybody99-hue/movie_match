@@ -473,6 +473,42 @@ in the code is the image's weight on phones. The w300 backdrop is 19 KB against 
 for w780, but on a phone (412 px at DPR 1.75 = 721 px) it is drawn 2.4× larger than its
 pixels. That is a visual decision, the user's. Not done.
 
+### Re-measure after `f3-perf` (2026-11-22)
+
+**LCP, the user's Lighthouse runs** (live site, The Dark Knight Rises, after merge `0201d02`):
+mobile **5.2 / 3.5 / 3.5 s, median 3.5 s**. It was 4.6 s before. Still **not met** (< 2.5 s).
+
+**INP, measured by Claude, because the page is behind sign-in.** The script is
+`inp_live.mjs` in the session scratchpad, not in the repo. It loads the live site
+(`movie-match.pages.dev`, the deployed bundle at `6d5a4cf`) in headless Chrome:
+- Settings are Lighthouse's mobile ones: 412 × 823 at DPR 1.75, touch, 150 ms RTT,
+  1.6 Mbps, CPU 4×, and a fresh profile on each run.
+- The session is a fake Supabase session.
+- Every request to the API host and to Supabase is answered inside the browser, through
+  CDP `Fetch`, after 500 ms. Nothing with the fake token reached the API or Supabase.
+- On each run it taps, in order: Rate, the slider to 9, a liked-aspect chip, the sheet's
+  Save, Save to list, then Saved to remove it.
+- Each interaction's time comes from Event Timing. With six interactions, INP is the
+  longest one.
+
+| Run | Rate (sheet opens) | Slider | Chip | Sheet Save | Save to list | Saved (remove) | INP |
+|---|---|---|---|---|---|---|---|
+| 1 | 96 ms | 72 ms | 32 ms | 40 ms | < 16 ms | < 16 ms | 96 ms |
+| 2 | 64 ms | 56 ms | 40 ms | 32 ms | 32 ms | < 16 ms | 64 ms |
+| 3 | 104 ms | 48 ms | 64 ms | 24 ms | < 16 ms | < 16 ms | 104 ms |
+| 4 | 96 ms | 88 ms | 56 ms | 32 ms | < 16 ms | < 16 ms | 96 ms |
+| 5 | 96 ms | 48 ms | 40 ms | 24 ms | < 16 ms | < 16 ms | 96 ms |
+
+- **INP median 96 ms**, worst 104 ms: **met** (< 200 ms).
+- The worst interaction is always the Rate tap: its handlers take 24–60 ms, and mounting
+  the sheet takes the rest.
+- After the runs, the page showed "Your rating: 9.0", and Save to list was back to not pressed.
+- **Caveat:** CPU 4× here is 4× slower than this PC, not a real Moto G Power. Lighthouse's
+  own simulated throttling uses the same method.
+
+So the Phase 9a condition (TZ 1.34) stands at: **INP met, mobile LCP 3.5 s not met**.
+The remaining lever is the phone image size, which is the user's choice.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
