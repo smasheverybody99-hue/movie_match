@@ -14,7 +14,13 @@ import { AxisLegend, TraitAxis, traitInSentence } from "../components/Traits";
 import { useI18n, useT } from "../i18n";
 import { isNotFound } from "../lib/api";
 import { useEarlyFilm } from "../lib/earlyFilm";
-import { BACKDROP_SIZES, backdropSrcSet, type EarlyFilm } from "../lib/earlyFilmScript";
+import {
+  BACKDROP_SIZES,
+  SOFT_ABOVE,
+  backdropSoft,
+  backdropSrcSet,
+  type EarlyFilm,
+} from "../lib/earlyFilmScript";
 import { imageUrl, releaseYear, score } from "../lib/format";
 import { explanationsOff } from "../lib/explanations";
 import { genreLabel } from "../lib/genres";
@@ -67,16 +73,33 @@ function Hero({ detail }: { detail: EarlyFilm }) {
   return (
     <div className="film-hero" data-testid="film-hero">
       {backdrop && detail.backdrop_path ? (
-        <img
-          className="film-hero-img"
-          src={backdrop}
-          // The same srcset and sizes as the early preload (earlyFilmScript.ts), or the
-          // browser fetches the image twice.
-          srcSet={backdropSrcSet(detail.backdrop_path)}
-          sizes={BACKDROP_SIZES}
-          alt=""
-          fetchPriority="high"
-        />
+        <>
+          {/* Phones: the small w300 paints first, under the sharp image (earlyFilmScript.ts,
+              SOFT_MEDIA). Above 640 px this layer is the sharp image itself, one request. */}
+          <picture>
+            <source
+              media={SOFT_ABOVE}
+              srcSet={backdropSrcSet(detail.backdrop_path)}
+              sizes={BACKDROP_SIZES}
+            />
+            <img
+              className="film-hero-img film-hero-soft"
+              src={backdropSoft(detail.backdrop_path)}
+              alt=""
+              fetchPriority="high"
+            />
+          </picture>
+          <img
+            className="film-hero-img"
+            src={backdrop}
+            // The same srcset and sizes as the early preload (earlyFilmScript.ts), or the
+            // browser fetches the image twice.
+            srcSet={backdropSrcSet(detail.backdrop_path)}
+            sizes={BACKDROP_SIZES}
+            alt=""
+            fetchPriority="high"
+          />
+        </>
       ) : (
         poster && <img className="film-hero-img film-hero-blur" src={poster} alt="" />
       )}

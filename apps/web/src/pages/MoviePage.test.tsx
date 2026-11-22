@@ -140,7 +140,7 @@ describe("MoviePage", () => {
       const { unmount } = renderWithProviders(<MoviePage />, ROUTE);
       expect(screen.getByTestId("loading")).toBeInTheDocument();
       await waitFor(() =>
-        expect(screen.getByTestId("film-hero").querySelector("img")).toHaveAttribute(
+        expect(screen.getByTestId("film-hero").querySelector("img:not(.film-hero-soft)")).toHaveAttribute(
           "srcset",
           "https://image.tmdb.org/t/p/w780/b.jpg 780w, https://image.tmdb.org/t/p/w1280/b.jpg 1280w",
         ),
@@ -418,10 +418,20 @@ describe("MoviePage", () => {
     getMovie.mockResolvedValue(detail(movie(0), { backdrop_path: "/b.jpg", poster_path: "/p.jpg" }));
     renderWithProviders(<MoviePage />, ROUTE);
     await screen.findByRole("heading", { level: 1 });
-    const img = screen.getByTestId("film-hero").querySelector("img")!;
+    const hero = screen.getByTestId("film-hero");
+    const img = hero.querySelector("img:not(.film-hero-soft)")!;
     expect(img).toHaveAttribute("src", "https://image.tmdb.org/t/p/w1280/b.jpg");
     expect(img).toHaveAttribute("fetchpriority", "high");
     expect(img).not.toHaveClass("film-hero-blur");
+    // Phones paint the small w300 first, under the sharp image; above 640 px that layer is
+    // the sharp image itself (option C, F3 item 5).
+    const soft = hero.querySelector("picture img.film-hero-soft")!;
+    expect(soft).toHaveAttribute("src", "https://image.tmdb.org/t/p/w300/b.jpg");
+    expect(soft.compareDocumentPosition(img) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const source = hero.querySelector("picture source")!;
+    expect(source).toHaveAttribute("media", "(min-width: 640px)");
+    expect(source).toHaveAttribute("srcset", img.getAttribute("srcset"));
+    expect(source).toHaveAttribute("sizes", img.getAttribute("sizes"));
   });
 
   it("blurs the poster into the hero when there is no backdrop, and leaves it plain without either", async () => {

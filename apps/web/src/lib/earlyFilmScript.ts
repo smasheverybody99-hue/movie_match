@@ -14,6 +14,8 @@ import type { MovieDetail } from "./types";
  * on its way. The page's skeleton then draws the hero from that answer (useEarlyFilm),
  * while its own signed-in request, with the match and the reasons, is still out.
  *
+ * On phones it first preloads the small w300 backdrop the hero paints first (SOFT_MEDIA).
+ *
  * Only the hero's two image paths are used from the early answer. A film marked sensitive
  * gets no preload and no early hero: its page shows no image before the viewer agrees.
  */
@@ -32,6 +34,18 @@ export function backdropSrcSet(path: string): string {
   return `${TMDB_IMAGES}/w780${path} 780w, ${TMDB_IMAGES}/w1280${path} 1280w`;
 }
 export const BACKDROP_SIZES = "100vw";
+
+/**
+ * Phones get a soft first paint (F3 item 5, the user's option C, 2026-11-22): the w300
+ * backdrop, 19 KB against 105 KB for w780, is drawn first and the sharp image covers it
+ * when it arrives. It is the same size on screen, so LCP is the soft paint. 640 px is the
+ * layout's phone break (app.css); above it the soft layer is the sharp image itself.
+ */
+export const SOFT_MEDIA = "(max-width: 639px)";
+export const SOFT_ABOVE = "(min-width: 640px)";
+export function backdropSoft(path: string): string {
+  return `${TMDB_IMAGES}/w300${path}`;
+}
 
 /**
  * The inline script's source. Plain ES5, no imports: it runs before the bundle. An empty or
@@ -55,6 +69,13 @@ export function earlyFilmScript(apiUrl: string | undefined): string | null {
       .then(function (f) {
         if (!f || f.sensitive) return null;
         if (f.backdrop_path) {
+          var s = document.createElement("link");
+          s.rel = "preload";
+          s.setAttribute("as", "image");
+          s.setAttribute("href", t + "/w300" + f.backdrop_path);
+          s.setAttribute("media", ${JSON.stringify(SOFT_MEDIA)});
+          s.setAttribute("fetchpriority", "high");
+          document.head.appendChild(s);
           var l = document.createElement("link");
           l.rel = "preload";
           l.setAttribute("as", "image");

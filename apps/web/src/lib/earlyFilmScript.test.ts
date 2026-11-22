@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BACKDROP_SIZES, backdropSrcSet, earlyFilmScript, earlyFilmTag } from "./earlyFilmScript";
+import {
+  BACKDROP_SIZES,
+  SOFT_MEDIA,
+  backdropSoft,
+  backdropSrcSet,
+  earlyFilmScript,
+  earlyFilmTag,
+} from "./earlyFilmScript";
 
 const API = "https://api.example.com/";
 
@@ -36,7 +43,12 @@ describe("the early film script", () => {
     expect(window.__mmEarlyFilm?.id).toBe(7);
     // Only the hero's two paths are kept.
     expect(await window.__mmEarlyFilm?.film).toEqual({ backdrop_path: "/b.jpg", poster_path: "/p.jpg" });
-    const [link] = preloads();
+    // Phones first: the small w300 the hero paints first, then the sharp srcset.
+    const [soft, link] = preloads();
+    expect(soft?.getAttribute("href")).toBe(backdropSoft("/b.jpg"));
+    expect(soft?.getAttribute("href")).toBe("https://image.tmdb.org/t/p/w300/b.jpg");
+    expect(soft?.getAttribute("media")).toBe(SOFT_MEDIA);
+    expect(soft?.getAttribute("fetchpriority")).toBe("high");
     expect(link?.getAttribute("imagesrcset")).toBe(backdropSrcSet("/b.jpg"));
     expect(link?.getAttribute("imagesizes")).toBe(BACKDROP_SIZES);
     expect(link?.getAttribute("fetchpriority")).toBe("high");
