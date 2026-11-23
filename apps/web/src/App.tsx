@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 
 import { DataNoticeGate } from "./components/DataNotice";
@@ -6,15 +6,20 @@ import { AppShell } from "./components/Layout";
 import { Loading, Skeleton } from "./components/States";
 import { useT } from "./i18n";
 import { useAuth } from "./lib/auth";
-import Assistant from "./pages/Assistant";
-import Dna from "./pages/Dna";
 import Feed from "./pages/Feed";
 import MoviePage from "./pages/MoviePage";
-import Onboarding from "./pages/Onboarding";
-import Profile, { AboutPage } from "./pages/Profile";
-import Search from "./pages/Search";
-import Watchlist from "./pages/Watchlist";
 import Welcome from "./pages/Welcome";
+
+// The pages a visit lands on stay in the main bundle: Welcome, Home and the film page
+// (a shared link). The rest load when first opened, so a cold film page downloads and
+// runs less before its first paint (F3 item 5, LCP).
+const Assistant = lazy(() => import("./pages/Assistant"));
+const Dna = lazy(() => import("./pages/Dna"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Profile = lazy(() => import("./pages/Profile"));
+const AboutPage = lazy(() => import("./pages/Profile").then((m) => ({ default: m.AboutPage })));
+const Search = lazy(() => import("./pages/Search"));
+const Watchlist = lazy(() => import("./pages/Watchlist"));
 
 function PageSkeleton() {
   const t = useT();
@@ -58,40 +63,42 @@ function NotFound() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route
-        path="/welcome"
-        element={
-          <PublicOnly>
-            <Welcome />
-          </PublicOnly>
-        }
-      />
-      <Route path="/about" element={<AboutPage />} />
-      <Route
-        path="/onboarding"
-        element={
-          <RequireAuth>
-            <Onboarding />
-          </RequireAuth>
-        }
-      />
-      <Route
-        element={
-          <RequireAuth>
-            <AppShell />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Feed />} />
-        <Route path="search" element={<Search />} />
-        <Route path="assistant" element={<Assistant />} />
-        <Route path="movie/:id" element={<MoviePage />} />
-        <Route path="watchlist" element={<Watchlist />} />
-        <Route path="dna" element={<Dna />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<PageSkeleton />}>
+      <Routes>
+        <Route
+          path="/welcome"
+          element={
+            <PublicOnly>
+              <Welcome />
+            </PublicOnly>
+          }
+        />
+        <Route path="/about" element={<AboutPage />} />
+        <Route
+          path="/onboarding"
+          element={
+            <RequireAuth>
+              <Onboarding />
+            </RequireAuth>
+          }
+        />
+        <Route
+          element={
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Feed />} />
+          <Route path="search" element={<Search />} />
+          <Route path="assistant" element={<Assistant />} />
+          <Route path="movie/:id" element={<MoviePage />} />
+          <Route path="watchlist" element={<Watchlist />} />
+          <Route path="dna" element={<Dna />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
