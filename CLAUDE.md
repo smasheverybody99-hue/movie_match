@@ -23,7 +23,7 @@ the backlog in `docs/TZ.md` section 2, not into this commit.
 
 ```
 apps/web         React 19 + Vite + TypeScript
-apps/mobile      Flutter 3.47 / Dart
+apps/mobile      Flutter 3.50 / Dart
 services/api     Python 3.12 + FastAPI + SQLAlchemy 2 (async)
 packages/shared  Cross-language contracts (traits.json). Single source of truth.
 docs/            Architecture notes and decision records

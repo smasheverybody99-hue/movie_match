@@ -7,7 +7,7 @@ AI asosidagi film tavsiya qiluvchi platforma. Web (React) + mobil (Flutter) + Py
 | Papka | Nima |
 |---|---|
 | `apps/web` | React 19 + Vite + TypeScript |
-| `apps/mobile` | Flutter 3.47 |
+| `apps/mobile` | Flutter 3.50 |
 | `services/api` | Python 3.12 + FastAPI |
 | `packages/shared` | Ikkala til uchun umumiy shartnomalar (trait ro'yxati) |
 | `docs` | Arxitektura, qarorlar, huquqiy eslatmalar |
@@ -79,7 +79,7 @@ npm run dev
 
 Tekshirish: http://127.0.0.1:5173
 
-### 3. Mobil (Flutter 3.47+)
+### 3. Mobil (Flutter 3.50+)
 
 ```bash
 cd apps/mobile

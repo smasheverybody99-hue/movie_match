@@ -96,7 +96,7 @@ Hammasi o'chadi:
 
 Ro'yxatga (registry) hech narsa yozilmaydi. Istisno — USB drayveri, u Device Manager orqali o'chiriladi.
 
-## Ochiq savol
+## Flutter versiyasi — qaror
 
-`CLAUDE.md` "Flutter 3.47" deydi, hujjatdagi joriy versiya esa 3.50. 3.47 ni o'rnatamizmi
-(archive'da bor), yoki 3.50 ni o'rnatib, `CLAUDE.md` ni yangilaymizmi? Bu foydalanuvchi qarori.
+**3.50** o'rnatiladi (foydalanuvchi, 2026-11-23). `CLAUDE.md`, ADR 0001 va `README.md` 3.50 ga
+yangilandi. O'rnatishning o'zi hali ham foydalanuvchi ruxsatini kutadi.

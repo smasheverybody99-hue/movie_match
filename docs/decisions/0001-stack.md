@@ -1,6 +1,6 @@
 # ADR 0001 — Stack
 
-Date: 2026-09-24 · Status: accepted
+Date: 2026-09-24 · Status: accepted · Amended 2026-11-23 (Flutter version, below)
 
 ## Context
 
@@ -14,7 +14,8 @@ product's core is a data + AI pipeline, not the UI.
   FastAPI keeps request throughput adequate for the expected load.
 - **Web: React 19 + Vite + TypeScript.** Vite for now; if movie pages need SEO, migrate to
   Next.js — decide before F3 ends, not after.
-- **Mobile: Flutter 3.47.** One codebase for iOS and Android, one developer.
+- **Mobile: Flutter 3.50** (was 3.47; amended 2026-11-23, user decision: install the
+  current stable, `docs/setup-android.md`). One codebase for iOS and Android, one developer.
 - **DB: Supabase Postgres + pgvector.** Managed Postgres, auth included, vector search in
   the same database as the relational data — no second datastore to operate.
 
