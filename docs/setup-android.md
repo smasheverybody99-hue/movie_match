@@ -1,7 +1,28 @@
-# F6: Flutter + Android SDK, Android Studio'siz (reja, o'rnatilmagan)
+# F6: Flutter + Android SDK, Android Studio'siz
 
-Yozildi 2026-11-23. **Hech narsa o'rnatilmagan.** Har bir qadam foydalanuvchi ruxsati bilan
-(CLAUDE.md: dastur o'rnatish va PATH o'zgartirish).
+Reja yozildi 2026-11-23; **o'rnatildi 2026-11-23** (foydalanuvchi ruxsati bilan, CLAUDE.md:
+dastur o'rnatish va PATH o'zgartirish). Android Studio va emulyator o'rnatilmadi.
+
+## O'rnatildi (2026-11-23, o'lchangan)
+
+| Qism | Yuklab olindi | Diskda |
+|---|---|---|
+| JDK 17 — Temurin 17.0.21.1, `develop\jdk-17` | 182 MB | 305 MB |
+| Flutter **3.50.1** (3.50 ning 2026-11-20 dagi patch'i), Dart 3.14.0, `develop\flutter` | 1.78 GB | 3.3 GB |
+| Command-line tools, `develop\android-sdk\cmdline-tools\latest` | 148 MB | 172 MB |
+| platform-tools (adb 37.0.3), platforms;android-36, build-tools;36.0.0 | — | 287 MB |
+| pub keshi, `develop\pub-cache` | — | 185 MB |
+| Gradle 9.5.0-bin va bog'liqliklar, `~\.gradle` (to'xtatilgan build'dan keyin) | o'lchanmagan | 1.1 GB |
+
+Zip'lar sha256 bilan tekshirildi va o'chirildi. `flutter doctor`: Flutter ✓, Android toolchain ✓
+(hamma litsenziyalar qabul qilingan), Visual Studio ✗ — faqat Windows desktop uchun, kerak emas.
+Flutter va Dart analytics o'chirilgan.
+
+**Mahalliy build (2026-11-23):** birinchi `flutter build apk --debug` 15 daqiqada tugamadi va
+to'xtatildi (foydalanuvchi sharti). Xotira (har ~2 s, 411 o'lchov): java eng ko'pi 1.5 GB, bo'sh
+RAM eng kami 181 MB (48 o'lchovda 300 MB dan kam), committed 13.9 GB — 5.8 GB RAM'da tizim
+diskka swap qiladi. Shablondagi `-Xmx8G` `-Xmx2G` ga tushirilgan. Shuning uchun **asosiy yo'l —
+CI'dagi APK** (pastda).
 
 Manbalar (o'qildi 2026-11-23):
 - [docs.flutter.dev/install/manual](https://docs.flutter.dev/install/manual) — Flutter 3.50, sahifa 2026-11-11
@@ -90,13 +111,35 @@ Gradle keshi `C:\Users\User\.gradle` ga yoziladi (5). Bu Gradle'ning standart jo
 
 Hammasi o'chadi:
 - `C:\Users\User\develop` papkasi;
-- `C:\Users\User\.gradle` papkasi;
+- `C:\Users\User\.gradle` papkasi (Gradle va bog'liqliklar);
 - `C:\Users\User\.android` (adb kaliti);
-- foydalanuvchi PATH'idagi bitta qator.
+- `%LOCALAPPDATA%\kotlin` (Kotlin daemon, build paytida yaratilgan);
+- `%APPDATA%\.dart-tool`, `%APPDATA%\.flutter_settings`, `%APPDATA%\.flutter_tool_state`
+  (Flutter va Dart sozlamalari, kichik);
+- foydalanuvchi PATH'idagi bitta qator: `C:\Users\User\develop\flutter\bin`;
+- foydalanuvchi o'zgaruvchisi `PUB_CACHE` (`C:\Users\User\develop\pub-cache`).
 
 Ro'yxatga (registry) hech narsa yozilmaydi. Istisno — USB drayveri, u Device Manager orqali o'chiriladi.
+
+## APK CI'dan (asosiy yo'l)
+
+`.github/workflows/android.yml` har push'da (`apps/mobile` o'zgarsa) `flutter analyze`,
+`flutter test` va `flutter build apk --debug` ni bajaradi va APK'ni artifact qiladi (14 kun).
+
+1. GitHub'ga kiring (artifact'ni faqat kirgan foydalanuvchi yuklay oladi) → repo → **Actions** →
+   chapda **android** → branch'dagi oxirgi yashil run → pastda **Artifacts** →
+   `movie-match-debug-...` → zip yuklanadi. Ichida `app-debug.apk`.
+2. **Oldingi build'ni o'chiring** (Sozlamalar → Ilovalar → Movie Match → O'chirish). Har CI run
+   APK'ni o'zining vaqtinchalik debug kaliti bilan imzolaydi; imzo boshqa bo'lsa, Android ustiga
+   o'rnatmaydi.
+3. O'rnatish — ikki yo'l:
+   - **USB orqali** (telefon ulangan, USB debugging yoqilgan): `adb install app-debug.apk`;
+   - **kompyutersiz:** APK'ni telefonga yuboring (Telegram "Saqlangan xabarlar", Google Drive
+     yoki USB fayl uzatish), Fayllar ilovasida oching, "Noma'lum ilovalarni o'rnatish"ga o'sha
+     ilova uchun ruxsat bering → O'rnatish. Play Protect "noma'lum dasturchi" desa — "Baribir
+     o'rnatish" (debug build Play'da emas).
 
 ## Flutter versiyasi — qaror
 
 **3.50** o'rnatiladi (foydalanuvchi, 2026-11-23). `CLAUDE.md`, ADR 0001 va `README.md` 3.50 ga
-yangilandi. O'rnatishning o'zi hali ham foydalanuvchi ruxsatini kutadi.
+yangilandi. O'rnatilgan: 3.50.1 (CI ham shu versiyada).
