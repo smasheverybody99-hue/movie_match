@@ -571,6 +571,10 @@ there the page also waited for `/me` (~0.7 s).
   Option B (w300 only) would make the 19 KB image the LCP element, at ~2.0–2.5 s here,
   but the backdrop stays soft. That is the user's decision.
 
+**Decision (user, 2026-11-23):** option A stays; B is not taken. LCP is revisited on
+2026-12-01 with every option on the table, including the hero's height and position, not
+only the image size.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is
