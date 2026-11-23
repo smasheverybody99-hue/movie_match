@@ -2,7 +2,7 @@
 
 Read `CLAUDE.md` and `docs/legal.md` first. TZ 1.30 split Phase 9 in two: this file is the
 web launch (target **2026-12-15**); the store submission is `phase-09b-store-launch.md`
-(2026-12-22; TZ 1.31: it does not wait for Phases 7 and 8).
+(paused until the $25 Play account, TZ 1.37; TZ 1.31: it does not wait for Phases 7 and 8).
 
 Preconditions (TZ 1.30): the readiness work below is built **during the alpha**, from
 2026-11-29. The public launch itself needs **Phase 5's product gate passed** (decision
@@ -10,11 +10,22 @@ Preconditions (TZ 1.30): the readiness work below is built **during the alpha**,
 fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
 and 8 come after the store launch and are not required for it.
 
+**An AI-free launch (TZ 1.38, user decision 2026-11-23).** There is no money for the
+Gemini paid tier (a $50 card hold), so the web launches with no Gemini call from any
+request: the assistant is hidden (behind a flag: no route, no navigation entry, and the
+endpoint refuses), and the film page's "why you'll like this" comes from the
+`explanations` cache or, failing that, a template sentence from `named_traits`. Build
+it in this phase, not before. When money is found, the paid tier goes on, FR-8 is
+measured (below), and only then does the assistant come back.
+
 Three more preconditions, all required:
 
-- **Gemini paid tier** (ADR 0004, exception of 2026-11-17). The closed alpha runs on the free tier.
-  This launch does not, so switch to the paid tier before it. Without it, the launch does not happen.
-- **FR-8 first character, measured again** (TZ 1.33). Phase 4 closed without meeting it
+- **No Gemini call from a request** (TZ 1.38): assistant hidden, explanations from the
+  cache or a template only, with a test that fails if a request reaches the provider.
+  (Before TZ 1.38 this was "Gemini paid tier"; ADR 0004's free-tier exception stays
+  alpha-only.)
+- **FR-8 first character, measured again** (TZ 1.33) — **when the assistant comes back on
+  the paid tier, not for this launch** (TZ 1.38). Phase 4 closed without meeting it
   (33 messages, median 3.62 s, 1 error, free tier). After the switch to the paid tier,
   measure on the client with the page connected: at least 30 messages on at least two
   different days, median ≤ 3 s, 90th percentile ≤ 15 s, no message ending in `error`.
@@ -91,8 +102,9 @@ Manual checklist:
 - [ ] Rollback rehearsed once
 - [ ] Load test at 2× expected launch traffic
 - [ ] Phase 5's product gate passed (record the 15% and 70% numbers with their intervals)
-- [ ] Gemini paid tier on; FR-8 first character passed on it (TZ 1.33): message count,
-      days, median, 90th percentile, errors
+- [ ] No Gemini call from any request (TZ 1.38): assistant hidden, explanations from the
+      cache or the template. (Later, when the assistant returns: paid tier on and FR-8
+      passed on it, TZ 1.33: message count, days, median, 90th percentile, errors)
 - [ ] Film page on the live site (TZ 1.34): mobile LCP median of three runs < 2.5 s, INP
       < 200 ms; record each run, the LCP element and the build's commit
 - [ ] Privacy policy and terms live and linked

@@ -2,7 +2,7 @@
 /// Change both files in the same commit.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract final class AppColors {
   static const bg = Color(0xFF0A0A0A);
@@ -33,12 +33,13 @@ abstract final class AppRadius {
   static const md = 14.0;
 }
 
-/// Base URL of the API, injected at build time:
-/// flutter run --dart-define=API_URL=http://10.0.2.2:8000
-const apiBaseUrl = String.fromEnvironment(
-  'API_URL',
-  defaultValue: 'http://10.0.2.2:8000',
-);
+/// Font families declared in pubspec.yaml; the web's --font-head, --font-body and
+/// --font-mono.
+abstract final class AppFonts {
+  static const head = 'PlayfairDisplay';
+  static const body = 'Inter';
+  static const mono = 'JetBrainsMono';
+}
 
 ThemeData buildTheme() {
   const scheme = ColorScheme.dark(
@@ -55,15 +56,15 @@ ThemeData buildTheme() {
     useMaterial3: true,
     colorScheme: scheme,
     scaffoldBackgroundColor: AppColors.bg,
-    fontFamily: 'Inter',
+    fontFamily: AppFonts.body,
     textTheme: const TextTheme(
       displayLarge: TextStyle(
-        fontFamily: 'PlayfairDisplay',
+        fontFamily: AppFonts.head,
         fontWeight: FontWeight.w800,
         color: AppColors.text,
       ),
       headlineMedium: TextStyle(
-        fontFamily: 'PlayfairDisplay',
+        fontFamily: AppFonts.head,
         fontWeight: FontWeight.w800,
         color: AppColors.text,
       ),

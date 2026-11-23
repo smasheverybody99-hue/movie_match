@@ -1,8 +1,8 @@
 # Phase 7 — Character Match
 
 Read `CLAUDE.md` and **`docs/legal.md`** first. **Phase 8's gate must be green** (TZ 1.30
-order: F8 before F7) and Phase 5's product gate passed. It ships after the store launch,
-as an update (TZ 1.31), behind a flag until the lawyer's review is recorded.
+order: F8 before F7) and Phase 5's product gate passed. It ships after Phase 8, as an
+update (TZ 1.38: it no longer waits for the store launch), behind a flag until the lawyer's review is recorded.
 
 This feature carries legal risk. The constraints below are not style preferences.
 

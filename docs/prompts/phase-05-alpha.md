@@ -55,9 +55,12 @@ cd apps/web && npm run lint && npm run typecheck && npm test
 
 **The product gate** — this is the one that matters:
 
-- [ ] 12 testers with Android phones recruited and onboarded (TZ 1.30; was 30–50). The
-      same 12 join the Google Play closed test (Phase 6), which needs 12 testers opted in
-      for 14 consecutive days
+- [ ] 12 testers with Android phones recruited and onboarded (TZ 1.30; was 30–50).
+      **TZ 1.37:** the alpha starts on 2026-11-29 with whoever has joined (4 on
+      2026-11-23) and invitations go on. If there are fewer than 12 by 2026-12-06, the
+      2026-12-13 decision is made on that number and reported as a **weak signal**; 15%
+      and 70% do not change. Testers get the Android app as an APK file; the Google Play
+      closed test (12 testers, 14 days) waits for the $25 account (Phase 9b)
 - [ ] At least 2 weeks of data collected (2026-11-29 — 2026-12-13)
 - [ ] **Recommendation → watched within 7 days is at least 15%**, counted only over
       recommendations whose 7-day window has closed (TZ 1.31; on 2026-12-13 those shown

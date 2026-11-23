@@ -42,6 +42,8 @@ Thumbs.db
 # data dumps
 data/
 *.csv.gz
+# ...but the Flutter app's data layer is code (API client, models)
+!apps/mobile/lib/data/
 
 # local run artefacts
 gate-output.txt
@@ -53,3 +55,10 @@ htmlcov/
 
 # Database backups (Supabase "Download backup" and similar). Never commit these.
 *.backup.gz
+
+# Android signing: the release key and its passwords never enter the repo (TZ 1.38)
+*.jks
+*.keystore
+key.properties
+.moviematch-keys/
+keystore-*.txt
