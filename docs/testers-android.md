@@ -25,12 +25,15 @@ ko'rsatishi mumkin. Unda ham **O'rnatish** ni bosing.
 
 ## Yangi versiya kelganda
 
-Har bir sinov versiyasi boshqa kalit bilan imzolanadi, shuning uchun yangisi eskisining
-ustiga o'rnatilmaydi. Telefon "Ilova o'rnatilmadi" deydi.
+Yangi APK'ni yuqoridagidek oching va **Yangilash** (yoki **O'rnatish**) ni bosing. U eskisining
+ustiga o'rnatiladi, qayta kirish shart emas.
+
+Telefon "Ilova o'rnatilmadi" desa (tashkilotchi bu haqda oldindan yozadi, masalan birinchi
+"doimiy" versiyaga o'tishda):
 
 1. Eski ilovani o'chiring: ikonkani bosib turing → **O'chirish** (yoki Sozlamalar →
    Ilovalar → Movie Match → O'chirish).
-2. Yangi APK'ni yuqoridagidek o'rnating.
+2. Yangi APK'ni o'rnating.
 3. Qayta kiring. Baholaringiz, watchlist va Movie DNA serverda saqlanadi, ular
    yo'qolmaydi.
 
@@ -50,10 +53,13 @@ tegadigan har push'dan keyin.
 
 1. GitHub'ga kiring (artifact'ni faqat kirgan foydalanuvchi yuklay oladi) → repo →
    **Actions** → chapda **android** → kerakli branch'dagi oxirgi yashil run.
-2. Pastda **Artifacts** → `movie-match-debug-...` → zip yuklanadi. Ichida `app-debug.apk`.
+2. Pastda **Artifacts** → `movie-match-...` → zip yuklanadi. Ichida `app-release.apk`
+   (signing secret'lari qo'shilmagan bo'lsa — `movie-match-debug-...` va `app-debug.apk`).
 3. Faylni, masalan, `movie-match-2026-11-30.apk` deb qayta nomlang va testerlar guruhiga
-   Telegram orqali yuboring. Yangi versiya ekanini va eskisini o'chirish kerakligini
-   yozing.
+   Telegram orqali yuboring. Yangi versiya ekanini yozing; eskisini o'chirish kerak
+   bo'lsa (debug'dan release'ga o'tish), buni alohida ayting.
 
-Artifact 14 kun saqlanadi. Har bir run'ning debug kaliti boshqa, shuning uchun
-testerlar har yangilanishda eski ilovani o'chirib, yangisini o'rnatadi.
+Artifact 14 kun saqlanadi. Release APK'lar bitta doimiy kalit bilan imzolanadi
+(`docs/setup-android.md`, "Release kaliti"), shuning uchun yangisi eskisining ustiga
+o'rnatiladi. Debug APK'dan release'ga o'tishda testerlar bir marta o'chirib qayta o'rnatadi:
+buni guruhga yozing.

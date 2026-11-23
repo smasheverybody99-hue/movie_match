@@ -55,3 +55,10 @@ htmlcov/
 
 # Database backups (Supabase "Download backup" and similar). Never commit these.
 *.backup.gz
+
+# Android signing: the release key and its passwords never enter the repo (TZ 1.38)
+*.jks
+*.keystore
+key.properties
+.moviematch-keys/
+keystore-*.txt
