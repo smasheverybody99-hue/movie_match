@@ -1,5 +1,5 @@
 name: movie_match
-description: "A new Flutter project."
+description: "Movie Match: AI-powered movie discovery (Android client)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  material_ui: ^1.1.0
+  material_ui: ^1.11.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -60,6 +60,37 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # The web app's faces and weights (apps/web/src/styles/fonts.css), as static TTFs from
+  # Google Fonts (Inter v20, Playfair Display v40, JetBrains Mono v24). Licences (OFL)
+  # sit next to the files.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-800.ttf
+          weight: 800
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-700.ttf
+          weight: 700
+        - asset: assets/fonts/PlayfairDisplay-800.ttf
+          weight: 800
+        - asset: assets/fonts/PlayfairDisplay-900.ttf
+          weight: 900
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-400.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-600.ttf
+          weight: 600
 
   # To add assets to your application, add an assets section, like this:
   # assets:

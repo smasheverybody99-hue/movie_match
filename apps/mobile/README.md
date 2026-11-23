@@ -1,47 +1,36 @@
-# Movie Match — mobil (Flutter)
+# Movie Match — mobil (Flutter, Android)
 
-Bu papka hozircha to'liq Flutter loyihasi emas. `flutter create` buyrug'ini o'zingiz
-bajarasiz — u platforma papkalarini (android/, ios/) generatsiya qiladi.
+Flutter 3.50.1, faqat Android (iOS — 2027-yil yanvarida alohida qaror, TZ 1.31). O'rnatish:
+`docs/setup-android.md`. Faza: `docs/prompts/phase-06-mobile.md`.
 
 ## Ishga tushirish
 
+API manzili `--dart-define` bilan beriladi, kodga yozilmaydi (`lib/config.dart`):
+
 ```bash
 cd apps/mobile
-flutter create --org com.moviematch --project-name movie_match .
-flutter pub add flutter_riverpod dio go_router
-flutter run
+flutter pub get
+flutter run --dart-define=API_URL=https://movie-match-api-mgdn.onrender.com
 ```
 
-`flutter create` mavjud fayllarni o'chirmaydi: `lib/theme/tokens.dart` joyida qoladi.
-U `lib/main.dart` ni yaratadi — uni quyidagi bilan almashtiring:
+Telefon USB orqali ulangan va `adb devices` uni `device` deb ko'rsatgan bo'lishi kerak.
+Noutbukda build sekin (5.8 GB RAM): asosiy yo'l — CI'dagi APK (`docs/setup-android.md`,
+"APK CI'dan").
 
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+## Tekshirish (gate)
 
-import 'theme/tokens.dart';
-
-void main() => runApp(const ProviderScope(child: MovieMatchApp()));
-
-class MovieMatchApp extends StatelessWidget {
-  const MovieMatchApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Movie Match',
-        theme: buildTheme(),
-        home: const Scaffold(
-          body: Center(child: Text('Movie Match')),
-        ),
-      );
-}
+```bash
+flutter analyze   # nol issue, info ham emas
+flutter test
 ```
 
 ## Qoidalar
 
-- Ranglar faqat `lib/theme/tokens.dart` dan olinadi. Kodda hech qachon to'g'ridan-to'g'ri
-  hex yozilmaydi.
-- Tokenlar `apps/web/src/styles/tokens.css` bilan aynan bir xil bo'lishi kerak —
-  birini o'zgartirsangiz, ikkinchisini ham o'zgartiring.
+- Ranglar faqat `lib/theme/tokens.dart` dan. Kodda hex yozilmaydi.
+- Tokenlar `apps/web/src/styles/tokens.css` bilan aynan bir xil: `test/tokens_test.dart`
+  CSS faylni o'qib solishtiradi. Birini o'zgartirsangiz, ikkinchisini ham.
+- Material: `package:material_ui/material_ui.dart` (Flutter 3.50 da
+  `package:flutter/material.dart` eskirgan).
+- Shriftlar: web'dagi Playfair Display 700–900, Inter 400–800, JetBrains Mono 400 va 600,
+  `assets/fonts/` da, OFL litsenziyalari yonida.
 - Holat: Riverpod. HTTP: Dio. Navigatsiya: go_router.
-- API bazaviy manzili `--dart-define=API_URL=...` orqali beriladi, kodga yozilmaydi.
