@@ -5,13 +5,32 @@ Flutter 3.50.1, faqat Android (iOS — 2027-yil yanvarida alohida qaror, TZ 1.31
 
 ## Ishga tushirish
 
-API manzili `--dart-define` bilan beriladi, kodga yozilmaydi (`lib/config.dart`):
+API manzili va Supabase qiymatlari `--dart-define` bilan beriladi, kodga yozilmaydi
+(`lib/config.dart`). Mahalliy ishga tushirish uchun `apps/mobile/dart_defines.json` yarating
+(gitignore qilingan; qiymatlar `apps/web/.env` dagi `VITE_SUPABASE_URL` va
+`VITE_SUPABASE_ANON_KEY` bilan bir xil):
+
+```json
+{
+  "API_URL": "https://movie-match-api-mgdn.onrender.com",
+  "SUPABASE_URL": "https://<loyiha>.supabase.co",
+  "SUPABASE_ANON_KEY": "<anon key>"
+}
+```
 
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run --dart-define=API_URL=https://movie-match-api-mgdn.onrender.com
+flutter run --dart-define-from-file=dart_defines.json
 ```
+
+Kirish brauzerda ochiladi va `com.moviematch.moviematch://login-callback` orqali ilovaga
+qaytadi: bu manzil Supabase'da Authentication → URL Configuration → Redirect URLs ro'yxatida
+bo'lishi kerak.
+
+Matnlar web lug'atlaridan generatsiya qilinadi (`lib/i18n/messages.g.dart`). Web'dagi
+`apps/web/src/i18n/*.ts` o'zgarsa: `dart run tool/gen_messages.dart`; `test/i18n_test.dart`
+farqni ushlaydi.
 
 Telefon USB orqali ulangan va `adb devices` uni `device` deb ko'rsatgan bo'lishi kerak.
 Noutbukda build sekin (5.8 GB RAM): asosiy yo'l — CI'dagi APK (`docs/setup-android.md`,
