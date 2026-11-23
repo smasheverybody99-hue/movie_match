@@ -540,6 +540,37 @@ Same LCP harness as above, five rounds, A (`main`) and C one after the other in 
   react-dom 40%, auth-js 20%) and its run at CPU 4×. The w780 adds only ~0.1–0.3 s after
   it. **Next lever: the bundle, not the image.** Not started.
 
+### Splitting the bundle (branch `f3-perf-3`, 2026-11-23): not faster, not merged
+
+The pages a visit does not land on now load when first opened: assistant, DNA,
+onboarding, profile, search and watchlist. Welcome, Home and the film page stay in the
+main bundle. Main bundle **161.6 → 155.4 KB gzip** (−4%). Commit `26f5e4e`.
+
+The harness now marks the data notice as accepted in the browser, as on a tester's
+second visit and in the user's signed-in Lighthouse runs. The rounds above did not, so
+there the page also waited for `/me` (~0.7 s).
+
+| Round | `main` | split | text first painted (`main` / split) | w780 downloaded (`main` / split) |
+|---|---|---|---|---|
+| 1 | 2.82 s | **2.54 s** | 2.20 / 2.28 s | 1.02–2.77 / 0.90–2.43 s |
+| 2 | **2.53 s** | 7.78 s | 2.05 / 1.98 s | 0.97–2.49 / 0.90–7.66 s |
+| 3 | 3.44 s | **3.34 s** | 2.22 / 2.06 s | 1.31–3.06 / 1.08–3.31 s |
+| 4 | **3.78 s** | 6.99 s | 2.06 / 2.16 s | 0.94–3.75 / 1.15–6.96 s |
+| 5 | 4.28 s | **2.99 s** | 2.47 / 2.03 s | 1.44–4.26 / 0.97–2.90 s |
+| Median | 3.44 s | 3.34 s | | |
+
+- The split was faster in 3 of 5 rounds. The medians differ by 0.1 s, while TMDB's
+  download time for the same 105 KB image ran from 1.5 to 6.7 s. That is **not clearly
+  faster**, so it is not merged, under the user's condition.
+- **What the numbers say.** With the notice remembered, the page's text paints at
+  2.0–2.5 s in every run. LCP is then the w780 download, which this network makes noisy.
+  Six KB less JavaScript cannot show through that noise. The rest of the bundle is
+  framework: react-dom 39%, auth-js 20%, react-router 7%, TanStack 7%, i18n 7%.
+- **What would make LCP < 2.5 s:** less image before the hero paints. Only TMDB's
+  sizes exist (w300 / w780 / w1280), and option C does not count in Chrome (above).
+  Option B (w300 only) would make the 19 KB image the LCP element, at ~2.0–2.5 s here,
+  but the backdrop stays soft. That is the user's decision.
+
 ## Where the implementation differs from the design, and why
 
 1. **Contrast.** `--faint` text is 3.5–4.2:1 on our backgrounds and white on `--red` is

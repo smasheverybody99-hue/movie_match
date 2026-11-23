@@ -16,7 +16,7 @@ each need the user's own approval. No paid request was made for this phase.
 | "Shown" | At least half of the card in view for 1 s; a (user, film) pair counts once, at its first showing | `apps/web/src/lib/telemetry.ts`, `metrics.py` |
 | Where events are written | The server, in the action's own transaction: `rated`, `added_to_watchlist`, `marked_watched`, `assistant_query`, `onboarding_done`. The client: `recommendation_shown`, `recommendation_clicked`, `onboarding_step` | `app/services/events.py` |
 | D1 / D7 | Any event in the 24 h starting 1 (7) days after the user's `created_at` | `metrics.py` |
-| Who is counted | Only users with `users.alpha_tester` set (one SQL update for the 12) | migration `0006`, `metrics.py` |
+| Who is counted | Only users with `users.alpha_tester` set (one SQL update for every tester who joins, 12–15; TZ 1.36: 70% and 15% over all of them) | migration `0006`, `metrics.py` |
 | The data notice | Once after sign-in, before any screen; accepted on the server; declining signs out; a one-line reminder on the assistant | `components/DataNotice.tsx`, ADR 0004 exception |
 | "Not right?" reason | Four chips (Ko'rganman / Janrim emas / Juda eski / Boshqa), or none; no free text. On Home cards, the hero and the assistant's cards. The card leaves the current view only; ranking is not changed (TZ 1.31) | `components/NotRight.tsx`, `POST /feedback` |
 | NSFW | Hidden from every list (search, onboarding, recommendations, the assistant); the film page warns, without images, until the viewer chooses. Signal: Google's `PROHIBITED_CONTENT` refusals + the hand list (Baise-moi, Caligula, Irreversible); TMDB's age rating after the alpha | `app/pipelines/sensitive.py` |
