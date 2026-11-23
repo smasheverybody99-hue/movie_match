@@ -66,7 +66,8 @@ identifikator bo'lib qoladi: tartib endi raqamlar ketma-ketligiga mos emas. F9 i
 bo'lindi: F9a — web launch, F9b — do'kon launch'i. **TZ 1.37 (2026-11-23):** alfa
 2026-11-29 da kim bo'lsa, o'shalar bilan boshlanadi (2026-11-23 da 4 tester), taklif davom
 etadi; Google Play (F9b) $25 topilguncha to'xtaydi; testerlar Android ilovani APK fayl
-sifatida oladi; web launch'ning pulsiz yo'li foydalanuvchi tanlovini kutadi.
+sifatida oladi; web launch'ning pulsiz yo'li foydalanuvchi tanlovini kutadi. **TZ 1.38:** web launch
+AI'siz; F8 va F7 F9a dan keyin.
 
 | # | Faza | Maqsad sana | Shart |
 |---|---|---|---|
@@ -75,9 +76,9 @@ sifatida oladi; web launch'ning pulsiz yo'li foydalanuvchi tanlovini kutadi.
 | 3 | F5 — testerlar yig'iladi, alfa boshlanadi | 2026-11-29: kim bo'lsa, o'shalar bilan (TZ 1.37) | F5 texnik gate'i yashil (2026-11-22); maqsad 12 ta Android telefon + Gmail, 15 gacha (TZ 1.35); taklif davom etadi; 2026-12-06 gacha 12 bo'lmasa — qaror o'sha son bilan, "zaif signal" (TZ 1.37) |
 | 4 | F6 — mobil ilova, **Android birinchi**, alfa ketayotgan paytda | ekranlar 2026-12-05 gacha (reja); testerlarga APK fayl, Play'siz (TZ 1.37) | F5 texnik gate'i; mahsulot darvozasini kutmaydi. Play yopiq testi F9b ga ko'chdi (TZ 1.37) |
 | 5 | F5 — alfa qarori (mahsulot darvozasi) | 2026-12-13 | 2 hafta ma'lumot (29-noyabrdan) |
-| 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-15 (Gemini pullik tarifiga pul yo'q: pulsiz variant foydalanuvchi tanlovini kutadi, TZ 1.37) | **F5 mahsulot darvozasi o'tgan** (15% va 70%); Gemini pullik tarifi va unda FR-8 birinchi belgi mezoni o'tgan (TZ 1.33); film sahifasi jonli saytda mobil LCP < 2.5 s (3 o'lchov mediani) va INP < 200 ms (TZ 1.34) |
+| 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-15, **AI'siz** (TZ 1.38) | **F5 mahsulot darvozasi o'tgan** (15% va 70%); **AI'siz (TZ 1.38):** assistant yashirin, film sahifasidagi izoh faqat keshdan yoki shablondan (`named_traits`), so'rovda Gemini chaqirilmaydi; Gemini pullik tarifi va FR-8 mezoni (TZ 1.33) — assistant qaytishidan oldin, launch uchun emas; film sahifasi jonli saytda mobil LCP < 2.5 s (3 o'lchov mediani) va INP < 200 ms (TZ 1.34) |
 | 7 | F9b — do'konga ariza (Google Play) | **to'xtatilgan, $25 topilguncha** (TZ 1.37). Play yopiq testi — pul va 12 tester bo'lganda; ariza — 12-tester qo'shilgandan 14 kun keyin; do'konda — Google ko'rigidan keyin (odatda 7 kungacha) | F6 gate'i, F9a, Play yopiq testi 14 kun (TZ 1.31: F7 va F8 ni kutmaydi) |
-| 8 | F8 — Smart Watchlist + Group Match (va sayqal) | do'kondan keyin, yangilanish sifatida | F9a |
+| 8 | F8 — Smart Watchlist + Group Match (va sayqal) | F9a (web launch) dan keyin (TZ 1.38) | F9a |
 | 9 | F7 — Character Match, yurist ko'rigigacha flag ortida | F8 dan keyin, yangilanish sifatida | F8 gate'i |
 | — | iOS | **hozir rejalanmaydi**; alohida qaror, 2027-yil yanvar | Avval Android (TZ 1.31) |
 
@@ -88,7 +89,7 @@ ishlanadi va launch to'xtaydi (§8).
 
 **TZ 1.31 (foydalanuvchi qarori, 2026-11-13):** do'konga ariza (F9b) F7 va F8 ni kutmaydi —
 sharti F6 gate'i, F9a va Play yopiq testi; F8 va F7 do'kon launch'idan keyin yangilanish
-bo'lib chiqadi. Google ariza ko'rigi odatda 7 kungacha, shuning uchun do'konda ko'rinish
+bo'lib chiqadi (TZ 1.38: F8 va F7 F9a dan keyin boshlanadi, do'konni kutmaydi). Google ariza ko'rigi odatda 7 kungacha, shuning uchun do'konda ko'rinish
 **2026-12-29 dan oldin emas** (sana TZ 1.35; TZ 1.37 dan beri F9b to'xtatilgan, sana yo'q). iOS hozir rejalanmaydi: avval Android, iOS — alohida qaror,
 2027-yil yanvar.
 
@@ -345,6 +346,8 @@ Interfeys: `named_traits` (trait kalitlari) va `trait_side` (`reason` | `differe
 
 ### FR-6 · "Nega sizga yoqadi"
 
+**TZ 1.38:** web launch'da (F9a) yangi izoh yozilmaydi: `explanations` keshida bo'lsa o'sha, bo'lmasa `named_traits` dan shablon jumla. Gemini pul topilganda qaytadi.
+
 Har tavsiyaga 1–2 jumlalik oddiy tildagi izoh.
 
 **Qabul mezoni:**
@@ -373,6 +376,8 @@ Foydalanuvchi o'z ta'm profilini 14 o'lchovda va bitta jumlalik xulosada ko'radi
 - Ulashish uchun server tomonda rasm generatsiya qilinadi.
 
 ### FR-8 · AI Assistant
+
+**TZ 1.38:** web launch'da (F9a) assistant yashiriladi — Gemini pullik tarifiga pul yo'q. Pul topilganda assistant qaytadi va pastdagi qabul mezoni (TZ 1.32/1.33) o'shanda, pullik tarifda o'lchanadi.
 
 Tabiiy tildagi so'rov strukturali qidiruvga aylantiriladi.
 
@@ -561,6 +566,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.35 | 2026-11-22 | Testerlar hali yo'q: ular **2026-11-29 gacha** yig'iladi — 12 ta Android telefon + Gmail, maqsad 15; alfa shu kundan 14 kun (2026-11-29 — 2026-12-13). Qolgan sanalar oraliqlarni o'zgartirmasdan **+6 kun**: Play yopiq testi 2026-12-08 (o'sha testerlar bilan), alfa qarori 2026-12-13 (15% oynasi: 2026-12-06 gacha ko'rsatilganlar), web launch 2026-12-15, Google Play'ga ariza 2026-12-22, do'konda 2026-12-29 dan oldin emas. Doira va mezonlar o'zgarmagan (foydalanuvchi qarori) |
 | 1.36 | 2026-11-23 | `alpha_tester` belgisi kelgan hamma testerga qo'yiladi (15 kelsa — 15); 70% va 15% mezonlari belgilangan hammasi bo'yicha hisoblanadi (15 kishida 70% = kamida 11). Mezonlarning o'zi o'zgarmagan (foydalanuvchi qarori) |
 | 1.37 | 2026-11-23 | Pul va testerlar (foydalanuvchi, 2026-11-23: karta bor, hozir $25 yo'q; testerlar 4 ta). **(1) Alfa 2026-11-29 da kim bo'lsa, o'shalar bilan boshlanadi**, taklif davom etadi; 2026-12-06 gacha 12 tester bo'lmasa, 2026-12-13 dagi qaror o'sha son bilan qilinadi va **"zaif signal"** deb belgilanadi; 15% va 70% o'zgarmaydi. **(2) Google Play (F9b) $25 topilguncha to'xtaydi**; Play yopiq testi — "pul va 12 tester bo'lganda", ariza undan 14 kun keyin. Play akkaunti, Play uchun imzo va yopiq test treki F6 dan F9b ga ko'chdi. **(3) F6 davom etadi**; testerlar Android ilovani APK fayl sifatida oladi (Play'siz, CI build'i), yo'riqnoma `docs/testers-android.md`; F6 qo'lda ro'yxatida "Play yopiq testidan o'rnatildi" o'rniga "tester APK'ni yo'riqnoma bo'yicha o'zi o'rnatdi". **(4) Web launch (F9a) uchun Gemini pullik tarifi ($50 hold) ham pul talab qiladi**: pulsiz variantlar `docs/STATUS.md` da, tanlov foydalanuvchida, hech biri qurilmaydi. F6 qarorlari (2026-11-23): offline va push 2026-12-08 dan keyin, `isar_community`, "film chiqdi" push'i backlog'da |
+| 1.38 | 2026-11-23 | Foydalanuvchi qarorlari. **(1) Web launch (F9a) AI'siz** — TZ 1.37 dagi A varianti: assistant yashirin, film sahifasidagi izoh faqat keshdan yoki shablondan (`named_traits`), so'rovda Gemini chaqirilmaydi. Kodi F9a vaqtida yoziladi, hozir emas. Gemini pullik tarifi va FR-8 mezoni (TZ 1.32/1.33) F9a shartidan chiqdi: pul topilganda assistant qaytadi va FR-8 o'shanda, pullik tarifda o'lchanadi; mezon yumshatilmaydi. **(2) F8 va F7 F9a dan keyin boshlanadi** (do'kondan keyin emas, TZ 1.31 o'rniga). **(3)** F6 qo'lda ro'yxati: tester APK'ni yo'riqnoma bo'yicha o'zi o'rnatadi (TZ 1.37 dagi o'zgarish tasdiqlandi). Release APK bitta doimiy kalit bilan imzolanadi (kalit repo'dan tashqarida, CI'da GitHub secret) |
 | 1.33 | 2026-11-17 | FR-8 birinchi belgi mezoni (TZ 1.32) **boshqa yumshatilmaydi** (foydalanuvchi qarori). F4 shu mezon bajarilmagan holda, ochiq yozuv bilan yopiladi: "FR-8 birinchi belgi mezoni bajarilmagan (33 xabar, median 3.62 s, 1 xato)". Mezon **F9a (web launch) shartiga ko'chdi**: Gemini pullik tarifiga o'tgandan keyin kamida 30 xabar, kamida ikki xil kun, o'sha mezon (median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0); o'tmasa web launch bo'lmaydi. Render log'i (2026-11-17): yagona xato — Gemini'ning ikki marta ketma-ket 503 "high demand" javobi, kod mo'ljallanganidek bitta qayta urinishdan keyin to'xtadi; sekin xabarlarda vaqt birinchi model chaqiruvida ketgan (6.6–11.6 s), bizning bosqichlarda emas |
 | 1.32 | 2026-11-17 | FR-8: "birinchi belgi 2 soniya ichida" mezoni o'zgardi (foydalanuvchi qarori, phase-4-status'dagi (a) varianti): mijoz tomonida, ulangan sahifada, **kamida 30 xabar, kamida ikki xil kun; median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0**; 2 s — maqsad. Sabab: Gemini Flash-Lite'ning tezligi soatdan soatga o'zgaradi (bir kod bilan bir kunda 1.78 s va 2.95 s), 10 xabarlik median qaror bera olmaydi; 2026-11-13 dagi yakuniy o'lchovda median 2.95 s edi. **Sanalar 4 kunga surildi** (13–17-noyabr ish bo'lmadi): F4 yopish 2026-11-19, F5 alfa kodi 11-22, testerlar 11-23, Play yopiq testi 12-02, alfa qarori 12-07 (15% oynasi: 11-30 gacha ko'rsatilganlar), web launch 12-09, Play'ga ariza 12-16, do'konda 12-23 dan oldin emas; oraliqlar o'zgarmagan; iOS — yanvar, o'zgarmagan (§2, §8) |
 | 1.31 | 2026-11-13 | TZ 1.30 dagi ziddiyatlar bo'yicha qarorlar (foydalanuvchi): **do'konga ariza (F9b) F7 va F8 ni kutmaydi** — sharti F6 gate'i, F9a va Play yopiq testi; F8 va F7 do'kondan keyin yangilanish. Do'konda ko'rinish **2026-12-19 dan oldin emas**. **iOS hozir rejalanmaydi** — avval Android, iOS alohida qaror, yanvar. **Launch uchun 15% ham, 70% ham shart**; 70% yiqilsa onboarding tuzatiladi va qayta o'lchanadi, dvigatel qayta ishlanmaydi. **15% faqat 7 kunlik oynasi yopilgan tavsiyalar bo'yicha**, hisobotda tavsiyalar soni. Backlog: testerlardan oldin faqat NSFW va izohlar limiti xabari; recency sifat chegarasi va onboarding chiplari alfadan keyin; qolganlari F5 dan keyin (§2) |

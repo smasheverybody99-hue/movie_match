@@ -125,5 +125,5 @@ Hozirgi faza: **F5 — yopiq alfa** (kod jonli; testerlar 2026-11-29 gacha yig'i
 
 Maqsad sanalar (TZ 1.37, 2026-11-23): alfa 29-noyabr — 13-dekabr, kim bo'lsa o'shalar bilan
 (maqsad 12 Android + Gmail; 6-dekabrgacha 12 bo'lmasa — "zaif signal") · Android ilova
-testerlarga APK fayl sifatida · alfa qarori 13-dekabr · web launch 15-dekabr (pulsiz variant
-tanlovi kutilmoqda) · Google Play $25 topilguncha to'xtatilgan. Holat: `docs/STATUS.md`.
+testerlarga APK fayl sifatida · alfa qarori 13-dekabr · web launch 15-dekabr, AI'siz (TZ
+1.38) · Google Play $25 topilguncha to'xtatilgan. Holat: `docs/STATUS.md`.
