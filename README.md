@@ -123,7 +123,7 @@ flutter run
 
 Hozirgi faza: **F5 — yopiq alfa** (kod jonli; testerlar 2026-11-29 gacha yig'iladi). F4 yopilgan (TZ 1.34).
 
-Maqsad sanalar (TZ 1.35, 2026-11-22): testerlar 29-noyabrgacha (12 Android + Gmail, maqsad 15) ·
-alfa 29-noyabr — 13-dekabr · Play yopiq testi 8-dekabr (o'sha testerlar) · alfa qarori 13-dekabr ·
-web launch 15-dekabr · Google Play'ga ariza 22-dekabr, do'konda 29-dekabrdan oldin emas. Holat:
-`docs/STATUS.md`.
+Maqsad sanalar (TZ 1.37, 2026-11-23): alfa 29-noyabr — 13-dekabr, kim bo'lsa o'shalar bilan
+(maqsad 12 Android + Gmail; 6-dekabrgacha 12 bo'lmasa — "zaif signal") · Android ilova
+testerlarga APK fayl sifatida · alfa qarori 13-dekabr · web launch 15-dekabr (pulsiz variant
+tanlovi kutilmoqda) · Google Play $25 topilguncha to'xtatilgan. Holat: `docs/STATUS.md`.

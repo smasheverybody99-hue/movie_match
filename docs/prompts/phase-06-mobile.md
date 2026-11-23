@@ -5,8 +5,10 @@ in** (target 2026-11-29). This phase runs while the alpha does and does not wait
 product gate (TZ 1.30). If the 15% metric fails on 2026-12-13, work here may continue but
 nothing goes to a public store track.
 
-**Android first** (TZ 1.30): the Google Play closed test starts 2026-12-08 (TZ 1.35) with the 12
-alpha testers. A new personal Play developer account needs a closed test of at least 12
+**Android first** (TZ 1.30). **TZ 1.37 (2026-11-23):** the alpha testers get the app as an APK
+file, without Google Play (CI builds it: `.github/workflows/android.yml`; tester guide
+`docs/testers-android.md`). The Play closed test waits until the $25 account is paid for and
+12 testers are in; it moves to Phase 9b. A new personal Play developer account needs a closed test of at least 12
 testers opted in for 14 consecutive days before it can apply for production
 ([Play Console Help, answer 14151465](https://support.google.com/googleplay/android-developer/answer/14151465),
 checked 2026-11-13). **iOS is not planned now** (TZ 1.31): Android first; iOS is a
@@ -22,13 +24,15 @@ Read:
 
 ## Goal
 
-An Android app with feature parity to the web app on the Google Play closed test track by
-2026-12-08. iOS is out of this phase until the January decision.
+An Android app with feature parity to the web app, installed by the alpha testers as an APK
+(TZ 1.37). The Play closed test track is Phase 9b's. iOS is out of this phase until the
+January decision.
 
 ## Build
 
 1. **Project setup**
-   - `flutter create` if not done, then Riverpod, Dio, go_router, Isar.
+   - `flutter create` if not done, then Riverpod, Dio, go_router, Isar (`isar_community`:
+     the original `isar` has had no release since 2023-04; user decision 2026-11-23).
    - Bundle Playfair Display and Inter as app fonts so typography matches the web exactly.
    - `--dart-define=API_URL=...`; never hard-code the URL.
 2. **API client** — `lib/data/api_client.dart`
@@ -41,11 +45,15 @@ An Android app with feature parity to the web app on the Google Play closed test
    - Swipe to rate; swipe on watchlist rows.
    - Native share sheet for DNA and film pages.
    - Offline reading via Isar: cached feed and film pages work with no network.
-   - Push via FCM: weekly recommendation, watchlist film became available.
+   - Push via FCM: weekly recommendation. ("Watchlist film became available" is in the
+     backlog: the catalogue has no availability data, TZ 1.37.)
+   - Offline and push come after 2026-12-08, as updates (user decision 2026-11-23); the
+     screens come first.
 5. **Release plumbing**
    - App icons, splash, store metadata.
-   - Google Play developer account (identity and Android device verification) and signing.
-   - Android build on the Play closed test track with the 12 alpha testers (2026-12-08).
+   - An APK for the testers from CI, with an install guide in Uzbek (TZ 1.37).
+   - Moved to Phase 9b (TZ 1.37): the Google Play developer account (identity and Android
+     device verification), release signing for Play, and the closed test track.
    - The app records the same Phase 5 events as the web client, so alpha data from the
      phone is not lost.
 
@@ -86,8 +94,8 @@ Manual checklist:
 - [ ] Complete onboarding on a phone, timed.
 - [ ] Airplane mode: open the app, browse cached content, come back online. No crash,
       no stuck spinner.
-- [ ] The Android build installed from the Play closed test by someone else; the 12
-      testers opted in (the 14 days start from the last one in).
+- [ ] The APK installed by a tester from `docs/testers-android.md`, without help (TZ 1.37).
+      The Play closed test (12 testers opted in, 14 days) is Phase 9b's.
 
 ## Report
 

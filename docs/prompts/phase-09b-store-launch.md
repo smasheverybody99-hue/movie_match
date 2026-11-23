@@ -1,8 +1,10 @@
 # Phase 9b — Store launch (Google Play)
 
 Read `CLAUDE.md` and `docs/legal.md` first. Split from Phase 9 by TZ 1.30; the web launch
-is `phase-09a-web-launch.md`. Target: **submission on 2026-12-16; visible in the store
-not before 2026-12-23** (Google's review usually takes up to seven days).
+is `phase-09a-web-launch.md`. Target (TZ 1.37, 2026-11-23): **paused until the $25 Play developer account is paid for.**
+The closed test starts once the account exists and 12 testers are in; submission 14 days
+after the 12th opts in; visible after Google's review (usually up to seven days). Until
+then the alpha testers use an APK file (Phase 6).
 
 Preconditions:
 - Phase 9a done: the web is public and its legal, security and reliability work applies
@@ -16,13 +18,15 @@ Preconditions:
   apply for production access; Google says review "usually takes seven days or less, but
   can occasionally take longer"
   ([Play Console Help, answer 14151465](https://support.google.com/googleplay/android-developer/answer/14151465),
-  checked 2026-11-13). A closed test that starts 2026-12-02 reaches 14 days on 2026-12-16
-  at the earliest — no slack.
+  checked 2026-11-13). The 14 days count from the day the 12th tester opts in.
 - **App Store: not in this phase** (TZ 1.31). iOS is a separate decision in January
   2027; it will need an Apple Developer Program membership (99 USD a year) and an iOS
   build made on macOS — from this Windows machine, a cloud build.
 
 No new features this phase.
+
+Moved here from Phase 6 by TZ 1.37: the Play developer account (identity and Android
+device verification), release signing for Play, and the closed test track.
 
 ## Build
 

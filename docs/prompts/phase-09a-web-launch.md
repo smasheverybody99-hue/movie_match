@@ -2,13 +2,18 @@
 
 Read `CLAUDE.md` and `docs/legal.md` first. TZ 1.30 split Phase 9 in two: this file is the
 web launch (target **2026-12-15**); the store submission is `phase-09b-store-launch.md`
-(2026-12-22; TZ 1.31: it does not wait for Phases 7 and 8).
+(paused until the $25 Play account, TZ 1.37; TZ 1.31: it does not wait for Phases 7 and 8).
 
 Preconditions (TZ 1.30): the readiness work below is built **during the alpha**, from
 2026-11-29. The public launch itself needs **Phase 5's product gate passed** (decision
 2026-12-13): both 15% and 70% (TZ 1.31). If 15% fails, the engine is reworked; if 70%
 fails, onboarding is fixed and measured again. Either way this launch waits. Phases 7
 and 8 come after the store launch and are not required for it.
+
+**Money (TZ 1.37, 2026-11-23):** the Gemini paid tier, a precondition below (a $50 card
+hold), is money the user does not have now. How the web launch goes without it is the
+user's choice among the options in `docs/STATUS.md` ("Web launch pulsiz"); none is
+chosen or built yet.
 
 Three more preconditions, all required:
 
