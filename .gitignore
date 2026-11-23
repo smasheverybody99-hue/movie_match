@@ -42,6 +42,8 @@ Thumbs.db
 # data dumps
 data/
 *.csv.gz
+# ...but the Flutter app's data layer is code (API client, models)
+!apps/mobile/lib/data/
 
 # local run artefacts
 gate-output.txt
