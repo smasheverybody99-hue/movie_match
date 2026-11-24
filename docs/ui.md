@@ -992,6 +992,17 @@ boshlanmagan (F6); neytral qiymatlar (qaror 5) Dart fayliga ham o'sha commit'da
 yozilgan. Rang qoidasi va ikonkalar Flutter'da ham amal qiladi (Flutter'da lucide'ning
 rasmiy porti bor — F6 da tanlanadi).
 
+**Telefonga xos xatti-harakatlar — holat (2026-11-24).** Paritet jadvalining o'zi v1
+artifact'da (yuqoridagi havola); F6 bo'yicha holati shu yerda:
+
+| Xatti-harakat | Holat |
+|---|---|
+| Watchlist qatorini surish (o'ngga — Watched, chapga — Remove) | Bajarildi, `6c9ba39`; tugmalar TalkBack uchun qoladi |
+| **Surib baholash** (swipe to rate) | **Qilinmaydi F6 da** (foydalanuvchi, 2026-11-24): web'da yo'q. TZ backlog, F8 sayqal |
+| Ulashish oynasi (Movie DNA) | Bajarildi, `997f2b4`: Android share sheet, bo'lmasa nusxalash. Film sahifasida ulashish web'da yo'q |
+| Offline o'qish (Isar), push (FCM) | 2026-12-08 dan keyin (foydalanuvchi, 2026-11-23) |
+| Assistant tab | Server boshqaradi: `/me` `assistant_enabled` (foydalanuvchi, 2026-11-24) |
+
 ### 11. Qarorlar (foydalanuvchi, 2026-10-02)
 
 1. **DNA rangi: monoxrom.** Shart: yassi oq emas — har nurning yorqinligi qiymatiga qarab
