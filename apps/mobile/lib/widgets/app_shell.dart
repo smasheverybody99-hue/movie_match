@@ -26,6 +26,7 @@ class ShellSection {
 const shellSections = [
   ShellSection('/', 'nav.home', Icons.home_outlined, Icons.home),
   ShellSection('/search', 'nav.search', Icons.search, Icons.search),
+  ShellSection('/dna', 'nav.dna', Icons.blur_circular_outlined, Icons.blur_circular),
   ShellSection('/watchlist', 'nav.watchlist', Icons.bookmark_border, Icons.bookmark),
 ];
 
