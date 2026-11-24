@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'auth/auth_client.dart';
+import 'data/local_store.dart';
 import 'router.dart';
 import 'state/app_state.dart';
 import 'theme/tokens.dart';
@@ -11,12 +13,15 @@ Future<void> main() async {
   // Supabase restores a saved session before the first frame, so a signed-in user does
   // not see /welcome flash.
   final auth = await SupabaseAuthClient.start();
-  final notices = await PrefsNoticeMemory.load();
+  final prefs = await SharedPreferencesWithCache.create(
+    cacheOptions: const SharedPreferencesWithCacheOptions(),
+  );
   runApp(ProviderScope(
     retry: noRetry,
     overrides: [
       authClientProvider.overrideWithValue(auth),
-      noticeMemoryProvider.overrideWithValue(notices),
+      noticeMemoryProvider.overrideWithValue(PrefsNoticeMemory(prefs)),
+      localStoreProvider.overrideWithValue(PrefsLocalStore(prefs)),
     ],
     child: const MovieMatchApp(),
   ));

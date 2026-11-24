@@ -1,17 +1,21 @@
 /// App-wide Riverpod providers: auth, the API client, the language and the signed-in user.
-/// main.dart overrides [authClientProvider] and [noticeMemoryProvider] with the real
-/// implementations; widget tests override them with fakes.
+/// main.dart overrides [authClientProvider], [noticeMemoryProvider] and [localStoreProvider]
+/// with the real implementations; widget tests override them with fakes.
 library;
 
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/auth_client.dart';
 import '../config.dart';
 import '../data/api_client.dart';
+import '../data/local_store.dart';
 import '../data/models.dart';
+import '../data/rating_queue.dart';
+import '../data/telemetry.dart';
 import '../i18n/i18n.dart';
 
 /// For ProviderScope: no automatic retries. A failed request shows its error with a "Try
@@ -76,12 +80,6 @@ abstract interface class NoticeMemory {
 class PrefsNoticeMemory implements NoticeMemory {
   PrefsNoticeMemory(this._prefs);
 
-  static Future<PrefsNoticeMemory> load() async => PrefsNoticeMemory(
-        await SharedPreferencesWithCache.create(
-          cacheOptions: const SharedPreferencesWithCacheOptions(),
-        ),
-      );
-
   static const _prefix = 'mm.dataNotice.v1.';
   final SharedPreferencesWithCache _prefs;
 
@@ -103,3 +101,46 @@ class MemoryNoticeMemory implements NoticeMemory {
 }
 
 final noticeMemoryProvider = Provider<NoticeMemory>((ref) => MemoryNoticeMemory());
+
+/// The phone's key-value storage (web: localStorage). In memory unless main.dart overrides it.
+final localStoreProvider = Provider<LocalStore>((ref) => MemoryLocalStore());
+
+/// GET /ratings for the signed-in user.
+final ratingsProvider = FutureProvider<List<Rating>>((ref) async {
+  if (ref.watch(userIdProvider) == null) throw const ApiException(401, 'signed out');
+  return ref.watch(apiClientProvider).ratings();
+});
+
+/// The signed-in user's rating queue (data/rating_queue.dart), one for the whole app, so
+/// onboarding and the screens after it see the same scores. Leftovers from an earlier run
+/// go out when it is created, failed ones again when the app comes back to the front.
+final ratingQueueProvider = Provider<RatingQueue>((ref) {
+  final api = ref.watch(apiClientProvider);
+  final queue = RatingQueue(
+    userId: ref.watch(userIdProvider) ?? '',
+    store: ref.watch(localStoreProvider),
+    send: api.rate,
+  );
+  final lifecycle = AppLifecycleListener(onResume: queue.flush);
+  ref.onDispose(() {
+    lifecycle.dispose();
+    queue.dispose();
+  });
+  queue.flush();
+  return queue;
+});
+
+/// The alpha's event queue (data/telemetry.dart) for the signed-in user; sent when the app
+/// goes to the background too. Signed out it records nothing.
+final telemetryProvider = Provider<Telemetry>((ref) {
+  final signedIn = ref.watch(userIdProvider) != null;
+  final api = ref.watch(apiClientProvider);
+  final telemetry = Telemetry(api.sendEvents);
+  if (!signedIn) telemetry.close();
+  final lifecycle = AppLifecycleListener(onHide: telemetry.flush);
+  ref.onDispose(() {
+    lifecycle.dispose();
+    telemetry.close();
+  });
+  return telemetry;
+});

@@ -115,6 +115,18 @@ class Movie {
   final List<String> genres;
 
   int? get year => releaseDate == null ? null : int.tryParse(releaseDate!.split('-').first);
+
+  /// The API's shape, for keeping a film on the phone (onboarding picks).
+  Json toJson() => {
+        'id': id,
+        'title': title,
+        'release_date': releaseDate,
+        'runtime_minutes': runtimeMinutes,
+        'overview': overview,
+        'poster_path': posterPath,
+        'backdrop_path': backdropPath,
+        'genres': genres,
+      };
 }
 
 class TraitScores {

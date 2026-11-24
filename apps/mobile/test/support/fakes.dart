@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:movie_match/auth/auth_client.dart';
 import 'package:movie_match/data/api_client.dart';
+import 'package:movie_match/data/local_store.dart';
 import 'package:movie_match/state/app_state.dart';
 import 'package:movie_match/theme/tokens.dart';
 
@@ -95,11 +96,11 @@ ApiClient fakeApi(FakeAdapter adapter) => ApiClient(
       receiveTimeout: Duration.zero,
     );
 
-Map<String, Object?> meJson({bool required = true, String? acceptedAt}) => {
+Map<String, Object?> meJson({bool required = true, String? acceptedAt, int ratingCount = 0}) => {
       'id': 'u1',
       'created_at': '2026-11-20T10:00:00Z',
-      'rating_count': 0,
-      'ratings_needed': 10,
+      'rating_count': ratingCount,
+      'ratings_needed': ratingCount >= 10 ? 0 : 10 - ratingCount,
       'has_taste_profile': false,
       'taste_updated_at': null,
       'data_notice_required': required,
@@ -113,6 +114,7 @@ Future<void> pumpWithFakes(
   AuthClient? auth,
   ApiClient? api,
   NoticeMemory? memory,
+  LocalStore? store,
 }) =>
     tester.pumpWidget(ProviderScope(
       retry: noRetry,
@@ -120,6 +122,7 @@ Future<void> pumpWithFakes(
         authClientProvider.overrideWithValue(auth),
         if (api != null) apiClientProvider.overrideWithValue(api),
         if (memory != null) noticeMemoryProvider.overrideWithValue(memory),
+        if (store != null) localStoreProvider.overrideWithValue(store),
       ],
       child: MaterialApp(theme: buildTheme(), home: child),
     ));

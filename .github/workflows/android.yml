@@ -17,6 +17,7 @@ on:
       - "apps/mobile/**"
       - "apps/web/src/styles/tokens.css" # tokens_test.dart reads it
       - "apps/web/src/i18n/*.ts" # i18n_test.dart reads them
+      - "packages/shared/traits.json" # traits_test.dart reads it
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
