@@ -103,7 +103,16 @@ and the TMDB link go through Android. The parity table itself is in the v1 desig
 
 ## Known limits
 
-- **~7 s after the network returns** (phone test, item 10): cause and proposal under
-  investigation, see `docs/STATUS.md`.
+- **~7 s after the network returns** (phone test, item 10). Likely cause, not confirmed
+  with the phone's network log: the first request after the radio returns loses its
+  connection packets while the data path settles, and the system's connect retries (1 s,
+  then 2, then 4: ~7 s) ran inside the 15 s connect timeout. Fix on `mobile-reconnect`
+  (`32fd246`): connect timeout 5 s, and a GET whose connection failed or timed out is sent
+  once more; POST / DELETE never. Android run 18 green; the merge waits for the user.
+  Check on the phone: airplane mode on, then off, then pull to refresh on Home.
+
+Merged into `main` 2026-11-24: `d708751` (gate 172, android run 17 release, `/health` →
+`d708751`). The APK for the alpha testers: android run 17, artifact
+`movie-match-d7087513f9b5c2d09cc599a28ad7d7b4e13b9e82` (until 2026-12-08).
 - Offline reading (Isar) and push (FCM): after 2026-12-08.
 - Store metadata and the Play closed test: Phase 9b.
