@@ -349,6 +349,7 @@ class Me {
     this.tasteUpdatedAt,
     required this.dataNoticeRequired,
     this.dataNoticeAcceptedAt,
+    this.assistantEnabled = false,
   });
 
   factory Me.fromJson(Json json) => Me(
@@ -360,6 +361,7 @@ class Me {
         tasteUpdatedAt: _timeOrNull(json, 'taste_updated_at'),
         dataNoticeRequired: _field<bool>(json, 'data_notice_required'),
         dataNoticeAcceptedAt: _timeOrNull(json, 'data_notice_accepted_at'),
+        assistantEnabled: json['assistant_enabled'] == true,
       );
 
   final String id;
@@ -372,6 +374,11 @@ class Me {
   /// Show the data notice until it is accepted (ADR 0004, the alpha).
   final bool dataNoticeRequired;
   final DateTime? dataNoticeAcceptedAt;
+
+  /// Whether the server offers the assistant (the user's decision, 2026-11-24): on in the
+  /// alpha, off from the AI-free web launch (TZ 1.38), without a new APK. Missing (an API
+  /// that does not send it yet) counts as off.
+  final bool assistantEnabled;
 }
 
 class RatingIn {

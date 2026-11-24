@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'data/models.dart';
+import 'screens/assistant_screen.dart';
 import 'screens/data_notice.dart';
 import 'screens/dna_screen.dart';
 import 'screens/feed_screen.dart';
@@ -52,6 +53,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/assistant', builder: (context, state) => const AssistantScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/dna', builder: (context, state) => const DnaScreen()),

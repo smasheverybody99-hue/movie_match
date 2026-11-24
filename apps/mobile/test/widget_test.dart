@@ -133,4 +133,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('No recommendations for you yet. Rate a few more films.'), findsOneWidget);
   });
+
+  testWidgets('the Assistant tab shows only while the server offers it, and goes when it stops',
+      (tester) async {
+    var enabled = true;
+    final api = fakeApi(FakeAdapter((o) => switch (o.uri.path) {
+          '/me' => jsonBody({...meJson(required: false, ratingCount: 12), 'assistant_enabled': enabled}),
+          '/recommendations' => jsonBody({
+              'status': 'ok',
+              'ratings_needed': 0,
+              'sections': [
+                {'key': 'under_90', 'seed': null, 'items': <Object>[]},
+              ],
+            }),
+          '/watchlist' || '/ratings' => jsonBody(<Object>[]),
+          _ => jsonBody({'detail': 'not found'}, 404),
+        }));
+    await tester.pumpWidget(ProviderScope(
+      retry: noRetry,
+      overrides: [
+        authClientProvider.overrideWithValue(FakeAuthClient(session: testSession)),
+        apiClientProvider.overrideWithValue(api),
+      ],
+      child: const MovieMatchApp(),
+    ));
+    await tester.pumpAndSettle();
+    Finder tab(String label) =>
+        find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
+    expect(tab('Assistant'), findsOneWidget);
+    final xs = [for (final l in ['Home', 'Search', 'Assistant', 'Movie DNA', 'Watchlist']) tester.getCenter(tab(l)).dx];
+    expect(xs, orderedEquals([...xs]..sort()), reason: "the web's order");
+
+    await tester.tap(tab('Assistant'));
+    await tester.pumpAndSettle();
+    expect(find.text('A dark thriller from the 90s'), findsOneWidget);
+
+    // The server turns it off (TZ 1.38): the next /me takes the tab away, back to Home.
+    enabled = false;
+    ProviderScope.containerOf(tester.element(find.byType(NavigationBar))).invalidate(meProvider);
+    await tester.pumpAndSettle();
+    expect(tab('Assistant'), findsNothing);
+    expect(find.text('No recommendations for you yet. Rate a few more films.'), findsOneWidget);
+  });
+
+  testWidgets('an API that does not say counts as off: no Assistant tab', (tester) async {
+    final api = fakeApi(FakeAdapter((o) => switch (o.uri.path) {
+          '/me' => jsonBody(meJson(required: false, ratingCount: 12)),
+          '/recommendations' =>
+            jsonBody({'status': 'ok', 'ratings_needed': 0, 'sections': <Object>[]}),
+          _ => jsonBody(<Object>[]),
+        }));
+    await tester.pumpWidget(ProviderScope(
+      retry: noRetry,
+      overrides: [
+        authClientProvider.overrideWithValue(FakeAuthClient(session: testSession)),
+        apiClientProvider.overrideWithValue(api),
+      ],
+      child: const MovieMatchApp(),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.descendant(of: find.byType(NavigationBar), matching: find.text('Assistant')),
+        findsNothing);
+  });
 }

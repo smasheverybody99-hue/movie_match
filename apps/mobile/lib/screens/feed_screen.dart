@@ -116,15 +116,7 @@ class _FeedBody extends ConsumerWidget {
     ];
     final saved = ref.watch(savedIdsProvider);
 
-    void open(Movie movie, EventSource source) {
-      ref.read(telemetryProvider).track(RecommendationEvent(
-            clicked: true,
-            at: DateTime.now(),
-            movieId: movie.id,
-            source: source,
-          ));
-      context.push('/movie/${movie.id}', extra: movie);
-    }
+    void open(Movie movie, EventSource source) => openRecommendation(context, ref, movie, source);
 
     Future<void> toggleSave(Movie movie, bool isSaved) async {
       final messenger = ScaffoldMessenger.of(context);
@@ -172,6 +164,17 @@ class _FeedBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// A recommendation opened: recorded for the alpha (`recommendation_clicked`), then the film.
+void openRecommendation(BuildContext context, WidgetRef ref, Movie movie, EventSource source) {
+  ref.read(telemetryProvider).track(RecommendationEvent(
+        clicked: true,
+        at: DateTime.now(),
+        movieId: movie.id,
+        source: source,
+      ));
+  context.push('/movie/${movie.id}', extra: movie);
 }
 
 /// The first load: a spinner with words that change at 5 s and 15 s. With animations
@@ -239,29 +242,6 @@ class _SectionRow extends ConsumerWidget {
     final title = section.key == SectionKey.becauseYouLoved
         ? s.t('feed.section.because_you_loved', {'title': section.seed?.title ?? ''})
         : s.t('feed.section.${section.key.wire}');
-    // As on the web phone layout: two and a bit cards across, so the row reads as scrollable.
-    final width = (MediaQuery.sizeOf(context).width - 2 * AppSpacing.x3 - 2 * 10) / 2.4;
-    // A horizontal list needs its height up front: the poster, then two title lines, the
-    // meta line and "Not right?", measured at the phone's text size.
-    final base = DefaultTextStyle.of(context).style;
-    final scaler = MediaQuery.textScalerOf(context);
-    double textHeight(TextStyle style, int lines) {
-      final painter = TextPainter(
-        text: TextSpan(text: List.filled(lines, 'Ag').join('\n'), style: base.merge(style)),
-        textScaler: scaler,
-        textDirection: TextDirection.ltr,
-      )..layout();
-      final height = painter.height;
-      painter.dispose();
-      return height;
-    }
-
-    final height = width * 1.5 +
-        10 +
-        textHeight(_cardTitleStyle, 2) +
-        textHeight(_cardMetaStyle, 1) +
-        math.max(32, textHeight(notRightTextStyle, 1)) +
-        AppSpacing.x1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -285,28 +265,69 @@ class _SectionRow extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: height,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3),
-            itemCount: section.items.length,
-            separatorBuilder: (context, i) => const SizedBox(width: 10),
-            itemBuilder: (context, i) {
-              final item = section.items[i];
-              return SizedBox(
-                width: width,
-                child: MovieCard(
-                  key: ValueKey(item.movie.id),
-                  item: item,
-                  source: EventSource.fromSection(section.key),
-                  onOpen: () => onOpen(item.movie),
-                ),
-              );
-            },
-          ),
+        CardRow(
+          items: section.items,
+          source: EventSource.fromSection(section.key),
+          onOpen: onOpen,
         ),
       ],
+    );
+  }
+}
+
+/// One horizontal row of recommendation cards (the feed's sections, the assistant's
+/// answers): two and a bit across, as on the web's phone layout, so it reads as scrollable.
+class CardRow extends StatelessWidget {
+  const CardRow({super.key, required this.items, required this.source, required this.onOpen});
+
+  final List<Recommendation> items;
+  final EventSource source;
+  final void Function(Movie movie) onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = (MediaQuery.sizeOf(context).width - 2 * AppSpacing.x3 - 2 * 10) / 2.4;
+    // A horizontal list needs its height up front: the poster, then two title lines, the
+    // meta line and "Not right?", measured at the phone's text size.
+    final base = DefaultTextStyle.of(context).style;
+    final scaler = MediaQuery.textScalerOf(context);
+    double textHeight(TextStyle style, int lines) {
+      final painter = TextPainter(
+        text: TextSpan(text: List.filled(lines, 'Ag').join('\n'), style: base.merge(style)),
+        textScaler: scaler,
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final height = painter.height;
+      painter.dispose();
+      return height;
+    }
+
+    final height = width * 1.5 +
+        10 +
+        textHeight(_cardTitleStyle, 2) +
+        textHeight(_cardMetaStyle, 1) +
+        math.max(32, textHeight(notRightTextStyle, 1)) +
+        AppSpacing.x1;
+    return SizedBox(
+      height: height,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3),
+        itemCount: items.length,
+        separatorBuilder: (context, i) => const SizedBox(width: 10),
+        itemBuilder: (context, i) {
+          final item = items[i];
+          return SizedBox(
+            width: width,
+            child: MovieCard(
+              key: ValueKey(item.movie.id),
+              item: item,
+              source: source,
+              onOpen: () => onOpen(item.movie),
+            ),
+          );
+        },
+      ),
     );
   }
 }
