@@ -1,7 +1,8 @@
 # Phase 9b — Store launch (Google Play)
 
 Read `CLAUDE.md` and `docs/legal.md` first. Split from Phase 9 by TZ 1.30; the web launch
-is `phase-09a-web-launch.md`. Target (TZ 1.37, 2026-11-23): **paused until the $25 Play developer account is paid for.**
+is `phase-09a-web-launch.md`. Target (TZ 1.37, 2026-11-23): **paused until the $25 Play developer account is paid for**
+— or until option B, a trusted person's existing account at $0, is chosen (TZ 1.39, below).
 The closed test starts once the account exists and 12 testers are in; submission 14 days
 after the 12th opts in; visible after Google's review (usually up to seven days). Until
 then the alpha testers use an APK file (Phase 6).
@@ -24,6 +25,50 @@ Preconditions:
   build made on macOS — from this Windows machine, a cloud build.
 
 No new features this phase.
+
+## Account options (TZ 1.39, 2026-11-24) — decision pending
+
+TZ §2 "Play akkaunti variantlari" compares A (my own account, $25, a new personal account,
+so the 12 × 14 closed test is mandatory) and B (an account a trusted person — a parent or
+relative — already has; they invite me as Admin, I pay nothing). The user decides; nothing
+here starts before that. Facts and sources are in the TZ section (Play Console Help, read
+2026-11-24).
+
+Steps for **B**:
+
+1. **Ask the owner** whether the account exists, when it was created and whether it is
+   personal or an organization account. Created before 2023-11-13, or an organization:
+   no closed test requirement. Created after, and personal: the 12 × 14 rule applies as
+   in A (step 6).
+2. **The owner invites me** (Users and permissions → invite → "Make this user an account
+   admin"). The owner stays the developer named on the store page, and the person named
+   in the privacy policy unless the lawyer says otherwise (`docs/legal-drafts/README.md`,
+   item 9).
+3. **`applicationId` is `com.moviematch.movie_match`** (`apps/mobile/android/app/build.gradle.kts`)
+   and **never changes after the first upload**: Play identifies the app by it, and a new
+   id is a new app with no reviews, testers or history. Check it once more before the first
+   upload; do not rename it afterwards (the sign-in redirect scheme
+   `com.moviematch.moviematch` is separate and may change).
+4. **Play App Signing on** (the default for a new app). Google keeps the app signing key;
+   the **upload key stays with me**: the existing `.jks` outside the repo
+   (`C:\Users\User\.moviematch-keys`, certificate SHA-256 in `.github/workflows/android.yml`,
+   `UPLOAD_CERT_SHA256`). If it is lost, an Admin asks Google for an upload key reset — the
+   app is not lost. The key never goes to the account owner.
+5. **Upload format.** Play takes an Android App Bundle for new apps; CI builds only APKs
+   today. Add a `flutter build appbundle --release` step signed with the same upload key
+   (not re-checked on the Play page 2026-11-24; confirm before the first upload).
+6. **If the B account is new (personal, after 2023-11-13): run the alpha through the Play
+   closed test track.** One 14-day window then covers both the Phase 5 gate (two weeks of
+   alpha) and Play's requirement, instead of two in a row. Conditions: 12 testers opted in
+   continuously for 14 days, counted from the 12th opt-in (one who leaves and rejoins does
+   not count); every tester joins with the Gmail on their Android phone. Note: a Play
+   build is re-signed with Google's app signing key, so it cannot update an APK installed
+   from CI (different signature): testers uninstall the CI APK once, then install from
+   Play. Ratings live on the server and are not lost.
+7. **Later, app transfer** to my own account is possible (both accounts registered, active,
+   within policy; my account then costs $25). Test groups do not transfer. Open question,
+   not answered by the page: whether a new personal target account must then run its own
+   12 × 14 test — ask Play support before transferring.
 
 Moved here from Phase 6 by TZ 1.37: the Play developer account (identity and Android
 device verification), release signing for Play, and the closed test track.

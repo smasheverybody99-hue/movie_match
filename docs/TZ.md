@@ -1,6 +1,6 @@
 # Movie Match — Texnik topshiriq (TZ)
 
-Versiya 1.36 · 2026-11-23 · Holat: tasdiqlangan
+Versiya 1.39 · 2026-11-24 · Holat: tasdiqlangan
 
 Bu hujjat nima qurilishini belgilaydi. Qanday qurilishini `docs/architecture.md`,
 qachon qurilishini `docs/roadmap.html`, qanday ko'rinishini esa dizayn tizimi hujjati
@@ -77,7 +77,7 @@ AI'siz; F8 va F7 F9a dan keyin.
 | 4 | F6 — mobil ilova, **Android birinchi**, alfa ketayotgan paytda | ekranlar 2026-12-05 gacha (reja); testerlarga APK fayl, Play'siz (TZ 1.37) | F5 texnik gate'i; mahsulot darvozasini kutmaydi. Play yopiq testi F9b ga ko'chdi (TZ 1.37) |
 | 5 | F5 — alfa qarori (mahsulot darvozasi) | 2026-12-13 | 2 hafta ma'lumot (29-noyabrdan) |
 | 6 | F9a — web launch tayyorligi va ochiq web launch | 2026-12-15, **AI'siz** (TZ 1.38) | **F5 mahsulot darvozasi o'tgan** (15% va 70%); **AI'siz (TZ 1.38):** assistant yashirin, film sahifasidagi izoh faqat keshdan yoki shablondan (`named_traits`), so'rovda Gemini chaqirilmaydi; Gemini pullik tarifi va FR-8 mezoni (TZ 1.33) — assistant qaytishidan oldin, launch uchun emas; film sahifasi jonli saytda mobil LCP < 2.5 s (3 o'lchov mediani) va INP < 200 ms (TZ 1.34) |
-| 7 | F9b — do'konga ariza (Google Play) | **to'xtatilgan, $25 topilguncha** (TZ 1.37). Play yopiq testi — pul va 12 tester bo'lganda; ariza — 12-tester qo'shilgandan 14 kun keyin; do'konda — Google ko'rigidan keyin (odatda 7 kungacha) | F6 gate'i, F9a, Play yopiq testi 14 kun (TZ 1.31: F7 va F8 ni kutmaydi) |
+| 7 | F9b — do'konga ariza (Google Play) | **to'xtatilgan, $25 topilguncha** (TZ 1.37) — yoki B varianti: ishonchli shaxsning akkaunti, $0 (TZ 1.39, qaror kutilmoqda, pastda "Play akkaunti variantlari"). Play yopiq testi — pul va 12 tester bo'lganda; ariza — 12-tester qo'shilgandan 14 kun keyin; do'konda — Google ko'rigidan keyin (odatda 7 kungacha) | F6 gate'i, F9a, Play yopiq testi 14 kun (TZ 1.31: F7 va F8 ni kutmaydi) |
 | 8 | F8 — Smart Watchlist + Group Match (va sayqal) | F9a (web launch) dan keyin (TZ 1.38) | F9a |
 | 9 | F7 — Character Match, yurist ko'rigigacha flag ortida | F8 dan keyin, yangilanish sifatida | F8 gate'i |
 | — | iOS | **hozir rejalanmaydi**; alohida qaror, 2027-yil yanvar | Avval Android (TZ 1.31) |
@@ -92,6 +92,37 @@ sharti F6 gate'i, F9a va Play yopiq testi; F8 va F7 do'kon launch'idan keyin yan
 bo'lib chiqadi (TZ 1.38: F8 va F7 F9a dan keyin boshlanadi, do'konni kutmaydi). Google ariza ko'rigi odatda 7 kungacha, shuning uchun do'konda ko'rinish
 **2026-12-29 dan oldin emas** (sana TZ 1.35; TZ 1.37 dan beri F9b to'xtatilgan, sana yo'q). iOS hozir rejalanmaydi: avval Android, iOS — alohida qaror,
 2027-yil yanvar.
+
+#### F9b: Play akkaunti variantlari (TZ 1.39, 2026-11-24)
+
+**Holat: qaror kutilmoqda** (foydalanuvchi). Ikkala variantda ham ilova bitta:
+`applicationId` `com.moviematch.movie_match`, upload kaliti — mavjud `.jks` (TZ 1.38).
+Qadamlar: `docs/prompts/phase-09b-store-launch.md`, "Account options".
+
+| | A) O'z akkauntim | B) Ishonchli shaxs akkaunti (ota-ona yoki qarindosh) |
+|---|---|---|
+| Pul | **$25** bir marta | **$0**: akkaunt egasi meni **Admin** qilib taklif qiladi, men to'lamayman |
+| Kim ochadi | Men: 18+, hukumat ID va o'z nomimdagi karta (prepaid emas) | Akkaunt egasi (akkaunt unda bor) |
+| Yopiq test | 2023-11-13 dan keyingi shaxsiy akkaunt — **12 tester × 14 kun majburiy** | Akkaunt 2023-11-13 dan oldin ochilgan yoki tashkilot akkaunti bo'lsa — **talab yo'q**; yangi shaxsiy bo'lsa — A dagidek |
+| Do'kondagi developer nomi | Men | Akkaunt egasi |
+| Privacy policy'dagi mas'ul shaxs | Men | Akkaunt egasi (yurist savoli: `docs/legal-drafts/README.md`, 9-band) |
+| Keyin | — | App transfer bilan o'z akkauntimga o'tkazish mumkin (o'shanda o'z akkauntim $25) |
+
+Sahifalarda tekshirilgan (2026-11-24), foydalanuvchi matniga qo'shimcha:
+- Yopiq test talabi "personal developer accounts created after November 13, 2023" ga
+  qo'yilgan. Tashkilot akkaunti sahifada umuman tilga olinmagan: istisno shundan kelib
+  chiqadi, ochiq yozilmagan.
+- Ro'yxatdan o'tish: "Google may require a valid government ID and a credit card, both
+  issued under your legal name"; "Google Play does not accept prepaid cards"; 18 yosh.
+- App transfer: ikkala akkaunt ro'yxatdan o'tgan, faol va Play siyosatiga mos bo'lishi
+  kerak; o'tkazish uchun to'lov aytilmagan; **test guruhlari (yopiq test va boshqalar)
+  o'tmaydi**. **Ochiq savol:** ilova B akkauntdan yangi shaxsiy akkauntga o'tgach, unga
+  12 × 14 talabi qo'yiladimi — sahifada javob yo'q; o'tkazishdan oldin Play yordamidan
+  so'raladi.
+- Admin: "Make this user an account admin" — barcha ruxsatlar, production'ga chiqarish
+  ham.
+
+Manbalar — Play Console Help, o'qildi 2026-11-24: [14151465](https://support.google.com/googleplay/android-developer/answer/14151465) (yopiq test), [6112435](https://support.google.com/googleplay/android-developer/answer/6112435) (ro'yxatdan o'tish), [6230247](https://support.google.com/googleplay/android-developer/answer/6230247) (app transfer), [9844686](https://support.google.com/googleplay/android-developer/answer/9844686) (foydalanuvchilar va ruxsatlar), [9842756](https://support.google.com/googleplay/android-developer/answer/9842756) (Play App Signing).
 
 ### Backlog
 
@@ -567,6 +598,7 @@ Bu TZ o'zgarsa, versiya raqami oshadi va o'zgarish shu bo'limda qayd etiladi.
 | 1.36 | 2026-11-23 | `alpha_tester` belgisi kelgan hamma testerga qo'yiladi (15 kelsa — 15); 70% va 15% mezonlari belgilangan hammasi bo'yicha hisoblanadi (15 kishida 70% = kamida 11). Mezonlarning o'zi o'zgarmagan (foydalanuvchi qarori) |
 | 1.37 | 2026-11-23 | Pul va testerlar (foydalanuvchi, 2026-11-23: karta bor, hozir $25 yo'q; testerlar 4 ta). **(1) Alfa 2026-11-29 da kim bo'lsa, o'shalar bilan boshlanadi**, taklif davom etadi; 2026-12-06 gacha 12 tester bo'lmasa, 2026-12-13 dagi qaror o'sha son bilan qilinadi va **"zaif signal"** deb belgilanadi; 15% va 70% o'zgarmaydi. **(2) Google Play (F9b) $25 topilguncha to'xtaydi**; Play yopiq testi — "pul va 12 tester bo'lganda", ariza undan 14 kun keyin. Play akkaunti, Play uchun imzo va yopiq test treki F6 dan F9b ga ko'chdi. **(3) F6 davom etadi**; testerlar Android ilovani APK fayl sifatida oladi (Play'siz, CI build'i), yo'riqnoma `docs/testers-android.md`; F6 qo'lda ro'yxatida "Play yopiq testidan o'rnatildi" o'rniga "tester APK'ni yo'riqnoma bo'yicha o'zi o'rnatdi". **(4) Web launch (F9a) uchun Gemini pullik tarifi ($50 hold) ham pul talab qiladi**: pulsiz variantlar `docs/STATUS.md` da, tanlov foydalanuvchida, hech biri qurilmaydi. F6 qarorlari (2026-11-23): offline va push 2026-12-08 dan keyin, `isar_community`, "film chiqdi" push'i backlog'da |
 | 1.38 | 2026-11-23 | Foydalanuvchi qarorlari. **(1) Web launch (F9a) AI'siz** — TZ 1.37 dagi A varianti: assistant yashirin, film sahifasidagi izoh faqat keshdan yoki shablondan (`named_traits`), so'rovda Gemini chaqirilmaydi. Kodi F9a vaqtida yoziladi, hozir emas. Gemini pullik tarifi va FR-8 mezoni (TZ 1.32/1.33) F9a shartidan chiqdi: pul topilganda assistant qaytadi va FR-8 o'shanda, pullik tarifda o'lchanadi; mezon yumshatilmaydi. **(2) F8 va F7 F9a dan keyin boshlanadi** (do'kondan keyin emas, TZ 1.31 o'rniga). **(3)** F6 qo'lda ro'yxati: tester APK'ni yo'riqnoma bo'yicha o'zi o'rnatadi (TZ 1.37 dagi o'zgarish tasdiqlandi). Release APK bitta doimiy kalit bilan imzolanadi (kalit repo'dan tashqarida, CI'da GitHub secret) |
+| 1.39 | 2026-11-24 | F9b ga **"Play akkaunti variantlari"** (§2): A) o'z akkauntim — $25, 18+, ID va o'z nomimdagi karta (prepaid emas), 2023-11-13 dan keyingi shaxsiy akkaunt bo'lgani uchun 12 tester × 14 kun yopiq test majburiy; B) ishonchli shaxs (ota-ona yoki qarindosh) akkaunti — meni Admin qilib taklif qiladi, men $25 to'lamayman; akkaunt 2023-11-13 dan oldin ochilgan yoki tashkilot akkaunti bo'lsa yopiq test talabi yo'q; developer nomi va privacy policy'dagi mas'ul shaxs — u; keyin app transfer bilan o'z akkauntimga o'tkazish mumkin. **Holat: qaror kutilmoqda.** Play sahifalari 2026-11-24 da o'qildi: test guruhlari transfer bilan o'tmaydi; o'tkazilgan ilovaga 12 × 14 talabi qo'yilishi sahifada aytilmagan (ochiq savol). Sarlavhadagi versiya 1.36 da qolib ketgan edi — 1.39 ga tuzatildi |
 | 1.33 | 2026-11-17 | FR-8 birinchi belgi mezoni (TZ 1.32) **boshqa yumshatilmaydi** (foydalanuvchi qarori). F4 shu mezon bajarilmagan holda, ochiq yozuv bilan yopiladi: "FR-8 birinchi belgi mezoni bajarilmagan (33 xabar, median 3.62 s, 1 xato)". Mezon **F9a (web launch) shartiga ko'chdi**: Gemini pullik tarifiga o'tgandan keyin kamida 30 xabar, kamida ikki xil kun, o'sha mezon (median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0); o'tmasa web launch bo'lmaydi. Render log'i (2026-11-17): yagona xato — Gemini'ning ikki marta ketma-ket 503 "high demand" javobi, kod mo'ljallanganidek bitta qayta urinishdan keyin to'xtadi; sekin xabarlarda vaqt birinchi model chaqiruvida ketgan (6.6–11.6 s), bizning bosqichlarda emas |
 | 1.32 | 2026-11-17 | FR-8: "birinchi belgi 2 soniya ichida" mezoni o'zgardi (foydalanuvchi qarori, phase-4-status'dagi (a) varianti): mijoz tomonida, ulangan sahifada, **kamida 30 xabar, kamida ikki xil kun; median ≤ 3 s, 90-persentil ≤ 15 s, `error` 0**; 2 s — maqsad. Sabab: Gemini Flash-Lite'ning tezligi soatdan soatga o'zgaradi (bir kod bilan bir kunda 1.78 s va 2.95 s), 10 xabarlik median qaror bera olmaydi; 2026-11-13 dagi yakuniy o'lchovda median 2.95 s edi. **Sanalar 4 kunga surildi** (13–17-noyabr ish bo'lmadi): F4 yopish 2026-11-19, F5 alfa kodi 11-22, testerlar 11-23, Play yopiq testi 12-02, alfa qarori 12-07 (15% oynasi: 11-30 gacha ko'rsatilganlar), web launch 12-09, Play'ga ariza 12-16, do'konda 12-23 dan oldin emas; oraliqlar o'zgarmagan; iOS — yanvar, o'zgarmagan (§2, §8) |
 | 1.31 | 2026-11-13 | TZ 1.30 dagi ziddiyatlar bo'yicha qarorlar (foydalanuvchi): **do'konga ariza (F9b) F7 va F8 ni kutmaydi** — sharti F6 gate'i, F9a va Play yopiq testi; F8 va F7 do'kondan keyin yangilanish. Do'konda ko'rinish **2026-12-19 dan oldin emas**. **iOS hozir rejalanmaydi** — avval Android, iOS alohida qaror, yanvar. **Launch uchun 15% ham, 70% ham shart**; 70% yiqilsa onboarding tuzatiladi va qayta o'lchanadi, dvigatel qayta ishlanmaydi. **15% faqat 7 kunlik oynasi yopilgan tavsiyalar bo'yicha**, hisobotda tavsiyalar soni. Backlog: testerlardan oldin faqat NSFW va izohlar limiti xabari; recency sifat chegarasi va onboarding chiplari alfadan keyin; qolganlari F5 dan keyin (§2) |

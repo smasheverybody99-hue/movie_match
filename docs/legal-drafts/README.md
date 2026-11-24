@@ -55,3 +55,12 @@ section by section.
    public launch". `docs/legal.md` and ADR 0002 say it is needed before the product earns
    money (a free launch is non-commercial). The lawyer or the user decides which applies.
    The TMDB email asks TMDB directly.
+9. **Who is named if the app is published from someone else's Play account** (TZ 1.39,
+   option B, decision pending). In option B a trusted person (a parent or relative) owns
+   the Google Play developer account and invites the user as Admin; the store page then
+   shows that person as the developer. Questions for the lawyer:
+   - In the privacy policy and the terms, who is the operator / data controller and the
+     contact: the account owner, the user who builds and runs the service, or both?
+   - Must the name in the policy match the developer name Google shows on the store page?
+   - After an app transfer to the user's own account later: what must change in the policy
+     and terms, and must existing users be told?
