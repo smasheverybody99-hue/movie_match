@@ -70,6 +70,12 @@ final meProvider = FutureProvider<Me>((ref) async {
   return ref.watch(apiClientProvider).me();
 });
 
+/// GET /recommendations in the interface language, for the signed-in user (the feed).
+final recommendationsProvider = FutureProvider<Recommendations>((ref) async {
+  if (ref.watch(userIdProvider) == null) throw const ApiException(401, 'signed out');
+  return ref.watch(apiClientProvider).recommendations(ref.watch(langProvider));
+});
+
 /// Remembers that this phone has seen a user accept the data notice, so it is not asked
 /// for again while /me loads (web: localStorage `mm.dataNotice.v1.<userId>`).
 abstract interface class NoticeMemory {

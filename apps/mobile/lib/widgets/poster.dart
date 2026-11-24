@@ -12,11 +12,15 @@ import '../data/models.dart';
 import '../format.dart';
 import '../state/app_state.dart';
 import '../theme/tokens.dart';
+import 'match_band.dart';
 
 class Poster extends ConsumerWidget {
-  const Poster({super.key, required this.movie, this.size = 'w342'});
+  const Poster({super.key, required this.movie, this.size = 'w342', this.band});
 
   final Movie movie;
+
+  /// The match band; only "strong" is shown (top-left, red), so it stays rare.
+  final MatchBand? band;
 
   /// TMDB width: w185 in grids, w342 for a single large poster.
   final String size;
@@ -72,6 +76,8 @@ class Poster extends ConsumerWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stack) => const SizedBox.shrink(),
                 ),
+              if (showsStrong(band))
+                Positioned(top: 6, left: 6, child: BandPill(band: band)),
             ],
           ),
         ),

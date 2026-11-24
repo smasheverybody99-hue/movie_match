@@ -479,10 +479,12 @@ class _FlowState extends ConsumerState<_Flow> {
     if (!counts.canFinish) return;
     _markDone(ref.read(apiClientProvider)).ignore();
     await clearProgress(ref.read(localStoreProvider), widget.userId);
-    // /me says how many ratings are still needed; the next screen must see the new count,
-    // not the cached one that would send the user back here (web: F3 item 1, 2026-10-08).
+    // /me and the feed say how many ratings are still needed; the next screen must see the
+    // new count, not the cached one that would send the user back here (web: F3 item 1,
+    // 2026-10-08).
     ref.invalidate(meProvider);
     ref.invalidate(ratingsProvider);
+    ref.invalidate(recommendationsProvider);
     widget.onFinished();
   }
 

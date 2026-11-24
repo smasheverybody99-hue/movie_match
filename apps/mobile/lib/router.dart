@@ -2,13 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'config.dart';
+import 'data/models.dart';
 import 'screens/data_notice.dart';
+import 'screens/feed_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'state/app_state.dart';
 import 'theme/tokens.dart';
-import 'widgets/states.dart';
+import 'widgets/poster.dart';
 
 /// The app's routes. Signed out, everything leads to /welcome; signed in, /welcome leads
 /// home, and every screen behind it waits for the data notice. Screens are added in the
@@ -32,7 +33,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
       GoRoute(
         path: '/',
-        builder: (context, state) => const DataNoticeGate(child: _Home()),
+        builder: (context, state) => const DataNoticeGate(child: FeedScreen()),
+      ),
+      GoRoute(
+        path: '/movie/:id',
+        builder: (context, state) => DataNoticeGate(
+          child: _FilmPlaceholder(movie: state.extra is Movie ? state.extra! as Movie : null),
+        ),
       ),
       GoRoute(
         path: '/onboarding',
@@ -44,55 +51,31 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Placeholder until the feed (commit 5): who is signed in, and a way out. As the web's
-/// feed does, it sends a user who has rated nothing to onboarding and offers it to one
-/// who has rated fewer than 10. While /me reloads (after onboarding) it waits: the cached
-/// count would send the user straight back (web: F3 item 1, 2026-10-08).
-class _Home extends ConsumerWidget {
-  const _Home();
+/// Until the film page (commit 6): the film's title, its poster and its overview, so a tap
+/// on a card leads somewhere true. The film comes from the card (`extra`); opened without
+/// one, there is nothing to show yet.
+class _FilmPlaceholder extends StatelessWidget {
+  const _FilmPlaceholder({required this.movie});
+
+  final Movie? movie;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
-    final email = ref.watch(sessionProvider).value?.email;
-    final me = ref.watch(meProvider);
-    if (me.isLoading) return const Scaffold(body: LoadingState());
-    final needed = me.value?.ratingsNeeded;
-    if (needed != null && needed >= requiredRatings) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/onboarding');
-      });
-      return const Scaffold(body: LoadingState());
-    }
+  Widget build(BuildContext context) {
+    final film = movie;
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(s.t('app.name'), style: theme.textTheme.headlineMedium),
-            if (email != null) Text(email),
-            if (needed != null && needed > 0) ...[
-              const SizedBox(height: AppSpacing.x3),
-              Text(s.t('feed.notEnough', {'n': needed})),
-              TextButton(
-                onPressed: () => context.go('/onboarding'),
-                child: Text(s.t('feed.notEnoughCta')),
-              ),
-            ],
-            if (!apiConfigured)
-              const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.x3),
-                child: Text('API_URL is not set (--dart-define=API_URL=...)'),
-              ),
-            const SizedBox(height: AppSpacing.x3),
-            TextButton(
-              onPressed: () => ref.read(authClientProvider)?.signOut(),
-              child: Text(s.t('profile.signOut')),
+      appBar: AppBar(title: Text(film?.title ?? '')),
+      body: film == null
+          ? const SizedBox.shrink()
+          : ListView(
+              padding: const EdgeInsets.all(AppSpacing.x3),
+              children: [
+                Center(child: SizedBox(width: 200, child: Poster(movie: film))),
+                if (film.overview != null) ...[
+                  const SizedBox(height: AppSpacing.x3),
+                  Text(film.overview!),
+                ],
+              ],
             ),
-          ],
-        ),
-      ),
     );
   }
 }
