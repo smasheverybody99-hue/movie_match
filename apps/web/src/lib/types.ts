@@ -131,6 +131,12 @@ export interface Me {
   data_notice_required: boolean;
   /** When this user accepted it; null: not yet. */
   data_notice_accepted_at: string | null;
+  /**
+   * The server offers the assistant (ASSISTANT_ENABLED); the Android app's tab follows it.
+   * Optional: an API from before this field omits it (the app reads that as off). The web
+   * does not read it yet; hiding its own tab is F9a's work (TZ 1.38).
+   */
+  assistant_enabled?: boolean;
 }
 
 export interface RatingIn {

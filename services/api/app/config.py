@@ -77,6 +77,11 @@ class Settings(BaseSettings):
     # 0004, exception of 2026-11-17): every user accepts the data notice before using the
     # app. Set DATA_NOTICE_REQUIRED=false once the key is on the paid tier.
     data_notice_required: bool = True
+    # Whether the clients offer the assistant: GET /me says so, and the Android app shows
+    # its tab only while it is true (user decision, 2026-11-24). On in the alpha; the AI-free
+    # web launch sets ASSISTANT_ENABLED=false (TZ 1.38, docs/prompts/phase-09a-web-launch.md),
+    # and the tab goes without a new APK.
+    assistant_enabled: bool = True
     # "Why you'll like this" generations per user per day. Cached ones are free and
     # unlimited. Measured 2026-10-02: ~$0.00013 each at the standard rate, so 20 a day is
     # ~$0.08 a month for the heaviest user, inside TZ's $0.20 (docs/costs.md).

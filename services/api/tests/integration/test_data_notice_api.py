@@ -29,6 +29,19 @@ async def test_on_the_paid_tier_no_notice_is_needed(db_session: AsyncSession) ->
     assert body["data_notice_required"] is False
 
 
+async def test_the_assistant_is_offered_by_default(db_session: AsyncSession) -> None:
+    async with api_client(db_session) as client:
+        body = (await client.get("/me", headers=auth(uuid.uuid4()))).json()
+    assert body["assistant_enabled"] is True
+
+
+async def test_switched_off_the_assistant_is_not_offered(db_session: AsyncSession) -> None:
+    # The AI-free web launch (TZ 1.38): ASSISTANT_ENABLED=false, and the app's tab goes.
+    async with api_client(db_session, settings={"assistant_enabled": False}) as client:
+        body = (await client.get("/me", headers=auth(uuid.uuid4()))).json()
+    assert body["assistant_enabled"] is False
+
+
 async def test_one_users_acceptance_is_not_anothers(db_session: AsyncSession) -> None:
     me, other = auth(uuid.uuid4()), auth(uuid.uuid4())
     async with api_client(db_session) as client:

@@ -32,6 +32,7 @@ async def get_me(
         taste_updated_at=user.taste_updated_at,
         data_notice_required=settings.data_notice_required,
         data_notice_accepted_at=user.data_notice_accepted_at,
+        assistant_enabled=settings.assistant_enabled,
     )
 
 
