@@ -48,9 +48,28 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return client;
 });
 
-/// The interface language. The device locale for now; the profile screen will let the
-/// user choose (web: the language menu).
-final langProvider = Provider<Lang>((ref) => langForLocale(PlatformDispatcher.instance.locale));
+/// The language chosen on the profile screen, kept on the phone under the web's key
+/// (`mm.lang`, i18n/index.tsx); null until one is chosen.
+class LangChoice extends Notifier<Lang?> {
+  static const key = 'mm.lang';
+
+  @override
+  Lang? build() {
+    final saved = ref.watch(localStoreProvider).read(key);
+    return Lang.values.where((l) => l.name == saved).firstOrNull;
+  }
+
+  void choose(Lang lang) {
+    state = lang;
+    ref.read(localStoreProvider).write(key, lang.name).ignore();
+  }
+}
+
+final langChoiceProvider = NotifierProvider<LangChoice, Lang?>(LangChoice.new);
+
+/// The interface language: the one chosen, else the phone's (TZ 1.8: English by default).
+final langProvider = Provider<Lang>((ref) =>
+    ref.watch(langChoiceProvider) ?? langForLocale(PlatformDispatcher.instance.locale));
 
 final stringsProvider = Provider<Strings>((ref) => Strings(ref.watch(langProvider)));
 

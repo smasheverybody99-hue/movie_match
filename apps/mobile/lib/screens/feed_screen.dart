@@ -27,6 +27,7 @@ import '../widgets/poster.dart';
 import '../widgets/shown.dart';
 import '../widgets/states.dart';
 import 'onboarding_screen.dart' show requiredRatings;
+import 'profile_screen.dart' show ProfileButton;
 
 /// When the first-load words change: picking → still looking → the server is waking.
 /// Render Free sleeps after 15 minutes without traffic and takes ~35 s to wake
@@ -50,14 +51,7 @@ class FeedScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(s.t('app.name')),
-        actions: [
-          // Until the profile screen exists (commit 11), signing out lives here.
-          IconButton(
-            tooltip: s.t('profile.signOut'),
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authClientProvider)?.signOut(),
-          ),
-        ],
+        actions: const [ProfileButton()],
       ),
       body: const _FeedBody(),
     );

@@ -8,6 +8,7 @@ import 'screens/dna_screen.dart';
 import 'screens/feed_screen.dart';
 import 'screens/film_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/welcome_screen.dart';
@@ -30,11 +31,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: signedIn,
     redirect: (context, state) {
       final atWelcome = state.matchedLocation == '/welcome';
+      // About is public: Welcome links to it (TMDB attribution).
+      if (state.matchedLocation == '/about') return null;
       if (!signedIn.value) return atWelcome ? null : '/welcome';
       return atWelcome ? '/' : null;
     },
     routes: [
       GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+      GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const DataNoticeGate(child: ProfileScreen()),
+      ),
       // The main sections under the bottom bar (widgets/app_shell.dart), in its order.
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => DataNoticeGate(child: AppShell(shell: shell)),

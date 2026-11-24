@@ -52,9 +52,17 @@ void main() {
     expect(find.text('Continue with Google'), findsNothing);
     expect(find.text('Under 90 minutes'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Sign out'));
+    await tester.tap(find.byTooltip('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('tester@gmail.com'), findsOneWidget);
+    await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Continue with Google'), findsOneWidget);
+
+    // About is public, from Welcome.
+    await tester.tap(find.byKey(const Key('welcome.about')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('This product uses the TMDB API'), findsOneWidget);
   });
 
   testWidgets('signed in with nothing rated it goes to onboarding', (tester) async {

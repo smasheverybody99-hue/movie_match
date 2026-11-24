@@ -12,7 +12,7 @@ import 'package:movie_match/data/models.dart';
 import 'package:movie_match/data/traits.dart';
 import 'package:movie_match/i18n/i18n.dart';
 import 'package:movie_match/screens/dna_screen.dart';
-import 'package:movie_match/share.dart';
+import 'package:movie_match/platform.dart';
 import 'package:movie_match/state/app_state.dart';
 import 'package:movie_match/theme/tokens.dart';
 import 'package:movie_match/widgets/dna_flower.dart';

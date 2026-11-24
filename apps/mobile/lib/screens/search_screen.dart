@@ -20,6 +20,7 @@ import '../state/app_state.dart';
 import '../theme/tokens.dart';
 import '../widgets/film_tile.dart';
 import '../widgets/states.dart';
+import 'profile_screen.dart' show ProfileButton;
 
 const runtimes = [90, 120, 150];
 
@@ -147,7 +148,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.t('search.title'))),
+      appBar: AppBar(title: Text(s.t('search.title')), actions: const [ProfileButton()]),
       body: CustomScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [

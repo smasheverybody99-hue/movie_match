@@ -19,6 +19,7 @@ import '../theme/tokens.dart';
 import '../widgets/match_band.dart';
 import '../widgets/poster.dart';
 import '../widgets/states.dart';
+import 'profile_screen.dart' show ProfileButton;
 
 /// Groups computed from what every item already carries. The trait-based smart groups
 /// (Challenging, Light, Hidden gems) are Phase 8; these three need no traits.
@@ -132,7 +133,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(s.t('watchlist.title'))),
+      appBar: AppBar(title: Text(s.t('watchlist.title')), actions: const [ProfileButton()]),
       body: body,
     );
   }

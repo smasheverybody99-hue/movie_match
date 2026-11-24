@@ -14,13 +14,14 @@ import '../data/models.dart';
 import '../data/traits.dart';
 import '../format.dart';
 import '../i18n/i18n.dart';
-import '../share.dart';
+import '../platform.dart';
 import '../state/app_state.dart';
 import '../state/film_state.dart';
 import '../theme/tokens.dart';
 import '../widgets/dna_flower.dart';
 import '../widgets/states.dart';
 import '../widgets/trait_axis.dart' show traitInSentence;
+import 'profile_screen.dart' show ProfileButton;
 
 /// The taste vector as (trait, score), strongest first; ties keep the vector order;
 /// unknown keys are left out.
@@ -60,7 +61,7 @@ class DnaScreen extends ConsumerWidget {
     final query = ref.watch(dnaProvider);
     final dna = query.value;
     Widget frame(Widget body, {List<Widget> actions = const []}) => Scaffold(
-          appBar: AppBar(title: Text(s.t('dna.title')), actions: actions),
+          appBar: AppBar(title: Text(s.t('dna.title')), actions: [...actions, const ProfileButton()]),
           body: body,
         );
     if (dna == null) {
