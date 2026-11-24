@@ -26,6 +26,7 @@ class ShellSection {
 const shellSections = [
   ShellSection('/', 'nav.home', Icons.home_outlined, Icons.home),
   ShellSection('/search', 'nav.search', Icons.search, Icons.search),
+  ShellSection('/watchlist', 'nav.watchlist', Icons.bookmark_border, Icons.bookmark),
 ];
 
 class AppShell extends ConsumerWidget {

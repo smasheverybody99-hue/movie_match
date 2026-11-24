@@ -176,7 +176,7 @@ class _FilmPageState extends ConsumerState<_FilmPage> {
 
   Future<void> _toggleSave(bool saved) async {
     setState(() => _listFailed = false);
-    final ok = await ref.read(pendingSavesProvider.notifier).toggle(detail, isSaved: saved);
+    final ok = await ref.read(watchlistEditsProvider.notifier).toggle(detail, isSaved: saved);
     if (mounted) setState(() => _listFailed = !ok);
   }
 

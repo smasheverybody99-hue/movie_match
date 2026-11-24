@@ -134,7 +134,7 @@ class _FeedBody extends ConsumerWidget {
 
     Future<void> toggleSave(Movie movie, bool isSaved) async {
       final messenger = ScaffoldMessenger.of(context);
-      final ok = await ref.read(pendingSavesProvider.notifier).toggle(movie, isSaved: isSaved);
+      final ok = await ref.read(watchlistEditsProvider.notifier).toggle(movie, isSaved: isSaved);
       if (!ok) {
         messenger
           ..hideCurrentSnackBar()

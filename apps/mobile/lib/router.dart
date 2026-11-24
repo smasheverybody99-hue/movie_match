@@ -8,6 +8,7 @@ import 'screens/feed_screen.dart';
 import 'screens/film_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/search_screen.dart';
+import 'screens/watchlist_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'state/app_state.dart';
 import 'widgets/app_shell.dart';
@@ -42,6 +43,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/watchlist', builder: (context, state) => const WatchlistScreen()),
           ]),
         ],
       ),

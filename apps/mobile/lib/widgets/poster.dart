@@ -49,23 +49,34 @@ class Poster extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    // Flexible: on a small poster at a large text size the text is cut at
+                    // the poster's edge instead of overflowing it.
                     children: [
-                      Text(
-                        movie.title,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.text,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          height: 1.25,
+                      Flexible(
+                        child: Text(
+                          movie.title,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            height: 1.25,
+                          ),
                         ),
                       ),
                       if (meta.isNotEmpty)
-                        Text(meta,
+                        Flexible(
+                          child: Text(
+                            meta,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: AppColors.muted, fontSize: 11)),
+                            style: const TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -74,7 +85,8 @@ class Poster extends ConsumerWidget {
                 Image.network(
                   url,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+                  errorBuilder: (context, error, stack) =>
+                      const SizedBox.shrink(),
                 ),
               if (showsStrong(band))
                 Positioned(top: 6, left: 6, child: BandPill(band: band)),
