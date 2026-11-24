@@ -5,8 +5,7 @@
 ///
 /// Phone differences: pull to refresh (it also brings back cards hidden by "Not right?");
 /// cards have no quick Rate / Save buttons (on the web they need a hovering mouse; a tap
-/// opens the film, as on a touch screen there); the empty state has no "Search films"
-/// button until the search screen exists (commit 7).
+/// opens the film, as on a touch screen there).
 library;
 
 import 'dart:async';
@@ -103,7 +102,13 @@ class _FeedBody extends ConsumerWidget {
             when items.isNotEmpty)
           Section(key: section.key, seed: section.seed, items: items),
     ];
-    if (sections.isEmpty) return EmptyState(message: s.t('feed.empty'));
+    if (sections.isEmpty) {
+      return EmptyState(
+        message: s.t('feed.empty'),
+        actionLabel: s.t('feed.emptyCta'),
+        onAction: () => context.go('/search'),
+      );
+    }
 
     final forYou = sections.where((x) => x.key == SectionKey.forYou).firstOrNull;
     final heroItems = forYou?.items.take(heroCount).toList() ?? const <Recommendation>[];

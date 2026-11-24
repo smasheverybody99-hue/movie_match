@@ -7,11 +7,14 @@ import 'screens/data_notice.dart';
 import 'screens/feed_screen.dart';
 import 'screens/film_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/search_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'state/app_state.dart';
+import 'widgets/app_shell.dart';
 
 /// The app's routes. Signed out, everything leads to /welcome; signed in, /welcome leads
-/// home, and every screen behind it waits for the data notice. Screens are added in the
+/// home, and every screen behind it waits for the data notice. The main sections sit under
+/// the bottom bar; the film page and onboarding cover it. Screens are added in the
 /// web app's order (phase-06-mobile.md): auth, onboarding, feed, film, search, watchlist,
 /// DNA, assistant.
 final routerProvider = Provider<GoRouter>((ref) {
@@ -30,9 +33,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const DataNoticeGate(child: FeedScreen()),
+      // The main sections under the bottom bar (widgets/app_shell.dart), in its order.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => DataNoticeGate(child: AppShell(shell: shell)),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/', builder: (context, state) => const FeedScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
+          ]),
+        ],
       ),
       GoRoute(
         path: '/movie/:id',

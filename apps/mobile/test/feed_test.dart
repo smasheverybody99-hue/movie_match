@@ -137,6 +137,7 @@ Future<ProviderContainer> pumpFeed(
     GoRoute(
         path: '/onboarding',
         builder: (context, state) => const Scaffold(body: Text('ONBOARDING'))),
+    GoRoute(path: '/search', builder: (context, state) => const Scaffold(body: Text('SEARCH'))),
     GoRoute(
         path: '/movie/:id',
         builder: (context, state) => Scaffold(body: Text('FILM ${state.pathParameters['id']}'))),
@@ -298,9 +299,12 @@ void main() {
     expect(card(30), findsOneWidget);
   });
 
-  testWidgets('renders its empty state when nothing matches', (tester) async {
+  testWidgets('renders its empty state when nothing matches, with a way to search', (tester) async {
     await pumpFeed(tester, FeedServer(ok([section('for_you', [])])));
     expect(find.text('No recommendations for you yet. Rate a few more films.'), findsOneWidget);
+    await tester.tap(find.text('Search films'));
+    await tester.pumpAndSettle();
+    expect(find.text('SEARCH'), findsOneWidget);
   });
 
   testWidgets('asks for more ratings below 10, with a way back to onboarding', (tester) async {
