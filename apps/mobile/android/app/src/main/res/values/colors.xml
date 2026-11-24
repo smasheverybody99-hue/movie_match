@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- --bg in apps/web/src/styles/tokens.css and lib/theme/tokens.dart -->
+    <color name="ic_launcher_background">#0A0A0A</color>
+    <color name="app_background">#0A0A0A</color>
+</resources>

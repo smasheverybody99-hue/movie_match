@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Movie Match mark (apps/web/src/components/Logo.tsx, full), generated: the adaptive
+     icon's foreground, inside the 66 dp safe circle of the 108 dp canvas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.64"
+        android:scaleY="0.64"
+        android:translateX="15.60"
+        android:translateY="15.60">
+        <path
+            android:pathData="M60,16.8 L74.06,30.81 L90.1,36 L86.91,53.86 L104.16,70.08 L87.68,82.07 L73.15,87.3 L60,100.5 L48.76,83.33 L30.68,83.38 L27.15,67.5 L17.2,50.23 L37.33,41.92 L42.86,24.41 Z"
+            android:fillColor="#F5F5F5"
+            android:fillAlpha="0.07"
+            android:strokeColor="#F5F5F5"
+            android:strokeAlpha="0.4"
+            android:strokeWidth="1.6"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M60,46 L60,16.8 M66.07,47.39 L74.06,30.81 M70.95,51.27 L90.1,36 M73.65,56.89 L86.91,53.86 M73.65,63.11 L104.16,70.08 M70.95,68.73 L87.68,82.07 M66.07,72.61 L73.15,87.3 M60,74 L60,100.5 M53.93,72.61 L48.76,83.33 M49.05,68.73 L30.68,83.38 M46.35,63.11 L27.15,67.5 M46.35,56.89 L17.2,50.23 M49.05,51.27 L37.33,41.92 M53.93,47.39 L42.86,24.41"
+            android:strokeColor="#F5F5F5"
+            android:strokeWidth="6"
+            android:strokeLineCap="round" />
+    </group>
+</vector>
