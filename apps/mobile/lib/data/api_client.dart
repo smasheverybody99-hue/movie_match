@@ -101,11 +101,19 @@ class SearchParams {
   return (events: events, rest: rest);
 }
 
+/// How long to wait for the connection itself (TCP and TLS). Short, so a connection that
+/// is not coming is given up and tried again, rather than waited out: right after the
+/// network comes back (airplane mode off), the first attempt's packets can be lost while
+/// the radio's data path settles, and the system's own connect retries (1 s, then 2, then
+/// 4) took ~7 s on the user's phone (phase test, 2026-11-24). Measured on the web from
+/// here: a new connection to the API ~1.4 s, so 5 s leaves room for a slow network.
+const connectTimeoutDefault = Duration(seconds: 5);
+
 class ApiClient {
   ApiClient({
     required String baseUrl,
     Dio? dio,
-    Duration connectTimeout = const Duration(seconds: 15),
+    Duration connectTimeout = connectTimeoutDefault,
     Duration receiveTimeout = const Duration(seconds: 30),
   }) : _dio = dio ?? Dio() {
     _dio.options
@@ -127,20 +135,32 @@ class ApiClient {
         if (_accessToken != null) 'Authorization': 'Bearer $_accessToken',
       };
 
+  /// A GET whose connection failed or timed out is sent once more, at once, on a fresh
+  /// connection: reading twice is harmless, and the second attempt usually finds the
+  /// network ready. Nothing else is repeated: a POST or DELETE may have reached the
+  /// server, and an answer that started arriving is not a connection problem.
+  static bool _retryOnce(String method, DioException e) =>
+      method == 'GET' &&
+      (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.connectionError);
+
   Future<Object?> _send(String method, String path, {Object? body}) async {
-    final Response<String> response;
-    try {
-      response = await _dio.request<String>(
-        path,
-        data: body == null ? null : jsonEncode(body),
-        options: Options(
-          method: method,
-          headers: _headers,
-          contentType: body == null ? null : Headers.jsonContentType,
-        ),
-      );
-    } on DioException catch (e) {
-      throw _map(e);
+    Response<String>? response;
+    for (var attempt = 0; response == null; attempt++) {
+      try {
+        response = await _dio.request<String>(
+          path,
+          data: body == null ? null : jsonEncode(body),
+          options: Options(
+            method: method,
+            headers: _headers,
+            contentType: body == null ? null : Headers.jsonContentType,
+          ),
+        );
+      } on DioException catch (e) {
+        if (attempt == 0 && _retryOnce(method, e)) continue;
+        throw _map(e);
+      }
     }
     final text = response.data ?? '';
     if (response.statusCode == 204 || text.isEmpty) return null;
