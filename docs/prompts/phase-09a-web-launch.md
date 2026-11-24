@@ -18,6 +18,21 @@ endpoint refuses), and the film page's "why you'll like this" comes from the
 it in this phase, not before. When money is found, the paid tier goes on, FR-8 is
 measured (below), and only then does the assistant come back.
 
+**The switch is `ASSISTANT_ENABLED`** (added 2026-11-24, user decision): an API setting,
+default `true`, that `GET /me` reports as `assistant_enabled`. The Android app shows its
+Assistant tab only while it is `true`, so turning it off removes the tab from every phone
+without a new APK. For this launch, in this order:
+
+1. Render → the API service → Environment: `ASSISTANT_ENABLED=false`; the service redeploys.
+2. `GET /me` (signed in) answers `"assistant_enabled": false`.
+3. The Android app, opened again (or back from the background), has no Assistant tab;
+   one left on the assistant goes back to Home.
+4. Still to build here: the web reads the same field (no route, no navigation entry), and
+   `POST /assistant/chat` refuses while it is false (the flag alone hides the entry points;
+   it does not close the endpoint).
+
+To bring the assistant back: the paid tier, FR-8 measured, then `ASSISTANT_ENABLED=true`.
+
 Three more preconditions, all required:
 
 - **No Gemini call from a request** (TZ 1.38): assistant hidden, explanations from the

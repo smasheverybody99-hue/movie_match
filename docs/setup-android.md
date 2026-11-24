@@ -140,6 +140,25 @@ Ro'yxatga (registry) hech narsa yozilmaydi. Istisno — USB drayveri, u Device M
      ilova uchun ruxsat bering → O'rnatish. Play Protect "noma'lum dasturchi" desa — "Baribir
      o'rnatish" (debug build Play'da emas).
 
+## Muammo bo'lsa: kirish
+
+**Google bilan kirgandan keyin brauzer ilovaga qaytmay, web saytga ketadi.** Sabab: Supabase
+**asosiy** loyihasida Redirect URLs ro'yxatida ilovaning manzili yo'q. Supabase ro'yxatda
+yo'q manzil o'rniga Site URL'ga (web sayt) yuboradi. Tuzatish:
+
+1. Supabase → **asosiy** loyiha (test loyihasi emas) → **Authentication** → **URL
+   Configuration**.
+2. **Redirect URLs** → **Add URL** → `com.moviematch.moviematch://login-callback` → **Save**.
+3. Telefonda qaytadan "Google bilan davom etish". Yangi APK kerak emas.
+
+2026-11-24 da aynan shu bo'lgan: manzil asosiy loyihada yo'q edi, foydalanuvchi qo'shgach
+kirish ishladi. Tekshirish: ilova sozlamasi `SUPABASE_URL` (GitHub Actions variable) qaysi
+loyihaga ishora qilsa, manzil o'sha loyihada bo'lishi kerak.
+
+**"Kirish mavjud emas" deyiladi** — APK `SUPABASE_URL` / `SUPABASE_ANON_KEY` siz yig'ilgan:
+android run'da "Sign-in settings present" ogohlantirishi bo'ladi (pastda, "Release kaliti" va
+GitHub variables).
+
 ## Release kaliti (TZ 1.38)
 
 Testerlarga beriladigan APK bitta doimiy kalit bilan imzolanadi: yangi versiya eskisining

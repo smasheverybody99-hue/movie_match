@@ -55,6 +55,13 @@ class SearchParams {
   final int traitMinimum;
   final int limit;
 
+  /// Two searches are the same when they send the same request (a provider key).
+  @override
+  bool operator ==(Object other) => other is SearchParams && other.toQuery() == toQuery();
+
+  @override
+  int get hashCode => toQuery().hashCode;
+
   /// The query string, as searchQuery() in api.ts builds it (`trait` repeats).
   String toQuery() => Uri(queryParameters: {
         if (q != null && q!.isNotEmpty) 'q': q,

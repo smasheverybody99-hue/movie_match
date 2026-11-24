@@ -16,6 +16,8 @@ on:
     paths:
       - "apps/mobile/**"
       - "apps/web/src/styles/tokens.css" # tokens_test.dart reads it
+      - "apps/web/src/i18n/*.ts" # i18n_test.dart reads them
+      - "packages/shared/traits.json" # traits_test.dart reads it
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -34,6 +36,11 @@ jobs:
     env:
       # The live API (docs/deploy.md). Passed with --dart-define, never written into code.
       API_URL: https://movie-match-api-mgdn.onrender.com
+      # Supabase project URL and anon key: public values, kept as repository variables
+      # (Settings → Secrets and variables → Actions → Variables), not in git. Without them
+      # the app builds and says sign-in is not set up.
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       # The upload certificate's SHA-256 (public; keytool -list -v). A release APK signed
       # with any other key fails the run.
       UPLOAD_CERT_SHA256: 8d72c8e550672a22530637f2ec0b09386f350bfab7e5cac7757bae05c7b02642
@@ -67,6 +74,12 @@ jobs:
       - name: flutter test
         run: flutter test
 
+      - name: Sign-in settings present
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::warning::SUPABASE_URL / SUPABASE_ANON_KEY variables are not set: the APK will say sign-in is unavailable"
+          fi
+
       # The key file and key.properties live in the runner's temp space and android/
       # (gitignored) for this job only; the passwords never reach the log.
       - name: Release signing key
@@ -92,7 +105,7 @@ jobs:
       - name: flutter build apk --release
         if: steps.key.outputs.release == 'true'
         run: |
-          flutter build apk --release --dart-define=API_URL="$API_URL"
+          flutter build apk --release --dart-define=API_URL="$API_URL" --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner
           got=$("$apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk | grep -m1 'certificate SHA-256 digest' | awk '{print $NF}')
           echo "signed with $got"
@@ -100,7 +113,8 @@ jobs:
 
       - name: flutter build apk --debug
         if: steps.key.outputs.release != 'true'
-        run: flutter build apk --debug --dart-define=API_URL="$API_URL"
+        run: |
+          flutter build apk --debug --dart-define=API_URL="$API_URL" --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
       - uses: actions/upload-artifact@v4
         if: steps.key.outputs.release == 'true'

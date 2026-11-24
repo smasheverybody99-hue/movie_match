@@ -26,6 +26,17 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Sign-in comes back here from the browser (Google, Apple, the email link):
+                 lib/config.dart authRedirectUrl. supabase_flutter reads it via app_links. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="com.moviematch.moviematch" android:host="login-callback"/>
+            </intent-filter>
+            <!-- Only app_links handles that link; Flutter's own deep linking would also hand
+                 it to go_router as a route. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false"/>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

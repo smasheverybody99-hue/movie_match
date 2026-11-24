@@ -42,7 +42,8 @@ January decision.
 3. **Screens** — same order as the web app: auth, onboarding, feed, film, search,
    watchlist, DNA, assistant. Same four states each.
 4. **Native behaviour** (the parity table is the contract)
-   - Swipe to rate; swipe on watchlist rows.
+   - Swipe to rate; swipe on watchlist rows. (2026-11-24, user: swipe to rate is not in
+     F6 — the web has no such thing; TZ backlog, F8 polish. Watchlist swipe is done.)
    - Native share sheet for DNA and film pages.
    - Offline reading via Isar: cached feed and film pages work with no network.
    - Push via FCM: weekly recommendation. ("Watchlist film became available" is in the
