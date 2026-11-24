@@ -146,6 +146,40 @@ void main() {
       expect((e.status, e.retryable), (0, true));
     });
 
+    test('a GET whose connection failed is sent once more, and that answer counts', () async {
+      var calls = 0;
+      final t = make((o) async {
+        if (calls++ == 0) dioError(DioExceptionType.connectionError, o);
+        return json(<Object>[]);
+      });
+      expect(await t.client.watchlist(), isEmpty);
+      expect(t.adapter.requests, hasLength(2));
+    });
+
+    test('a GET whose connection timed out is sent once more; two failures are an error',
+        () async {
+      final t = make((o) async => dioError(DioExceptionType.connectionTimeout, o));
+      final e = await caught(t.client.recommendations(Lang.en));
+      expect((e.status, e.retryable), (0, true));
+      expect(t.adapter.requests, hasLength(2), reason: 'once more, not more');
+    });
+
+    test('a POST is never sent twice: it may have reached the server', () async {
+      final t = make((o) async => dioError(DioExceptionType.connectionError, o));
+      await caught(t.client.addToWatchlist(155));
+      expect(t.adapter.requests, hasLength(1));
+    });
+
+    test('a GET that timed out while the answer was coming is not sent again', () async {
+      final t = make((o) async => dioError(DioExceptionType.receiveTimeout, o));
+      await caught(t.client.watchlist());
+      expect(t.adapter.requests, hasLength(1));
+    });
+
+    test('the connection is given up after 5 s, not 15', () {
+      expect(connectTimeoutDefault, const Duration(seconds: 5));
+    });
+
     test('a body of the wrong shape is an ApiException, not a crash', () async {
       final t = make((_) async => json({'id': 'not a number', 'title': 3}));
       final e = await caught(t.client.getMovie(155));
