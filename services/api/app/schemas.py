@@ -140,6 +140,9 @@ class MeOut(BaseModel):
     data_notice_accepted_at: datetime | None = Field(
         default=None, description="When this user accepted it; null: not yet"
     )
+    assistant_enabled: bool = Field(
+        default=True, description="The clients offer the assistant (setting ASSISTANT_ENABLED)"
+    )
 
 
 class RatingIn(BaseModel):
