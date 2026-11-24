@@ -12,7 +12,6 @@
 library;
 
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -23,6 +22,7 @@ import '../format.dart';
 import '../i18n/i18n.dart';
 import '../state/app_state.dart';
 import '../theme/tokens.dart';
+import 'backdrop.dart';
 import 'match_band.dart';
 import 'not_right.dart';
 import 'shown.dart';
@@ -298,8 +298,8 @@ class _Slide extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            _HeroImage(movie: movie),
-            const _Shade(),
+            Backdrop(movie: movie),
+            const BackdropShade(),
             Padding(
               // Room at the bottom for the controls, which do not move with the slides.
               padding: const EdgeInsets.fromLTRB(AppSpacing.x3, 0, AppSpacing.x3, 72),
@@ -361,81 +361,6 @@ class _Slide extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// The backdrop (w780 on a phone), or the poster blurred, or the surface colour.
-class _HeroImage extends StatelessWidget {
-  const _HeroImage({required this.movie});
-
-  final Movie movie;
-
-  @override
-  Widget build(BuildContext context) {
-    final backdrop = imageUrl(movie.backdropPath, 'w780');
-    final poster = imageUrl(movie.posterPath, 'w342');
-    Widget image(String url) => Image.network(
-          url,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
-        );
-    return ExcludeSemantics(
-      child: ColoredBox(
-        color: AppColors.surface,
-        child: backdrop != null
-            ? image(backdrop)
-            : poster != null
-                ? ImageFiltered(
-                    key: const Key('hero.blur'),
-                    imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: image(poster),
-                  )
-                : null,
-      ),
-    );
-  }
-}
-
-/// The web's gradients: into the background at the bottom, on the left, and a little at
-/// the top.
-class _Shade extends StatelessWidget {
-  const _Shade();
-
-  @override
-  Widget build(BuildContext context) {
-    Color bg(double a) => AppColors.bg.withValues(alpha: a);
-    return IgnorePointer(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [bg(1), bg(0.55), bg(0)],
-                stops: const [0, 0.3, 0.6],
-              ),
-            ),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [bg(0.8), bg(0)], stops: const [0, 0.5]),
-            ),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [bg(0.45), bg(0)],
-                stops: const [0, 0.45],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

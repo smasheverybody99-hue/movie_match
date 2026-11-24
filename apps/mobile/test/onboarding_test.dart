@@ -239,17 +239,17 @@ void main() {
     final server = FakeServer(page: films(1, 12));
     await pumpOnboarding(tester, server);
     await toRate(tester, server);
-    expect(find.byKey(const Key('onboarding.score')), findsOneWidget);
+    expect(find.byKey(const Key('rating.score')), findsOneWidget);
     expect(find.text('7.0'), findsOneWidget);
-    expect(find.byKey(const Key('onboarding.likedAspects')), findsNothing);
+    expect(find.byKey(const Key('rating.likedAspects')), findsNothing);
 
     final slider = tester.widget<Slider>(find.byType(Slider));
     slider.onChanged!(8.0);
     await tester.pump();
-    expect(find.byKey(const Key('onboarding.likedAspects')), findsNothing);
+    expect(find.byKey(const Key('rating.likedAspects')), findsNothing);
     slider.onChanged!(9.0);
     await tester.pump();
-    expect(find.byKey(const Key('onboarding.likedAspects')), findsOneWidget);
+    expect(find.byKey(const Key('rating.likedAspects')), findsOneWidget);
     await tester.ensureVisible(find.text('Plot twists'));
     await tester.tap(find.text('Plot twists'));
     await tester.pump();

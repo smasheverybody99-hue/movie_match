@@ -17,12 +17,12 @@ import '../data/api_client.dart';
 import '../data/models.dart';
 import '../data/onboarding_store.dart';
 import '../data/rating_queue.dart';
-import '../data/traits.dart';
 import '../format.dart';
 import '../i18n/i18n.dart';
 import '../state/app_state.dart';
 import '../theme/tokens.dart';
 import '../widgets/poster.dart';
+import '../widgets/rating_input.dart';
 import '../widgets/states.dart';
 
 /// FR-3: no recommendations before 10 ratings.
@@ -30,9 +30,6 @@ const requiredRatings = 10;
 
 /// Films per "none of these" page (web: ONBOARDING_PAGE).
 const onboardingPage = 60;
-
-/// FR-3: "what did you like?" appears for scores above 8.0.
-const likedAspectsAbove = 8.0;
 
 const _defaultScore = 7.0;
 const _searchDelay = Duration(milliseconds: 300);
@@ -317,7 +314,7 @@ class _FlowState extends ConsumerState<_Flow> {
       movieId: film.id,
       title: film.title,
       score: _score,
-      likedAspects: _score > likedAspectsAbove ? _aspects : const [],
+      likedAspects: showsLikedAspects(_score) ? _aspects : const [],
     ));
     // Counted here: the rebuild with the queue's new state comes after this call.
     final rated = counts.rated + (counts.ratedIds.contains(film.id) ? 0 : 1);
@@ -351,7 +348,6 @@ class _FlowState extends ConsumerState<_Flow> {
         ]),
       );
     }
-    final lang = s.lang;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.x3),
       children: [
@@ -392,59 +388,12 @@ class _FlowState extends ConsumerState<_Flow> {
           ],
         ),
         const SizedBox(height: AppSpacing.x3),
-        ExcludeSemantics(
-          child: Text(
-            formatScore(_score, lang),
-            key: const Key('onboarding.score'),
-            style: const TextStyle(
-              fontFamily: AppFonts.head,
-              fontWeight: FontWeight.w800,
-              fontSize: 44,
-              height: 1,
-              color: AppColors.text,
-            ),
-          ),
-        ),
-        ExcludeSemantics(child: Text(s.t('onboarding.rate.outOf'))),
-        Slider(
+        RatingInput(
           value: _score,
-          min: 0.5,
-          max: 10,
-          divisions: 19,
-          activeColor: AppColors.text,
-          inactiveColor: AppColors.line,
-          thumbColor: AppColors.text,
-          semanticFormatterCallback: (v) => '${s.t('onboarding.rate.scoreLabel')}: '
-              '${formatScore(v, lang)}',
           onChanged: (v) => setState(() => _score = v),
+          aspects: _aspects,
+          onAspectsChanged: (a) => setState(() => _aspects = a),
         ),
-        const ExcludeSemantics(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [Text('0.5'), Text('5.0'), Text('10')],
-          ),
-        ),
-        if (_score > likedAspectsAbove) ...[
-          const SizedBox(height: AppSpacing.x3),
-          Text(s.t('onboarding.rate.liked'),
-              style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.w600)),
-          const SizedBox(height: AppSpacing.x2),
-          Wrap(
-            key: const Key('onboarding.likedAspects'),
-            spacing: AppSpacing.x2,
-            runSpacing: AppSpacing.x2,
-            children: [
-              for (final key in traitKeys)
-                FilterChip(
-                  label: Text(s.t(traitLabelKey(key))),
-                  selected: _aspects.contains(key),
-                  onSelected: (on) => setState(() => _aspects = on
-                      ? [..._aspects, key]
-                      : [for (final a in _aspects) if (a != key) a]),
-                ),
-            ],
-          ),
-        ],
       ],
     );
   }
