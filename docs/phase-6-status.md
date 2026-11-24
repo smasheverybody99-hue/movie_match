@@ -63,7 +63,8 @@ pytest, web lint + typecheck + test).
 
 ## The user's phone test (2026-11-24)
 
-Samsung Galaxy S9, release APK from android run 16.
+Samsung Galaxy S9 (SM-G960F), Android 10 (API 29), One UI 2.5, security patch
+2022-03-01; release APK from android run 16.
 
 | # | Check | Result |
 |---|---|---|
@@ -82,7 +83,9 @@ Samsung Galaxy S9, release APK from android run 16.
 
 ## Manual checklist (`phase-06-mobile.md`)
 
-- [ ] At least 4 real devices including one old Android — **one so far** (Galaxy S9).
+- [x] One old Android among them — the Galaxy S9 on Android 10 (API 29), 2018 hardware
+      (user, 2026-11-24).
+- [ ] At least 4 real devices — **one so far** (Galaxy S9).
 - [ ] Cold start under 2 s on the slowest device — "normal" on the S9, not timed.
 - [x] Complete onboarding on a phone — done, not timed.
 - [ ] Airplane mode: browse cached content, come back online — no crash; cached browsing
