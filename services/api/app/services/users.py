@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,11 +52,28 @@ async def accept_data_notice(
     await session.commit()
 
 
-async def delete_user(session: AsyncSession, user_id: uuid.UUID) -> None:
-    """Delete the user and, through ON DELETE CASCADE, every row that belongs to them.
+async def has_auth_schema(session: AsyncSession) -> bool:
+    """Whether this database is a Supabase one, with the sign-in records in `auth.users`.
 
-    Ratings, watchlist, dismissals and cached explanations all reference users.id with
-    ON DELETE CASCADE. The Supabase Auth identity itself is not touched here.
+    The CI database is plain Postgres without it; the main and test Supabase projects
+    have it."""
+    return bool(await session.scalar(text("SELECT to_regclass('auth.users') IS NOT NULL")))
+
+
+async def delete_user(session: AsyncSession, user_id: uuid.UUID) -> None:
+    """Delete the account completely: the app's rows and the Supabase sign-in record.
+
+    Every user table references users.id with ON DELETE CASCADE, so deleting the users
+    row removes ratings, watchlist, dismissals, explanations, assistant turns and usage,
+    events and feedback. Then the sign-in record in `auth.users` (it holds the email)
+    goes too; Supabase's own tables (identities, sessions, MFA, one-time tokens) cascade
+    from it. Both happen in one transaction: if the sign-in record cannot be deleted,
+    nothing is, and the caller gets an error instead of a half-deleted account.
+
+    It runs as the API's own database role, which may delete from `auth.users` (checked
+    on the main database, 2026-11-27), so no Supabase service key is needed.
     """
     await session.execute(delete(User).where(User.id == user_id))
+    if await has_auth_schema(session):
+        await session.execute(text("DELETE FROM auth.users WHERE id = :id"), {"id": user_id})
     await session.commit()

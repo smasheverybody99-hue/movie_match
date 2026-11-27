@@ -69,6 +69,6 @@ async def delete_me(
     user_id: uuid.UUID = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Response:
-    """Delete the account's data: ratings, watchlist, dismissals, explanations, profile."""
+    """Delete the account: every row the app holds for it, and its Supabase sign-in record."""
     await users.delete_user(session, user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
