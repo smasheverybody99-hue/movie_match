@@ -52,57 +52,79 @@ Three more preconditions, all required:
   three runs: **LCP < 2.5 s**, and **INP < 200 ms** in a timespan that presses Rate and Save.
   If either fails, the launch does not happen. Cause and fixes: `docs/phase-3-status.md`, item 5.
 
-### Google sign-in in production (added 2026-11-27, user decision)
+### Google sign-in in production (added 2026-11-27; corrected 2026-11-27)
 
-The OAuth consent screen moves from **Testing** to **In production** before the web launch,
-with the brand verified. Today (checked by the user 2026-11-27): Google Cloud project
-"Default Gemini Project" (`gen-lang-client-0014845015`), Google Auth Platform → Audience,
-Publishing status = Testing, 4 test users of a 100 limit. The alpha stays in Testing; the
-user adds each tester's Gmail to Test users (`docs/STATUS.md`, "Alfa tayyorgarligi").
+The OAuth consent screen moves from **Testing** to **In production** before the web launch.
+Today (checked by the user 2026-11-27): Google Cloud project "Default Gemini Project"
+(`gen-lang-client-0014845015`), Google Auth Platform → Audience, Publishing status = Testing,
+4 test users of a 100 limit. The alpha stays in Testing; the user adds each tester's Gmail to
+Test users (`docs/STATUS.md`, "Alfa tayyorgarligi").
 
-What Google's pages say (read 2026-11-27; sources below):
+**Brand verification is wanted, not required. Not decided.** Without it, "In production" is
+possible; the consent screen then shows only a domain, not "Movie Match" and the logo. The
+user decides by **2026-12-08**, depending on the lawyer and on the domain (below).
 
-- **How long.** The automated brand check "typically takes a few minutes"; if a manual review
-  is needed it "usually takes 2-3 business days". A compliant result is valid for **7 days**:
-  if the app is not published within them, it goes back to "Need to re-verify".
-- **Is it required?** For an app using only non-sensitive scopes (`openid`, email, profile),
-  verification is not mandatory to publish. Without it, "only your application domain will
-  be visible to users" on the consent screen; the app name and logo appear only after
-  verification. This launch requires it anyway (user decision): strangers should see
-  "Movie Match", not a bare domain.
+What the pages say (read 2026-11-27; sources below):
+
+- **Scopes.** Both apps call Supabase `signInWithOAuth` with no `scopes`
+  (`apps/web/src/lib/supabase.ts`, `apps/mobile/lib/auth/auth_client.dart`); Supabase Auth's
+  Google default is `email` and `profile` (supabase/auth `internal/api/provider/google.go`).
+  Non-sensitive: no scope verification, no user cap.
+- **Not required.** "If your app utilizes only non-sensitive scopes, it is not mandatory for your
+  app to complete the app verification process." Without it, "only your application domain will
+  be visible to users."
+- **How long, if chosen.** The automated check "typically takes a few minutes"; a manual review
+  "usually takes 2-3 business days" (Supabase: "may take a few business days"). A compliant
+  result is valid for **7 days**: not published within them, it goes back to "Need to re-verify".
 - **What is checked.** App name (no Google product names); logo (JPG/PNG/BMP, ≤ 1 MB, ideally
-  120×120); a home page on a domain you own, that describes the app and is **not only a
-  login page** (so the landing page in Build 4 comes first), with a link to the privacy
-  policy; the privacy policy on the home page's domain, the same URL as on the consent
-  screen, saying how Google user data is accessed, used, stored and shared; terms of service
-  link (home page, privacy policy and terms are "required for all external production
-  apps"); **every authorized domain verified in Google Search Console** by a project owner
-  or editor; current project contact details.
+  120×120); a home page on a verified domain, describing the app and **not only a login page**
+  (the landing page in Build 4 first), linking the privacy policy; the privacy policy on the
+  home page's domain, the same URL as on the consent screen, saying how Google user data is
+  accessed, used, stored and shared; a terms link; **every authorized domain verified in Google
+  Search Console** by a project owner or editor; current contact details.
 
-Depends on the lawyer. The privacy policy and terms are drafts waiting for the lawyer's
-review (`docs/legal-drafts/`, `docs/STATUS.md` "yurist uchun ochiq masalalar"). Brand
-verification cannot be submitted until they are published on the home page's domain, so
-the lawyer's review is on this item's critical path.
+**The domain (checked 2026-11-27; nothing bought or created).**
 
-Dates (launch 2026-12-15, a Tuesday), so a manual review and one rejection round fit:
+- `movie-match.pages.dev` can be the home page and an authorized domain in principle: `pages.dev`
+  is on the Public Suffix List (private section, Cloudflare; list version 2026-11-27), so
+  `movie-match.pages.dev` is its own "top private domain", which is what Google asks to verify.
+  Search Console verifies a URL-prefix property (`https://movie-match.pages.dev/`) with an HTML
+  file or meta tag, no DNS needed; a Domain property needs DNS, so not on pages.dev.
+  **Not confirmed:** no page says a URL-prefix verification satisfies the OAuth
+  authorized-domain check. The free way to find out: verify it in Search Console and see whether
+  Branding accepts it.
+- **The likely obstacle is the Supabase callback.** Google: authorized domains "also need to
+  include the redirect URIs" of a Web application client, and every authorized domain must be
+  verified. Our redirect URI is on `<ref>.supabase.co`; `supabase.co` is on the Public Suffix List
+  too, so `<ref>.supabase.co` would need verifying, and we cannot put a file at its root.
+  Supabase's own guide: without a custom domain "users will see `<project-id>.supabase.co`", and
+  it calls a custom domain "strongly recommended". So brand verification likely needs our own
+  domain **and** a Supabase custom domain, both paid (prices not checked). Ask before any of it.
+- Without brand verification the consent screen shows `<ref>.supabase.co`, as in the alpha today.
+
+Depends on the lawyer. The privacy policy and terms are drafts waiting for the lawyer's review
+(`docs/legal-drafts/`, `docs/STATUS.md` "yurist uchun ochiq masalalar"). Brand verification
+cannot be submitted before they are published on the home page's domain.
+
+Dates **if brand verification is chosen** (launch 2026-12-15, a Tuesday), so a manual review and
+one rejection round fit:
 
 | By | Step | Who |
 |---|---|---|
-| 2026-12-04 | Home page domain chosen and verified in Search Console; consent screen fields filled (name, logo, home page, privacy and terms URLs, authorized domains) | user |
+| 2026-12-04 | Domain settled (pages.dev accepted, or own domain + Supabase custom domain: paid, ask first); Search Console verified; consent screen fields filled | user |
 | 2026-12-07 | Privacy policy and terms published after the lawyer's review | user + lawyer |
-| 2026-12-08 | "Verify branding" pressed (2-3 business days → ~12-11; leaves 12-14 for one fix) | user |
-| within 7 days of the compliant result, before 12-15 | "Publish app" → In production | user |
+| 2026-12-08 | Decision: verify or not. If yes, "Verify branding" pressed (2-3 business days → ~12-11; leaves 12-14 for one fix) | user |
+| before 12-15, within 7 days of a compliant result | "Publish app" → In production | user |
 
-Not checked yet, check by 2026-12-04: which authorized domains Google requires for our setup,
-including the Supabase callback domain (`<ref>.supabase.co`), which we cannot verify in Search
-Console. If it is required, the fix (a Supabase custom domain) may cost money: ask first.
-
-If the brand is not verified by 2026-12-15, the launch does not happen silently: say so,
-and the user decides between waiting and launching with only the domain shown.
+Without brand verification only the last step stays: "Publish app" before 2026-12-15.
 
 Sources: https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification,
 https://support.google.com/cloud/answer/13464321, https://support.google.com/cloud/answer/13463073,
-https://support.google.com/cloud/answer/15549049, https://support.google.com/cloud/answer/15549945.
+https://support.google.com/cloud/answer/15549049, https://support.google.com/cloud/answer/15549945,
+https://support.google.com/webmasters/answer/9008080,
+https://supabase.com/docs/guides/auth/social-login/auth-google,
+https://github.com/supabase/auth/blob/master/internal/api/provider/google.go,
+https://publicsuffix.org/list/public_suffix_list.dat.
 
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
@@ -175,8 +197,8 @@ Manual checklist:
 - [ ] Film page on the live site (TZ 1.34): mobile LCP median of three runs < 2.5 s, INP
       < 200 ms; record each run, the LCP element and the build's commit
 - [ ] Privacy policy and terms live and linked
-- [ ] Google OAuth consent screen In production with the brand verified; record the
-      verification date and that the consent screen shows "Movie Match"
+- [ ] Google OAuth consent screen In production; record whether the brand was verified
+      (the user's decision, by 2026-12-08) and what the consent screen shows
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.
 
