@@ -1,6 +1,7 @@
 # Movie Match: Terms of Use
 
-DRAFT for legal review, 2026-11-23. Not in force.
+DRAFT for legal review, 2026-11-23; updated 2026-11-27 for the AI-free web launch (TZ 1.38).
+Not in force.
 
 Effective date: [____]
 
@@ -15,7 +16,7 @@ to them, and to the Privacy Policy, which explains how we use your data.
 Movie Match recommends films from your ratings. Here is what it offers:
 - It explains why a film may suit you.
 - It lets you keep a watchlist.
-- It has an assistant you can ask about films.
+- [LATER, not at launch: an assistant you can ask about films.]
 
 The service is free. [Lawyer: if paid features are ever added, add the terms for them
 before they launch.] Features can change, and some may be in test.
@@ -31,10 +32,9 @@ before they launch.] Features can change, and some may be in test.
 
 Do not:
 - try to get into other people's accounts or into our systems;
-- overload the service, scrape it, or get around its limits, such as the assistant's
-  daily cap;
-- use the assistant to produce unlawful, harmful or abusive content, or to manipulate it
-  into ignoring its rules;
+- overload the service, scrape it, or get around its limits;
+- [LATER, with the assistant: use the assistant to produce unlawful, harmful or abusive
+  content, or to manipulate it into ignoring its rules, or get around its daily cap;]
 - resell the service or its content.
 
 We may limit or close an account that breaks these rules. Where the law allows, we will
@@ -42,9 +42,10 @@ tell you first.
 
 ## 5. AI-generated content
 
-Explanations and assistant answers are written by an AI model (Google Gemini). They can
-be inaccurate or incomplete. Match percentages come from published film data and your
-ratings; they are estimates, not promises. Do not rely on the service for decisions
+At launch no AI model is called. Some explanations were written earlier by an AI model
+(Google Gemini) during the closed test and are stored; the others are sentences built
+from your taste profile by our own code. Either can be inaccurate or incomplete. Match
+levels come from published film data and your ratings; they are estimates, not promises. Do not rely on the service for decisions
 beyond choosing what to watch.
 
 ## 6. Film data and third-party content

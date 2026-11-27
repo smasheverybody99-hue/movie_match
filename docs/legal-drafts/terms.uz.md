@@ -1,6 +1,7 @@
 # Movie Match — Foydalanish shartlari
 
-Yurist ko'rigi uchun QORALAMA, 2026-11-23. Kuchga kirmagan. Asosiy matn — inglizcha
+Yurist ko'rigi uchun QORALAMA, 2026-11-23; 2026-11-27 da AI'siz web launch (TZ 1.38) bo'yicha
+yangilandi. Kuchga kirmagan. Asosiy matn — inglizcha
 (`terms.en.md`); bu uning bo'limma-bo'lim tarjimasi.
 
 Kuchga kirish sanasi: [____]
@@ -17,7 +18,7 @@ siyosati ma'lumotlaringizdan qanday foydalanishimizni tushuntiradi.
 Movie Match baholaringizga qarab film tavsiya qiladi. Xizmat:
 - film sizga nega mos kelishi mumkinligini tushuntiradi;
 - ko'rmoqchi bo'lgan filmlaringiz ro'yxatini saqlaydi;
-- filmlar haqida savol berishingiz mumkin bo'lgan assistantni taqdim etadi.
+- [KEYIN, launch'da emas: filmlar haqida savol berishingiz mumkin bo'lgan assistant.]
 
 Xizmat bepul. [Yurist: pullik funksiyalar qo'shilsa, ular ishga tushishidan oldin
 ularning shartlari ham qo'shilsin.] Funksiyalar o'zgarishi mumkin, ba'zilari sinov
@@ -36,9 +37,10 @@ bosqichida bo'lishi mumkin.
 Quyidagilar taqiqlanadi:
 - boshqalarning akkauntiga yoki tizimlarimizga kirishga urinish;
 - xizmatni ortiqcha yuklash, undan ma'lumotlarni avtomatik yig'ib olish yoki
-  cheklovlarini (masalan, assistantning kunlik limitini) chetlab o'tish;
-- assistantdan noqonuniy, zararli yoki haqoratli matn olish uchun foydalanish, yoki uni
-  o'z qoidalarini buzishga undash;
+  cheklovlarini chetlab o'tish;
+- [KEYIN, assistant bilan: assistantdan noqonuniy, zararli yoki haqoratli matn olish
+  uchun foydalanish, uni o'z qoidalarini buzishga undash yoki kunlik limitini chetlab
+  o'tish;]
 - xizmatni yoki uning kontentini qayta sotish.
 
 Bu qoidalarni buzgan akkauntni cheklashimiz yoki yopishimiz mumkin. Qonun yo'l qo'ygan
@@ -46,9 +48,11 @@ hollarda bundan oldin sizga xabar beramiz.
 
 ## 5. AI yozgan kontent
 
-Izohlar va assistant javoblarini sun'iy intellekt modeli (Google Gemini) yozadi. Ular
-noto'g'ri yoki to'liq bo'lmasligi mumkin. Moslik foizi film haqidagi ochiq ma'lumot va
-baholaringizdan hisoblanadi: bu taxmin, va'da emas. Nima ko'rishni tanlashdan boshqa
+Launch'da hech qanday AI modeli chaqirilmaydi. Ba'zi izohlarni yopiq sinov davrida sun'iy
+intellekt modeli (Google Gemini) yozgan va ular saqlangan; qolganlari — o'z kodimiz ta'm
+profilingizdan tuzgan jumlalar. Ikkalasi ham noto'g'ri yoki to'liq bo'lmasligi mumkin.
+Moslik darajasi film haqidagi ochiq ma'lumot va baholaringizdan hisoblanadi: bu taxmin,
+va'da emas. Nima ko'rishni tanlashdan boshqa
 qarorlar uchun xizmatga tayanmang.
 
 ## 6. Film ma'lumotlari va uchinchi tomon kontenti
