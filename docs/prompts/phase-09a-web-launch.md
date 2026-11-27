@@ -60,9 +60,12 @@ Today (checked by the user 2026-11-27): Google Cloud project "Default Gemini Pro
 4 test users of a 100 limit. The alpha stays in Testing; the user adds each tester's Gmail to
 Test users (`docs/STATUS.md`, "Alfa tayyorgarligi").
 
-**Brand verification is wanted, not required. Not decided.** Without it, "In production" is
-possible; the consent screen then shows only a domain, not "Movie Match" and the logo. The
-user decides by **2026-12-08**, depending on the lawyer and on the domain (below).
+**Decision (user, 2026-11-27): no brand verification for the web launch — there is no
+money for it.** Before 2026-12-15 the only step is "Publish app" → In production. The consent
+screen then shows `<ref>.supabase.co`, not "Movie Match" and the logo, as in the alpha today;
+this is accepted. Brand verification (our own domain + a Supabase custom domain) is
+**backlog**: when money is found, check the prices at that time and ask the user before
+buying or starting anything. The notes below stay for that day.
 
 What the pages say (read 2026-11-27; sources below):
 
@@ -102,21 +105,22 @@ What the pages say (read 2026-11-27; sources below):
   domain **and** a Supabase custom domain, both paid (prices not checked). Ask before any of it.
 - Without brand verification the consent screen shows `<ref>.supabase.co`, as in the alpha today.
 
-Depends on the lawyer. The privacy policy and terms are drafts waiting for the lawyer's review
-(`docs/legal-drafts/`, `docs/STATUS.md` "yurist uchun ochiq masalalar"). Brand verification
-cannot be submitted before they are published on the home page's domain.
+If brand verification is done later, it depends on the lawyer too: it cannot be submitted
+before the privacy policy and terms (drafts waiting for the lawyer's review, `docs/legal-drafts/`,
+`docs/STATUS.md` "yurist uchun ochiq masalalar") are published on the home page's domain.
 
-Dates **if brand verification is chosen** (launch 2026-12-15, a Tuesday), so a manual review and
-one rejection round fit:
+**Backlog — not for this launch (user, 2026-11-27).** The dates worked out on 2026-11-27 for
+the case where brand verification was chosen before a 2026-12-15 launch, kept only as a
+template for when money is found (re-date them then):
 
-| By | Step | Who |
+| By (backlog) | Step | Who |
 |---|---|---|
-| 2026-12-04 | Domain settled (pages.dev accepted, or own domain + Supabase custom domain: paid, ask first); Search Console verified; consent screen fields filled | user |
-| 2026-12-07 | Privacy policy and terms published after the lawyer's review | user + lawyer |
-| 2026-12-08 | Decision: verify or not. If yes, "Verify branding" pressed (2-3 business days → ~12-11; leaves 12-14 for one fix) | user |
-| before 12-15, within 7 days of a compliant result | "Publish app" → In production | user |
+| ~~2026-12-04~~ backlog | Domain settled (own domain + Supabase custom domain: paid, check prices then, ask first); Search Console verified; consent screen fields filled | user |
+| ~~2026-12-07~~ backlog | Privacy policy and terms published after the lawyer's review | user + lawyer |
+| ~~2026-12-08~~ backlog | "Verify branding" pressed (2-3 business days, room for one fix) | user |
+| within 7 days of a compliant result | Brand shows on the consent screen (the app is already In production) | user |
 
-Without brand verification only the last step stays: "Publish app" before 2026-12-15.
+**For this launch only one step: "Publish app" → In production, before 2026-12-15** (user).
 
 Sources: https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification,
 https://support.google.com/cloud/answer/13464321, https://support.google.com/cloud/answer/13463073,
@@ -197,8 +201,9 @@ Manual checklist:
 - [ ] Film page on the live site (TZ 1.34): mobile LCP median of three runs < 2.5 s, INP
       < 200 ms; record each run, the LCP element and the build's commit
 - [ ] Privacy policy and terms live and linked
-- [ ] Google OAuth consent screen In production; record whether the brand was verified
-      (the user's decision, by 2026-12-08) and what the consent screen shows
+- [ ] Google OAuth In production ("Publish app", before 2026-12-15); record what the consent
+      screen shows (`<ref>.supabase.co` expected and accepted). Brand verification — backlog
+      (user, 2026-11-27: no money; own domain + Supabase custom domain, ask first)
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.
 

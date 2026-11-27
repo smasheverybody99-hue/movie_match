@@ -1,7 +1,8 @@
 # Phase 6 — status
 
-Last updated: 2026-11-24 · Phase: **6 (Android app), screens done, on `f6-mobile`** · the
-user's phone test passed 2026-11-24 · merge into `main` approved by the user 2026-11-24
+Last updated: 2026-11-27 · Phase: **6 (Android app), screens done, merged into `main`
+(`d708751`, reconnect fix `fa16b7a`)** · the user's phone test passed 2026-11-24 · the ~7 s
+after reconnecting fixed (airplane-mode retest, 2026-11-27)
 
 Phase prompt: `docs/prompts/phase-06-mobile.md`. Android first (TZ 1.30); the alpha testers
 get the app as an APK from CI, without Google Play (TZ 1.37). Offline reading and push come
@@ -77,7 +78,7 @@ Samsung Galaxy S9 (SM-G960F), Android 10 (API 29), One UI 2.5, security patch
 | 7 | Movie DNA and Share | ✅ |
 | 8 | Watchlist swipe | ✅ |
 | 9 | Language switch | ✅ |
-| 10 | Airplane mode | No crash; **after the network came back, ~7 s without a response** (below, "Known limits") |
+| 10 | Airplane mode | No crash; **after the network came back, ~7 s without a response** (below, "Known limits"). **Retest 2026-11-27** (user), android run 19 APK (`fa16b7a`), same phone: no delay noticed after the network came back — fixed |
 | 11 | Cold start, release build | Normal, no noticeable wait (not timed) |
 | — | Google sign-in | ✅ once the redirect URL was added to the main Supabase project (`docs/setup-android.md`, "Muammo bo'lsa: kirish") |
 
@@ -88,8 +89,10 @@ Samsung Galaxy S9 (SM-G960F), Android 10 (API 29), One UI 2.5, security patch
 - [ ] At least 4 real devices — **one so far** (Galaxy S9).
 - [ ] Cold start under 2 s on the slowest device — "normal" on the S9, not timed.
 - [x] Complete onboarding on a phone — done, not timed.
-- [ ] Airplane mode: browse cached content, come back online — no crash; cached browsing
-      waits for offline reading (after 2026-12-08); the ~7 s after reconnecting is open.
+- [ ] Airplane mode: browse cached content, come back online — no crash; **coming back
+      online: closed** (the ~7 s after reconnecting is fixed, user's retest 2026-11-27,
+      android run 19, Galaxy S9: no delay noticed; not timed); cached browsing waits for
+      offline reading (after 2026-12-08), so the item as a whole stays open.
 - [ ] A tester installs the APK from `docs/testers-android.md` without help.
 
 ## Where mobile diverges from the web
@@ -103,16 +106,21 @@ and the TMDB link go through Android. The parity table itself is in the v1 desig
 
 ## Known limits
 
-- **~7 s after the network returns** (phone test, item 10). Likely cause, not confirmed
+- ~~**~7 s after the network returns**~~ — **fixed** (user's airplane-mode retest
+  2026-11-27, android run 19 APK, Galaxy S9: no delay noticed after the network came back;
+  the hypothesis below is confirmed by that result, not by a network log or a timing).
+  History (phone test, item 10). Likely cause, not confirmed
   with the phone's network log: the first request after the radio returns loses its
   connection packets while the data path settles, and the system's connect retries (1 s,
   then 2, then 4: ~7 s) ran inside the 15 s connect timeout. Fix on `mobile-reconnect`
   (`32fd246`): connect timeout 5 s, and a GET whose connection failed or timed out is sent
-  once more; POST / DELETE never. Android run 18 green; the merge waits for the user.
-  Check on the phone: airplane mode on, then off, then pull to refresh on Home.
+  once more; POST / DELETE never. Android run 18 green; merged into `main` `fa16b7a`
+  (gate 175, android run 19). Check on the phone: airplane mode on, then off, then pull to
+  refresh on Home — done 2026-11-27, passed.
 
 Merged into `main` 2026-11-24: `d708751` (gate 172, android run 17 release, `/health` →
-`d708751`). The APK for the alpha testers: android run 17, artifact
-`movie-match-d7087513f9b5c2d09cc599a28ad7d7b4e13b9e82` (until 2026-12-08).
+`d708751`), then the reconnect fix `fa16b7a` (gate 175, android run 19). The APK for the
+alpha testers: android run 19, artifact `movie-match-fa16b7aca02c720d9d44ac6417fca001b9198e6e`
+(until 2026-12-08; replaces run 17's).
 - Offline reading (Isar) and push (FCM): after 2026-12-08.
 - Store metadata and the Play closed test: Phase 9b.
