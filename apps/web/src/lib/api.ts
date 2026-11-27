@@ -4,6 +4,7 @@ import type {
   AssistantEvent,
   AssistantLimit,
   ClientEvent,
+  DataExport,
   Explanation,
   FeedbackIn,
   Lang,
@@ -217,6 +218,7 @@ export const api = {
   me: () => request<Me>("/me"),
   dna: () => request<MovieDna>("/me/dna"),
   deleteAccount: () => request<void>("/me", { method: "DELETE" }),
+  exportData: () => request<DataExport>("/me/export"),
   acceptDataNotice: () => request<void>("/me/data-notice", { method: "POST" }),
 
   onboardingFilms: (limit: number, offset: number) =>

@@ -139,6 +139,20 @@ export interface Me {
   assistant_enabled?: boolean;
 }
 
+/** GET /me/export — mirrors DataExportOut: everything the app holds for the caller. */
+export interface DataExport {
+  /** e.g. "movie-match-export/1" */
+  format: string;
+  exported_at: string;
+  user_id: string;
+  /** The sign-in record (email, created_at, last_sign_in_at); null when there is none. */
+  account: Record<string, unknown> | null;
+  /** Every table holding the caller's rows, by table name; empty lists included. */
+  tables: Record<string, Record<string, unknown>[]>;
+  /** Titles of the films the rows mention, by id. */
+  movies: Record<string, string>;
+}
+
 export interface RatingIn {
   movie_id: number;
   /** 0.5 .. 10.0 */

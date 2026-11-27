@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import Settings, get_settings
 from app.db import get_session
 from app.deps import current_user
-from app.schemas import MeOut, MovieDnaOut
-from app.services import movies, users
+from app.schemas import DataExportOut, MeOut, MovieDnaOut
+from app.services import export, movies, users
 from app.services.recommend import MIN_RATINGS
 
 router = APIRouter(prefix="/me", tags=["me"])
@@ -61,6 +61,25 @@ async def get_dna(
         ratings_needed=max(MIN_RATINGS - dna.rating_count, 0),
         average_rating=dna.average_rating,
         top_genre=dna.top_genre,
+    )
+
+
+@router.get("/export", response_model=DataExportOut)
+async def export_me(
+    response: Response,
+    user_id: uuid.UUID = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> DataExportOut:
+    """Everything the app holds for the caller, as one JSON document (docs/legal.md §3)."""
+    data = await export.export_user(session, user_id)
+    response.headers["Cache-Control"] = "no-store"
+    return DataExportOut(
+        format=data.format,
+        exported_at=data.exported_at,
+        user_id=data.user_id,
+        account=data.account,
+        tables=data.tables,
+        movies=data.movies,
     )
 
 

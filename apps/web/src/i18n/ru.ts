@@ -272,6 +272,8 @@ export const ru: Record<MessageKey, Message> = {
     "Все ваши оценки, список «Хочу посмотреть» и профиль Movie DNA будут удалены. Это нельзя отменить.",
   "profile.deleteYes": "Да, удалить",
   "profile.deleteError": "Не удалось удалить аккаунт. Попробуйте снова.",
+  "profile.export": "Скачать мои данные",
+  "profile.exportError": "Не удалось подготовить данные. Попробуйте снова.",
   "lang.en": "English",
   "lang.uz": "O'zbek",
   "lang.ru": "Русский",

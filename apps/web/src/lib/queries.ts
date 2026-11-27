@@ -231,6 +231,11 @@ export function useAcceptDataNotice() {
   });
 }
 
+/** GET /me/export, on demand: a mutation, so nothing is fetched until the user asks. */
+export function useExportData() {
+  return useMutation({ mutationFn: api.exportData });
+}
+
 export function useDeleteAccount() {
   const client = useQueryClient();
   return useMutation({

@@ -298,3 +298,14 @@ describe("the alpha's data notice (ADR 0004, free-tier exception)", () => {
     expect(translate("en", "notice.decline")).toBe("I don't agree — sign out");
   });
 });
+
+describe("downloading your data (Phase 9a, docs/legal.md §3)", () => {
+  // Written 2026-11-27 for the export (legal item 5: "export must actually work"); the
+  // user has not reviewed the wording yet. Profile, between Sign out and Delete account.
+  it("names the button plainly and says when it failed", () => {
+    expect(translate("en", "profile.export")).toBe("Download my data");
+    expect(translate("uz", "profile.export")).toBe("Ma'lumotlarimni yuklab olish");
+    expect(translate("ru", "profile.export")).toBe("Скачать мои данные");
+    expect(translate("en", "profile.exportError")).toBe("Couldn't prepare your data. Try again.");
+  });
+});

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -143,6 +143,21 @@ class MeOut(BaseModel):
     assistant_enabled: bool = Field(
         default=True, description="The clients offer the assistant (setting ASSISTANT_ENABLED)"
     )
+
+
+class DataExportOut(BaseModel):
+    """Everything the app holds for the caller (GET /me/export, docs/legal.md §3)."""
+
+    format: str = Field(description="Export format and version, e.g. movie-match-export/1")
+    exported_at: datetime
+    user_id: uuid.UUID
+    account: dict[str, Any] | None = Field(
+        description="The sign-in record: email, created_at, last_sign_in_at; null if none"
+    )
+    tables: dict[str, list[dict[str, Any]]] = Field(
+        description="Every table holding the caller's rows, by table name; empty lists included"
+    )
+    movies: dict[str, str] = Field(description="Titles of the films the rows mention, by id")
 
 
 class RatingIn(BaseModel):

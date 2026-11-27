@@ -455,6 +455,7 @@ To'liq shartnoma — `services/api/app/schemas.py` va `/docs` (OpenAPI).
 | GET | `/me` | Akkaunt xulosasi | ha |
 | DELETE | `/me` | Akkaunt ma'lumotini o'chirish | ha |
 | GET | `/me/dna` | Movie DNA: ta'm vektori, statistika | ha |
+| GET | `/me/export` | Foydalanuvchining hamma ma'lumoti bitta JSON faylda (`users` ga bog'langan har jadval, kirish yozuvi, film nomlari); `Cache-Control: no-store` (F9a, `docs/legal.md` §3) | ha |
 | POST | `/assistant/chat` | Assistant (SSE oqim) | ha |
 | GET | `/character/match` | Character Match | ha |
 

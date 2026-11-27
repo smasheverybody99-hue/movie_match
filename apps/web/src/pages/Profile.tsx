@@ -5,7 +5,8 @@ import { Dialog, DialogCancel } from "../components/Dialog";
 import { FieldError } from "../components/FieldError";
 import { LANGS, useI18n, useT } from "../i18n";
 import { useAuth } from "../lib/auth";
-import { useDeleteAccount } from "../lib/queries";
+import { exportFileName, saveJson } from "../lib/download";
+import { useDeleteAccount, useExportData } from "../lib/queries";
 
 /** TMDB attribution: required on the free tier from the day the app is public (docs/legal.md). */
 export function About() {
@@ -41,13 +42,14 @@ export function AboutPage() {
   );
 }
 
-/** /profile — language, sign out, delete account, about. */
+/** /profile — language, sign out, download my data, delete account, about. */
 export default function Profile() {
   const t = useT();
   const { lang, setLang } = useI18n();
   const auth = useAuth();
   const navigate = useNavigate();
   const remove = useDeleteAccount();
+  const exportData = useExportData();
   const [confirming, setConfirming] = useState(false);
 
   async function signOut() {
@@ -82,6 +84,19 @@ export default function Profile() {
         <button type="button" className="btn btn-secondary" onClick={() => void signOut()}>
           {t("profile.signOut")}
         </button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={exportData.isPending}
+          onClick={() =>
+            exportData.mutate(undefined, {
+              onSuccess: (data) => saveJson(data, exportFileName(new Date())),
+            })
+          }
+        >
+          {t("profile.export")}
+        </button>
+        {exportData.isError && <FieldError>{t("profile.exportError")}</FieldError>}
         <button type="button" className="btn btn-ghost" onClick={() => setConfirming(true)}>
           {t("profile.delete")}
         </button>

@@ -268,6 +268,8 @@ export const en = {
     "All your ratings, your watchlist and your Movie DNA will be deleted. This can't be undone.",
   "profile.deleteYes": "Yes, delete",
   "profile.deleteError": "Couldn't delete the account. Try again.",
+  "profile.export": "Download my data",
+  "profile.exportError": "Couldn't prepare your data. Try again.",
   // Each language is named in itself, the same in every dictionary; menu order: en, uz, ru.
   "lang.en": "English",
   "lang.uz": "O'zbek",

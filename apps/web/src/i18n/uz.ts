@@ -252,6 +252,8 @@ export const uz: Record<MessageKey, Message> = {
     "Barcha baholaringiz, watchlist va Movie DNA o'chiriladi. Buni qaytarib bo'lmaydi.",
   "profile.deleteYes": "Ha, o'chirish",
   "profile.deleteError": "Akkauntni o'chirib bo'lmadi. Qayta urining.",
+  "profile.export": "Ma'lumotlarimni yuklab olish",
+  "profile.exportError": "Ma'lumotlaringizni tayyorlab bo'lmadi. Qayta urining.",
   "lang.en": "English",
   "lang.uz": "O'zbek",
   "lang.ru": "Русский",

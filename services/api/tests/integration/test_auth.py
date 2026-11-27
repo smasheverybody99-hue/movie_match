@@ -31,6 +31,7 @@ PROTECTED = [
     ("POST", f"/watchlist/{FILM}/watched", None),
     ("GET", "/me", None),
     ("GET", "/me/dna", None),
+    ("GET", "/me/export", None),
     ("DELETE", "/me", None),
     ("GET", "/recommendations", None),
     ("GET", f"/recommendations/{FILM}/explanation", None),
