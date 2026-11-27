@@ -52,6 +52,58 @@ Three more preconditions, all required:
   three runs: **LCP < 2.5 s**, and **INP < 200 ms** in a timespan that presses Rate and Save.
   If either fails, the launch does not happen. Cause and fixes: `docs/phase-3-status.md`, item 5.
 
+### Google sign-in in production (added 2026-11-27, user decision)
+
+The OAuth consent screen moves from **Testing** to **In production** before the web launch,
+with the brand verified. Today (checked by the user 2026-11-27): Google Cloud project
+"Default Gemini Project" (`gen-lang-client-0014845015`), Google Auth Platform → Audience,
+Publishing status = Testing, 4 test users of a 100 limit. The alpha stays in Testing; the
+user adds each tester's Gmail to Test users (`docs/STATUS.md`, "Alfa tayyorgarligi").
+
+What Google's pages say (read 2026-11-27; sources below):
+
+- **How long.** The automated brand check "typically takes a few minutes"; if a manual review
+  is needed it "usually takes 2-3 business days". A compliant result is valid for **7 days**:
+  if the app is not published within them, it goes back to "Need to re-verify".
+- **Is it required?** For an app using only non-sensitive scopes (`openid`, email, profile),
+  verification is not mandatory to publish. Without it, "only your application domain will
+  be visible to users" on the consent screen; the app name and logo appear only after
+  verification. This launch requires it anyway (user decision): strangers should see
+  "Movie Match", not a bare domain.
+- **What is checked.** App name (no Google product names); logo (JPG/PNG/BMP, ≤ 1 MB, ideally
+  120×120); a home page on a domain you own, that describes the app and is **not only a
+  login page** (so the landing page in Build 4 comes first), with a link to the privacy
+  policy; the privacy policy on the home page's domain, the same URL as on the consent
+  screen, saying how Google user data is accessed, used, stored and shared; terms of service
+  link (home page, privacy policy and terms are "required for all external production
+  apps"); **every authorized domain verified in Google Search Console** by a project owner
+  or editor; current project contact details.
+
+Depends on the lawyer. The privacy policy and terms are drafts waiting for the lawyer's
+review (`docs/legal-drafts/`, `docs/STATUS.md` "yurist uchun ochiq masalalar"). Brand
+verification cannot be submitted until they are published on the home page's domain, so
+the lawyer's review is on this item's critical path.
+
+Dates (launch 2026-12-15, a Tuesday), so a manual review and one rejection round fit:
+
+| By | Step | Who |
+|---|---|---|
+| 2026-12-04 | Home page domain chosen and verified in Search Console; consent screen fields filled (name, logo, home page, privacy and terms URLs, authorized domains) | user |
+| 2026-12-07 | Privacy policy and terms published after the lawyer's review | user + lawyer |
+| 2026-12-08 | "Verify branding" pressed (2-3 business days → ~12-11; leaves 12-14 for one fix) | user |
+| within 7 days of the compliant result, before 12-15 | "Publish app" → In production | user |
+
+Not checked yet, check by 2026-12-04: which authorized domains Google requires for our setup,
+including the Supabase callback domain (`<ref>.supabase.co`), which we cannot verify in Search
+Console. If it is required, the fix (a Supabase custom domain) may cost money: ask first.
+
+If the brand is not verified by 2026-12-15, the launch does not happen silently: say so,
+and the user decides between waiting and launching with only the domain shown.
+
+Sources: https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification,
+https://support.google.com/cloud/answer/13464321, https://support.google.com/cloud/answer/13463073,
+https://support.google.com/cloud/answer/15549049, https://support.google.com/cloud/answer/15549945.
+
 No new features this phase. Everything here is about being safe to put in front of
 strangers.
 
@@ -123,6 +175,8 @@ Manual checklist:
 - [ ] Film page on the live site (TZ 1.34): mobile LCP median of three runs < 2.5 s, INP
       < 200 ms; record each run, the LCP element and the build's commit
 - [ ] Privacy policy and terms live and linked
+- [ ] Google OAuth consent screen In production with the brand verified; record the
+      verification date and that the consent screen shows "Movie Match"
 - [ ] A real person who has never seen the app completes sign-up unaided while you watch,
       saying nothing. Report where they hesitated.
 
